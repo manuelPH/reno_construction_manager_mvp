@@ -54,7 +54,9 @@ export function RenoHomeTasks({ checks, visits, onPropertyClick }: RenoHomeTasks
 
   // Determine stage based on property ID or currentStage
   const getPropertyStage = (property: Property): RenoKanbanPhase => {
-    if (["4463801", "4463802", "4463803"].includes(property.id)) {
+    if (["4463793", "4463794", "4463795", "4463796", "4463797", "4463798", "4463799", "4463800"].includes(property.id)) {
+      return "upcoming-settlements";
+    } else if (["4463801", "4463802", "4463803"].includes(property.id)) {
       return "initial-check";
     } else if (["4463804", "4463805"].includes(property.id)) {
       return "upcoming";
