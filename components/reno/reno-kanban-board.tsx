@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect, startTransition, useRef, useCallback } fr
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { RenoKanbanColumn } from "./reno-kanban-column";
-import { getAllProperties, Property, saveProperty } from "@/lib/property-storage";
+import { getAllProperties, Property, saveProperty, updateProperty } from "@/lib/property-storage";
 import { calculateOverallProgress } from "@/lib/property-validation";
 import { useI18n } from "@/lib/i18n";
 import { renoKanbanColumns, RenoKanbanPhase } from "@/lib/reno-kanban-config";
@@ -32,6 +32,9 @@ function createDummyRenoProperty(
     region?: string;
     renoType?: string;
     renovador?: string;
+    realSettlementDate?: string;
+    estimatedVisitDate?: string;
+    setupStatusNotes?: string;
   }
 ): Property {
   const now = new Date();
@@ -56,11 +59,72 @@ function createDummyRenoProperty(
     region: options?.region,
     renoType: options?.renoType,
     renovador: options?.renovador,
+    realSettlementDate: options?.realSettlementDate,
+    estimatedVisitDate: options?.estimatedVisitDate,
+    setupStatusNotes: options?.setupStatusNotes,
   };
 }
 
 // Dummy data for Reno Construction Manager Kanban
 const renoDummyProperties: Record<RenoKanbanPhase, Array<Property>> = {
+  "upcoming-settlements": [
+    createDummyRenoProperty("4463798", "Calle Gran Vía 123, 08013 - Barcelona", 350000, "upcoming-settlements", {
+      timeInStage: "1 día",
+      timeCreated: "2 días",
+      region: "Vega Baja",
+      renoType: "Light Reno",
+      renovador: "LyR",
+    }),
+    createDummyRenoProperty("4463799", "Avenida Paral·lel 456, 08004 - Barcelona", 290000, "upcoming-settlements", {
+      timeInStage: "3 días",
+      timeCreated: "5 días",
+      region: "Vega Baja",
+      renoType: "Light Reno",
+      renovador: "LyR",
+    }),
+    createDummyRenoProperty("4463800", "Calle Provença 789, 08029 - Barcelona", 410000, "upcoming-settlements", {
+      timeInStage: "2 días",
+      timeCreated: "4 días",
+      region: "Vega Baja",
+      renoType: "Light Reno",
+      renovador: "LyR",
+    }),
+    createDummyRenoProperty("4463795", "Calle Muntaner 234, 08021 - Barcelona", 380000, "upcoming-settlements", {
+      timeInStage: "5 días",
+      timeCreated: "8 días",
+      region: "Vega Baja",
+      renoType: "Medium Reno",
+      renovador: "LyR",
+    }),
+    createDummyRenoProperty("4463796", "Passeig de Gràcia 92, 08008 - Barcelona", 520000, "upcoming-settlements", {
+      timeInStage: "4 días",
+      timeCreated: "7 días",
+      region: "Vega Baja",
+      renoType: "Light Reno",
+      renovador: "LyR",
+    }),
+    createDummyRenoProperty("4463797", "Calle Balmes 189, 08006 - Barcelona", 450000, "upcoming-settlements", {
+      timeInStage: "6 días",
+      timeCreated: "10 días",
+      region: "Vega Baja",
+      renoType: "Light Reno",
+      renovador: "LyR",
+    }),
+    createDummyRenoProperty("4463794", "Avenida Diagonal 456, 08008 - Barcelona", 480000, "upcoming-settlements", {
+      timeInStage: "2 días",
+      timeCreated: "3 días",
+      region: "Vega Baja",
+      renoType: "Medium Reno",
+      renovador: "LyR",
+    }),
+    createDummyRenoProperty("4463793", "Calle Diputació 345, 08013 - Barcelona", 320000, "upcoming-settlements", {
+      timeInStage: "7 días",
+      timeCreated: "12 días",
+      region: "Vega Baja",
+      renoType: "Light Reno",
+      renovador: "LyR",
+    }),
+  ],
   "initial-check": [
     createDummyRenoProperty("4463801", "Calle Valencia 45, 08015 - Barcelona", 320000, "initial-check", {
       timeInStage: "2 días",
@@ -71,6 +135,8 @@ const renoDummyProperties: Record<RenoKanbanPhase, Array<Property>> = {
       renovador: "LyR",
       inicio: "2025-10-29",
       finEst: "2025-11-19",
+      realSettlementDate: "2025-11-15", // Real settlement date
+      estimatedVisitDate: "2025-11-20", // Inherited from previous phase
     }),
     createDummyRenoProperty("4463802", "Avenida Meridiana 234, 08027 - Barcelona", 280000, "initial-check", {
       timeInStage: "1 día",
@@ -79,6 +145,8 @@ const renoDummyProperties: Record<RenoKanbanPhase, Array<Property>> = {
       region: "Vega Baja",
       renoType: "Light Reno",
       renovador: "LyR",
+      realSettlementDate: "2025-11-10",
+      estimatedVisitDate: "2025-11-18",
     }),
     createDummyRenoProperty("4463803", "Calle Mallorca 89, 08009 - Barcelona", 450000, "initial-check", {
       timeInStage: "3 días",
@@ -87,6 +155,8 @@ const renoDummyProperties: Record<RenoKanbanPhase, Array<Property>> = {
       region: "Vega Baja",
       renoType: "Light Reno",
       renovador: "LyR",
+      realSettlementDate: "2025-11-08",
+      estimatedVisitDate: "2025-11-22",
     }),
   ],
   "upcoming": [
@@ -245,6 +315,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
   // For now, map partner properties to reno phases (simulation)
   const transformProperties = useMemo(() => {
     const transformed: Record<RenoKanbanPhase, Property[]> = {
+      "upcoming-settlements": [],
       "initial-check": [],
       "upcoming": [],
       "reno-in-progress": [],
@@ -256,7 +327,8 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
 
     // Filter out dummy properties (they're already in organizedByPhase)
     const realOnlyProperties = realProperties.filter(p => 
-      !["4463801", "4463802", "4463803", "4463804", "4463805", "4463806", "4463807", "4463808",
+      !["4463793", "4463794", "4463795", "4463796", "4463797", "4463798", "4463799", "4463800",
+        "4463801", "4463802", "4463803", "4463804", "4463805", "4463806", "4463807", "4463808",
         "4463809", "4463810", "4463811", "4463812", "4463813", "4463814"].includes(p.id)
     );
 
@@ -284,21 +356,42 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
   useEffect(() => {
     const existingProps = getAllProperties();
     const dummyIds = [
+      "4463793", "4463794", "4463795", "4463796", "4463797", "4463798", "4463799", "4463800",
       "4463801", "4463802", "4463803", "4463804", "4463805", "4463806", "4463807", "4463808",
       "4463809", "4463810", "4463811", "4463812", "4463813", "4463814"
     ];
     
-    const hasDummies = dummyIds.some(id => existingProps.some(p => p.id === id));
-    
-    if (!hasDummies) {
-      // Save dummy properties to localStorage
-      Object.values(renoDummyProperties).flat().forEach(prop => {
-        const exists = existingProps.some(p => p.id === prop.id);
-        if (!exists) {
-          saveProperty(prop);
+    // Save or update dummy properties to localStorage
+    Object.values(renoDummyProperties).flat().forEach(prop => {
+      const existing = existingProps.find(p => p.id === prop.id);
+      if (!existing) {
+        // Property doesn't exist, save it
+        saveProperty(prop);
+      } else {
+        // Property exists, update it with new fields from dummy data
+        const updates: Partial<Property> = {};
+        
+        // Update realSettlementDate if dummy has it and existing doesn't
+        if (prop.realSettlementDate && !existing.realSettlementDate) {
+          updates.realSettlementDate = prop.realSettlementDate;
         }
-      });
-    }
+        
+        // Update estimatedVisitDate if dummy has it and existing doesn't
+        if (prop.estimatedVisitDate && !existing.estimatedVisitDate) {
+          updates.estimatedVisitDate = prop.estimatedVisitDate;
+        }
+        
+        // Update setupStatusNotes if dummy has it and existing doesn't
+        if (prop.setupStatusNotes !== undefined && existing.setupStatusNotes === undefined) {
+          updates.setupStatusNotes = prop.setupStatusNotes;
+        }
+        
+        // Only update if there are changes
+        if (Object.keys(updates).length > 0) {
+          updateProperty(prop.id, updates);
+        }
+      }
+    });
   }, []);
 
   // Combine real properties with dummy data - now return Property objects directly
@@ -308,6 +401,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
     if (!isMounted) {
       // Return dummy data structure for SSR - this ensures server and client render the same initially
       const organizedByPhase: Record<RenoKanbanPhase, Property[]> = {
+        "upcoming-settlements": renoDummyProperties["upcoming-settlements"],
         "initial-check": renoDummyProperties["initial-check"],
         "upcoming": renoDummyProperties["upcoming"],
         "reno-in-progress": renoDummyProperties["reno-in-progress"],
@@ -319,6 +413,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
       
       // Sort each column: expired first
       const sorted: Record<RenoKanbanPhase, Property[]> = {
+        "upcoming-settlements": sortPropertiesByExpired(organizedByPhase["upcoming-settlements"]),
         "initial-check": sortPropertiesByExpired(organizedByPhase["initial-check"]),
         "upcoming": sortPropertiesByExpired(organizedByPhase["upcoming"]),
         "reno-in-progress": sortPropertiesByExpired(organizedByPhase["reno-in-progress"]),
@@ -334,11 +429,13 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
     // Get all dummy properties from storage (client-side only)
     const allStoredProps = getAllProperties();
     const dummyProps = allStoredProps.filter(p => 
-      ["4463801", "4463802", "4463803", "4463804", "4463805", "4463806", "4463807", "4463808",
+      ["4463793", "4463794", "4463795", "4463796", "4463797", "4463798", "4463799", "4463800",
+       "4463801", "4463802", "4463803", "4463804", "4463805", "4463806", "4463807", "4463808",
        "4463809", "4463810", "4463811", "4463812", "4463813", "4463814"].includes(p.id)
     );
 
     const organizedByPhase: Record<RenoKanbanPhase, Property[]> = {
+      "upcoming-settlements": dummyProps.filter(p => ["4463793", "4463794", "4463795", "4463796", "4463797", "4463798", "4463799", "4463800"].includes(p.id)),
       "initial-check": dummyProps.filter(p => ["4463801", "4463802", "4463803"].includes(p.id)),
       "upcoming": dummyProps.filter(p => ["4463804", "4463805"].includes(p.id)),
       "reno-in-progress": dummyProps.filter(p => ["4463806", "4463807", "4463808"].includes(p.id)),
@@ -350,6 +447,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
 
     // Combine transformed real properties with dummy properties
     const combined: Record<RenoKanbanPhase, Property[]> = {
+      "upcoming-settlements": [...(transformProperties["upcoming-settlements"] || []), ...organizedByPhase["upcoming-settlements"]],
       "initial-check": [...(transformProperties["initial-check"] || []), ...organizedByPhase["initial-check"]],
       "upcoming": [...(transformProperties["upcoming"] || []), ...organizedByPhase["upcoming"]],
       "reno-in-progress": [...(transformProperties["reno-in-progress"] || []), ...organizedByPhase["reno-in-progress"]],
@@ -361,6 +459,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
     
     // Sort each column: expired first
     const sorted: Record<RenoKanbanPhase, Property[]> = {
+      "upcoming-settlements": sortPropertiesByExpired(combined["upcoming-settlements"]),
       "initial-check": sortPropertiesByExpired(combined["initial-check"]),
       "upcoming": sortPropertiesByExpired(combined["upcoming"]),
       "reno-in-progress": sortPropertiesByExpired(combined["reno-in-progress"]),
@@ -404,6 +503,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
     };
 
     const filtered: typeof allProperties = {
+      "upcoming-settlements": allProperties["upcoming-settlements"].filter(matchesQuery),
       "initial-check": allProperties["initial-check"].filter(matchesQuery),
       "upcoming": allProperties["upcoming"].filter(matchesQuery),
       "reno-in-progress": allProperties["reno-in-progress"].filter(matchesQuery),
@@ -415,6 +515,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
 
     // Sort each column: expired first (even after filtering)
     const sorted: typeof filtered = {
+      "upcoming-settlements": sortPropertiesByExpired(filtered["upcoming-settlements"]),
       "initial-check": sortPropertiesByExpired(filtered["initial-check"]),
       "upcoming": sortPropertiesByExpired(filtered["upcoming"]),
       "reno-in-progress": sortPropertiesByExpired(filtered["reno-in-progress"]),

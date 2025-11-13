@@ -2,6 +2,7 @@
  * Configuration for Reno Construction Manager Kanban phases
  */
 export type RenoKanbanPhase = 
+  | "upcoming-settlements"
   | "initial-check"
   | "upcoming"
   | "reno-in-progress"
@@ -14,6 +15,7 @@ export interface RenoKanbanColumn {
   key: RenoKanbanPhase;
   stage: RenoKanbanPhase;
   translationKey: keyof {
+    upcomingSettlements: string;
     initialCheck: string;
     upcoming: string;
     renoInProgress: string;
@@ -25,6 +27,7 @@ export interface RenoKanbanColumn {
 }
 
 export const renoKanbanColumns: RenoKanbanColumn[] = [
+  { key: "upcoming-settlements", stage: "upcoming-settlements", translationKey: "upcomingSettlements" },
   { key: "initial-check", stage: "initial-check", translationKey: "initialCheck" },
   { key: "upcoming", stage: "upcoming", translationKey: "upcoming" },
   { key: "reno-in-progress", stage: "reno-in-progress", translationKey: "renoInProgress" },

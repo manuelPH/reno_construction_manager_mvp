@@ -81,14 +81,15 @@ export interface Translations {
     searchPlaceholder: string;
     addProperty: string;
     filterProperties: string;
-    // Reno Construction Manager phases
-    initialCheck: string;
-    upcoming: string;
-    renoInProgress: string;
-    furnishingCleaning: string;
-    finalCheck: string;
-    renoFixes: string;
-    done: string;
+      // Reno Construction Manager phases
+      upcomingSettlements: string;
+      initialCheck: string;
+      upcoming: string;
+      renoInProgress: string;
+      furnishingCleaning: string;
+      finalCheck: string;
+      renoFixes: string;
+      done: string;
   };
   
   // Messages
@@ -141,6 +142,25 @@ export interface Translations {
   sectionMessages: {
     tenantSectionUnavailable: string;
     sectionInDevelopment: string;
+  };
+  
+  // Upcoming Settlements phase
+  upcomingSettlements: {
+    estimatedVisitDate: string;
+    estimatedVisitDateDescription: string;
+    setupStatusNotes: string;
+    setupStatusNotesDescription: string;
+    setupStatusNotesPlaceholder: string;
+    propertyInformation: string;
+    editableFields: string;
+    dateMustBeFuture: string;
+  };
+  
+  // Initial Check phase
+  initialCheck: {
+    realSettlementDate: string;
+    estimatedVisitDate: string;
+    propertyInformation: string;
   };
   
   // Partner Dashboard
@@ -243,6 +263,7 @@ export const translations: Record<Language, Translations> = {
       addProperty: "Añadir propiedad",
       filterProperties: "Filtrar propiedades",
       // Reno Construction Manager phases
+      upcomingSettlements: "Nuevas escrituras",
       initialCheck: "Check inicial",
       upcoming: "Próximas propiedades",
       renoInProgress: "Obras en proceso",
@@ -291,6 +312,21 @@ export const translations: Record<Language, Translations> = {
     sectionMessages: {
       tenantSectionUnavailable: "Esta sección solo está disponible cuando la propiedad está marcada como alquilada.",
       sectionInDevelopment: "Sección en desarrollo",
+    },
+    upcomingSettlements: {
+      estimatedVisitDate: "Fecha estimada de visita",
+      estimatedVisitDateDescription: "Fecha en la que el Jefe de Obra estima realizar la visita técnica después de la escrituración",
+      setupStatusNotes: "Notas de estado de preparación",
+      setupStatusNotesDescription: "Notas sobre el estado de preparación de la propiedad para la escrituración (ej: \"Reparaciones finales completadas\", \"Pendiente inspección de servicios\", \"Lista para entrega\")",
+      setupStatusNotesPlaceholder: "Escribe tus notas aquí",
+      propertyInformation: "Información de la Propiedad",
+      editableFields: "Campos editables",
+      dateMustBeFuture: "La fecha debe ser futura",
+    },
+    initialCheck: {
+      realSettlementDate: "Fecha real firma",
+      estimatedVisitDate: "Fecha estimada de visita",
+      propertyInformation: "Información de la Propiedad",
     },
     dashboard: {
       activeProperties: "Propiedades activas",
@@ -384,6 +420,7 @@ export const translations: Record<Language, Translations> = {
       addProperty: "Add Property",
       filterProperties: "Filter Properties",
       // Reno Construction Manager phases
+      upcomingSettlements: "Upcoming Settlements",
       initialCheck: "Initial Check",
       upcoming: "Upcoming",
       renoInProgress: "Reno in Progress",
@@ -432,6 +469,21 @@ export const translations: Record<Language, Translations> = {
     sectionMessages: {
       tenantSectionUnavailable: "This section is only available when the property is marked as rented.",
       sectionInDevelopment: "Section in development",
+    },
+    upcomingSettlements: {
+      estimatedVisitDate: "Estimated Visit Date",
+      estimatedVisitDateDescription: "Date the Technical Constructor estimates they will perform the technical visit/inspection after the settlement",
+      setupStatusNotes: "Set Up Status Notes",
+      setupStatusNotesDescription: "Free-text field for critical notes regarding the status of the property's preparation for closing (e.g., \"Final repairs completed,\" \"Pending utility inspection,\" \"Ready for handover\")",
+      setupStatusNotesPlaceholder: "Write your notes here",
+      propertyInformation: "Property Information",
+      editableFields: "Editable Fields",
+      dateMustBeFuture: "Date must be in the future",
+    },
+    initialCheck: {
+      realSettlementDate: "Real Settlement Date",
+      estimatedVisitDate: "Estimated Visit Date",
+      propertyInformation: "Property Information",
     },
     dashboard: {
       activeProperties: "Active Properties",
