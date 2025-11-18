@@ -58,8 +58,16 @@ export default function RenoPropertyDetailPage() {
       const found = getPropertyById(params.id);
       setProperty(found);
       setIsLoading(false);
+      
+      // Redirect to checklist page if phase is initial-check or final-check
+      if (found) {
+        const phase = getPropertyRenoPhase(found);
+        if (phase === "initial-check" || phase === "final-check") {
+          router.replace(`/reno/construction-manager/property/${found.id}/checklist`);
+        }
+      }
     }
-  }, [params.id]);
+  }, [params.id, router, getPropertyRenoPhase]);
 
   if (isLoading) {
     return (

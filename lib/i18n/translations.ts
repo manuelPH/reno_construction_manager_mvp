@@ -157,11 +157,16 @@ export interface Translations {
   };
   
   // Initial Check phase
-  initialCheck: {
-    realSettlementDate: string;
-    estimatedVisitDate: string;
-    propertyInformation: string;
-  };
+    initialCheck: {
+      realSettlementDate: string;
+      estimatedVisitDate: string;
+      propertyInformation: string;
+    };
+    finalCheck: {
+      realCompletionDate: string;
+      estimatedFinalVisitDate: string;
+      propertyInformation: string;
+    };
   
   // Partner Dashboard
   dashboard: {
@@ -351,6 +356,11 @@ export const translations: Record<Language, Translations> = {
     initialCheck: {
       realSettlementDate: "Fecha real firma",
       estimatedVisitDate: "Fecha estimada de visita",
+      propertyInformation: "Información de la Propiedad",
+    },
+    finalCheck: {
+      realCompletionDate: "Fecha real de finalización",
+      estimatedFinalVisitDate: "Fecha estimada de visita",
       propertyInformation: "Información de la Propiedad",
     },
     checklist: {
@@ -983,6 +993,11 @@ export const translations: Record<Language, Translations> = {
     initialCheck: {
       realSettlementDate: "Real Settlement Date",
       estimatedVisitDate: "Estimated Visit Date",
+      propertyInformation: "Property Information",
+    },
+    finalCheck: {
+      realCompletionDate: "Real Completion Date",
+      estimatedFinalVisitDate: "Estimated Final Visit Date",
       propertyInformation: "Property Information",
     },
     checklist: {
