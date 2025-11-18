@@ -19,6 +19,9 @@ interface EditSidebarProps {
   canSubmit: boolean;
   hasUnsavedChanges: boolean;
   showInquilino?: boolean;
+  habitacionesCount?: number;
+  banosCount?: number;
+  checklist?: any;
 }
 
 export function EditSidebar({
@@ -33,6 +36,9 @@ export function EditSidebar({
   canSubmit,
   hasUnsavedChanges,
   showInquilino = false,
+  habitacionesCount = 0,
+  banosCount = 0,
+  checklist,
 }: EditSidebarProps) {
   const { t } = useI18n();
   const [expandedGroups, setExpandedGroups] = useState<string[]>([
@@ -77,11 +83,81 @@ export function EditSidebar({
     {
     id: "estado-caracteristicas",
       name: t.sidebar.statusCharacteristics,
-      sections: sections.filter((s) =>
-        ["entrada", "distribucion", "habitaciones", "salon", "banos", "cocina", "exterior"].includes(
-          s.sectionId
-        )
-      ),
+      sections: [
+        // Checklist sections in correct order (no duplicates)
+        {
+          sectionId: "checklist-entorno-zonas-comunes",
+          name: t.checklist.sections.entornoZonasComunes.title,
+          progress: 0,
+          requiredFieldsCount: 0,
+          completedRequiredFieldsCount: 0,
+          optionalFieldsCount: 0,
+          completedOptionalFieldsCount: 0,
+        },
+        {
+          sectionId: "checklist-estado-general",
+          name: t.checklist.sections.estadoGeneral.title,
+          progress: 0,
+          requiredFieldsCount: 0,
+          completedRequiredFieldsCount: 0,
+          optionalFieldsCount: 0,
+          completedOptionalFieldsCount: 0,
+        },
+        {
+          sectionId: "checklist-entrada-pasillos",
+          name: t.checklist.sections.entradaPasillos.title,
+          progress: 0,
+          requiredFieldsCount: 0,
+          completedRequiredFieldsCount: 0,
+          optionalFieldsCount: 0,
+          completedOptionalFieldsCount: 0,
+        },
+        {
+          sectionId: "checklist-habitaciones",
+          name: t.checklist.sections.habitaciones.title,
+          progress: 0,
+          requiredFieldsCount: 0,
+          completedRequiredFieldsCount: 0,
+          optionalFieldsCount: 0,
+          completedOptionalFieldsCount: 0,
+        },
+        {
+          sectionId: "checklist-salon",
+          name: t.checklist.sections.salon.title,
+          progress: 0,
+          requiredFieldsCount: 0,
+          completedRequiredFieldsCount: 0,
+          optionalFieldsCount: 0,
+          completedOptionalFieldsCount: 0,
+        },
+        {
+          sectionId: "checklist-banos",
+          name: t.checklist.sections.banos.title,
+          progress: 0,
+          requiredFieldsCount: 0,
+          completedRequiredFieldsCount: 0,
+          optionalFieldsCount: 0,
+          completedOptionalFieldsCount: 0,
+        },
+        {
+          sectionId: "checklist-cocina",
+          name: t.checklist.sections.cocina.title,
+          progress: 0,
+          requiredFieldsCount: 0,
+          completedRequiredFieldsCount: 0,
+          optionalFieldsCount: 0,
+          completedOptionalFieldsCount: 0,
+        },
+        {
+          sectionId: "checklist-exteriores",
+          name: t.checklist.sections.exteriores.title,
+          progress: 0,
+          requiredFieldsCount: 0,
+          completedRequiredFieldsCount: 0,
+          optionalFieldsCount: 0,
+          completedOptionalFieldsCount: 0,
+        },
+      ],
     },
   ];
 
@@ -157,21 +233,59 @@ export function EditSidebar({
               
               {isExpanded && (
                 <div className="ml-2 mt-1 space-y-0.5">
-                  {grupo.sections.map((section) => (
-                    <button
-                      key={section.sectionId}
-                      onClick={() => onSectionClick(section.sectionId)}
-                      className={cn(
-                        "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
-                        activeSection === section.sectionId
-                          ? "bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)] text-[var(--prophero-blue-600)] dark:text-[var(--prophero-blue-400)] font-medium"
-                          : "text-muted-foreground hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-800)] hover:text-foreground"
-                      )}
-                    >
-                      <span>{section.name}</span>
-                      <span className="text-xs">{section.progress}%</span>
-                    </button>
-                  ))}
+                  {grupo.sections.map((section) => {
+                    // Check if this is a dynamic section (habitaciones or banos) with multiple items
+                    const isHabitaciones = section.sectionId === "checklist-habitaciones";
+                    const isBanos = section.sectionId === "checklist-banos";
+                    const dynamicCount = isHabitaciones ? habitacionesCount : isBanos ? banosCount : 0;
+                    const showSubItems = dynamicCount > 1;
+                    
+                    return (
+                      <div key={section.sectionId}>
+                        <button
+                          onClick={() => onSectionClick(section.sectionId)}
+                          className={cn(
+                            "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                            activeSection === section.sectionId && !showSubItems
+                              ? "bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)] text-[var(--prophero-blue-600)] dark:text-[var(--prophero-blue-400)] font-medium"
+                              : "text-muted-foreground hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-800)] hover:text-foreground"
+                          )}
+                        >
+                          <span>{section.name}</span>
+                          <span className="text-xs">{section.progress}%</span>
+                        </button>
+                        {/* Show sub-items for habitaciones or banos when count > 1 */}
+                        {showSubItems && (
+                          <div className="ml-4 mt-0.5 space-y-0.5">
+                            {Array.from({ length: dynamicCount }, (_, i) => {
+                              const subItemId = isHabitaciones 
+                                ? `checklist-habitaciones-${i + 1}`
+                                : `checklist-banos-${i + 1}`;
+                              const subItemName = isHabitaciones
+                                ? `${t.checklist.sections.habitaciones.bedroom} ${i + 1}`
+                                : `${t.checklist.sections.banos.bathroom} ${i + 1}`;
+                              
+                              return (
+                                <button
+                                  key={subItemId}
+                                  onClick={() => onSectionClick(subItemId)}
+                                  className={cn(
+                                    "w-full text-left px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-between",
+                                    activeSection === subItemId
+                                      ? "bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)] text-[var(--prophero-blue-600)] dark:text-[var(--prophero-blue-400)] font-medium"
+                                      : "text-muted-foreground hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-800)] hover:text-foreground"
+                                  )}
+                                >
+                                  <span>{subItemName}</span>
+                                  <span className="text-xs">0%</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

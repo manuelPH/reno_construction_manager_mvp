@@ -88,7 +88,7 @@ export interface PropertyData {
   ascensor?: boolean;
   balconTerraza?: boolean;
   trastero?: boolean;
-  orientacion?: Orientation;
+  orientacion?: Orientation[];
 
   // Información económica
   precioVenta?: number;

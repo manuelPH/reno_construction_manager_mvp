@@ -27,10 +27,10 @@ function calculateInfoPropiedadProgress(data?: PropertyData, propertyType?: stri
     data?.superficieConstruida,
     data?.anoConstruccion,
     data?.referenciaCatastral,
-    data?.orientacion,
+    data?.orientacion && data.orientacion.length > 0 ? data.orientacion : undefined,
   ];
   const completedRequired = requiredFields.filter(
-    (v) => v !== undefined && v !== null && v !== ""
+    (v) => v !== undefined && v !== null && v !== "" && (Array.isArray(v) ? v.length > 0 : true)
   ).length;
   const totalRequired = requiredFields.length;
   
@@ -388,7 +388,7 @@ export function validateForSubmission(data?: PropertyData, showInquilino?: boole
   if (!data.superficieConstruida) missing.push("Superficie construida");
   if (!data.anoConstruccion) missing.push("Año de construcción");
   if (!data.referenciaCatastral) missing.push("Referencia Catastral");
-  if (!data.orientacion) missing.push("Orientación");
+  if (!data.orientacion || data.orientacion.length === 0) missing.push("Orientación");
   
   // Información económica - required fields
   if (!data.precioVenta) missing.push("Precio de venta");
