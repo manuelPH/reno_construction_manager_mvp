@@ -162,6 +162,8 @@ export interface Property {
   // Final Check phase fields
   realCompletionDate?: string; // ISO date string - real completion date of renovation (read-only)
   estimatedFinalVisitDate?: string; // ISO date string - estimated date for final check visit
+  // Supabase fields
+  uniqueIdFromEngagements?: string; // Unique ID From Engagements from Supabase (for display)
 }
 
 const STORAGE_KEY = "vistral_properties";

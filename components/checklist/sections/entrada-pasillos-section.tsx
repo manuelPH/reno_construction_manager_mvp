@@ -116,14 +116,14 @@ export const EntradaPasillosSection = forwardRef<HTMLDivElement, EntradaPasillos
     }, [section.questions, defaultQuestions, onUpdate]);
 
     const handleCarpentryQuantityChange = useCallback((itemId: string, delta: number) => {
-      const currentItems = section.carpentryItems || carpentryItems;
-      const updatedItems = currentItems.map(item => {
+      const currentItems: ChecklistCarpentryItem[] = (section.carpentryItems || carpentryItems) as ChecklistCarpentryItem[];
+      const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
         if (item.id === itemId) {
           const currentCantidad = item.cantidad || 0;
           const newCantidad = Math.max(0, Math.min(MAX_QUANTITY, currentCantidad + delta));
           
           // Initialize or update units array based on new cantidad
-          let units = item.units || [];
+          let units = (item as ChecklistCarpentryItem).units || [];
           
           if (newCantidad > 1) {
             // Ensure we have exactly newCantidad units
@@ -211,7 +211,7 @@ export const EntradaPasillosSection = forwardRef<HTMLDivElement, EntradaPasillos
           const currentCantidad = item.cantidad || 0;
           const newCantidad = Math.max(0, Math.min(MAX_QUANTITY, currentCantidad + delta));
           
-          let units = item.units || [];
+          let units = (item as ChecklistCarpentryItem).units || [];
           
           if (newCantidad > 1) {
             while (units.length < newCantidad) {
@@ -387,10 +387,10 @@ export const EntradaPasillosSection = forwardRef<HTMLDivElement, EntradaPasillos
 
           <div className="space-y-6">
             {CARPENTRY_ITEMS.map((itemConfig) => {
-              const item = carpentryItems.find(i => i.id === itemConfig.id) || {
+              const item: ChecklistCarpentryItem = carpentryItems.find((i: ChecklistCarpentryItem) => i.id === itemConfig.id) || {
                 id: itemConfig.id,
                 cantidad: 0,
-              };
+              } as ChecklistCarpentryItem;
               const cantidad = item.cantidad || 0;
               const needsValidation = cantidad > 0;
               const hasMultipleUnits = cantidad > 1;

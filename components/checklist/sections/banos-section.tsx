@@ -33,7 +33,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
     const { t } = useI18n();
 
     // Get dynamic count from section or default to dynamicItems length or 0
-    const dynamicCount = section.dynamicCount ?? (section.dynamicItems?.length ?? 0);
+    const dynamicCount: number = section.dynamicCount ?? (section.dynamicItems?.length ?? 0);
     const dynamicItems = section.dynamicItems || [];
 
     // Get current bano if index is provided
@@ -62,7 +62,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
     const questions = bano?.questions || defaultQuestions;
 
     // Initialize carpentry items
-    const carpentryItems = (() => {
+    const carpentryItems: ChecklistCarpentryItem[] = (() => {
       if (banoIndex !== undefined) {
         const currentBano = dynamicItems[banoIndex];
         if (currentBano?.carpentryItems && currentBano.carpentryItems.length > 0) {
@@ -72,7 +72,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
       return CARPENTRY_ITEMS.map(item => ({
         id: item.id,
         cantidad: 0,
-      }));
+      } as ChecklistCarpentryItem));
     })();
 
     // Initialize upload zone
@@ -112,9 +112,9 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
       if (banoIndex === undefined || !bano) return;
       const currentDynamicItems = section.dynamicItems || [];
       const currentBano = currentDynamicItems[banoIndex] || bano;
-      const currentItems = currentBano.carpentryItems || carpentryItems;
+      const currentItems: ChecklistCarpentryItem[] = (currentBano.carpentryItems || carpentryItems) as ChecklistCarpentryItem[];
       
-      const updatedItems = currentItems.map(item => {
+      const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
         if (item.id === itemId) {
           const currentCantidad = item.cantidad || 0;
           const newCantidad = Math.max(0, Math.min(MAX_QUANTITY, currentCantidad + delta));
@@ -152,7 +152,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
     const handleCarpentryStatusChange = useCallback((itemId: string, unitIndex: number | null, status: ChecklistStatus) => {
       if (banoIndex === undefined || !bano) return;
       const currentItems = bano?.carpentryItems || carpentryItems;
-      const updatedItems = currentItems.map(item => {
+      const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
         if (item.id === itemId) {
           if (unitIndex !== null && item.units && item.units.length > unitIndex) {
             const updatedUnits = item.units.map((unit, idx) =>
@@ -176,7 +176,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
     const handleCarpentryNotesChange = useCallback((itemId: string, unitIndex: number | null, notes: string) => {
       if (banoIndex === undefined || !bano) return;
       const currentItems = bano?.carpentryItems || carpentryItems;
-      const updatedItems = currentItems.map(item => {
+      const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
         if (item.id === itemId) {
           if (unitIndex !== null && item.units && item.units.length > unitIndex) {
             const updatedUnits = item.units.map((unit, idx) =>
@@ -200,7 +200,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
     const handleCarpentryPhotosChange = useCallback((itemId: string, unitIndex: number | null, photos: FileUpload[]) => {
       if (banoIndex === undefined || !bano) return;
       const currentItems = bano?.carpentryItems || carpentryItems;
-      const updatedItems = currentItems.map(item => {
+      const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
         if (item.id === itemId) {
           if (unitIndex !== null && item.units && item.units.length > unitIndex) {
             const updatedUnits = item.units.map((unit, idx) =>
@@ -224,7 +224,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
     const handleCarpentryBadElementsChange = useCallback((itemId: string, unitIndex: number | null, badElements: string[]) => {
       if (banoIndex === undefined || !bano) return;
       const currentItems = bano?.carpentryItems || carpentryItems;
-      const updatedItems = currentItems.map(item => {
+      const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
         if (item.id === itemId) {
           if (unitIndex !== null && item.units && item.units.length > unitIndex) {
             const updatedUnits = item.units.map((unit, idx) =>
@@ -308,7 +308,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
         const currentBano = currentDynamicItems[0] || effectiveBano;
         const currentItems = currentBano.carpentryItems || effectiveCarpentryItems;
         
-        const updatedItems = currentItems.map(item => {
+        const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
           if (item.id === itemId) {
             const currentCantidad = item.cantidad || 0;
             const newCantidad = Math.max(0, Math.min(MAX_QUANTITY, currentCantidad + delta));
@@ -347,7 +347,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
         const currentDynamicItems = section.dynamicItems || [];
         const currentBano = currentDynamicItems[0] || effectiveBano;
         const currentItems = currentBano.carpentryItems || effectiveCarpentryItems;
-        const updatedItems = currentItems.map(item => {
+        const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
           if (item.id === itemId) {
             if (unitIndex !== null && item.units && item.units.length > unitIndex) {
               const updatedUnits = item.units.map((unit, idx) =>
@@ -372,7 +372,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
         const currentDynamicItems = section.dynamicItems || [];
         const currentBano = currentDynamicItems[0] || effectiveBano;
         const currentItems = currentBano.carpentryItems || effectiveCarpentryItems;
-        const updatedItems = currentItems.map(item => {
+        const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
           if (item.id === itemId) {
             if (unitIndex !== null && item.units && item.units.length > unitIndex) {
               const updatedUnits = item.units.map((unit, idx) =>
@@ -397,7 +397,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
         const currentDynamicItems = section.dynamicItems || [];
         const currentBano = currentDynamicItems[0] || effectiveBano;
         const currentItems = currentBano.carpentryItems || effectiveCarpentryItems;
-        const updatedItems = currentItems.map(item => {
+        const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
           if (item.id === itemId) {
             if (unitIndex !== null && item.units && item.units.length > unitIndex) {
               const updatedUnits = item.units.map((unit, idx) =>
@@ -422,7 +422,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
         const currentDynamicItems = section.dynamicItems || [];
         const currentBano = currentDynamicItems[0] || effectiveBano;
         const currentItems = currentBano.carpentryItems || effectiveCarpentryItems;
-        const updatedItems = currentItems.map(item => {
+        const updatedItems = currentItems.map((item: ChecklistCarpentryItem) => {
           if (item.id === itemId) {
             if (unitIndex !== null && item.units && item.units.length > unitIndex) {
               const updatedUnits = item.units.map((unit, idx) =>
@@ -501,7 +501,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
                 <button
                   type="button"
                   onClick={() => handleCountChange(-1)}
-                  disabled={dynamicCount === 0}
+                  disabled={Number(dynamicCount) === 0}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] hover:bg-[var(--prophero-gray-200)] dark:hover:bg-[var(--prophero-gray-700)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                   aria-label="Decrementar cantidad"
                 >
@@ -513,7 +513,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
                 <button
                   type="button"
                   onClick={() => handleCountChange(1)}
-                  disabled={dynamicCount >= 20}
+                  disabled={Number(dynamicCount) >= 20}
                   className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--prophero-blue-100)] dark:bg-[var(--prophero-blue-900)] hover:bg-[var(--prophero-blue-200)] dark:hover:bg-[var(--prophero-blue-800)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                   aria-label="Incrementar cantidad"
                 >
@@ -616,14 +616,14 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
                 const latestDynamicItems = section.dynamicItems || [];
                 const latestBano = latestDynamicItems[0] || currentBano;
                 const latestCarpentryItems = latestBano.carpentryItems || currentCarpentryItems;
-                const item = latestCarpentryItems.find(i => i.id === itemConfig.id) || {
+                const item: ChecklistCarpentryItem = latestCarpentryItems.find((i: ChecklistCarpentryItem) => i.id === itemConfig.id) || {
                   id: itemConfig.id,
                   cantidad: 0,
-                };
+                } as ChecklistCarpentryItem;
                 const cantidad = item.cantidad || 0;
                 const needsValidation = cantidad > 0;
                 const hasMultipleUnits = cantidad > 1;
-                const units = item.units || [];
+                const units = (item as ChecklistCarpentryItem).units || [];
 
                 return (
                   <div key={`${item.id}-${cantidad}-single`} className="space-y-4">
@@ -1054,7 +1054,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
                 const cantidad = item.cantidad || 0;
                 const needsValidation = cantidad > 0;
                 const hasMultipleUnits = cantidad > 1;
-                const units = item.units || [];
+                const units = (item as ChecklistCarpentryItem).units || [];
 
                 return (
                   <div key={`${item.id}-${cantidad}-${banoIndex}`} className="space-y-4">
@@ -1427,7 +1427,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
               <button
                 type="button"
                 onClick={() => handleCountChange(1)}
-                disabled={dynamicCount >= 20}
+                disabled={Number(dynamicCount) >= 20}
                 className="flex h-10 w-10 items-center justify-center rounded-full bg-[var(--prophero-blue-100)] dark:bg-[var(--prophero-blue-900)] hover:bg-[var(--prophero-blue-200)] dark:hover:bg-[var(--prophero-blue-800)] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
                 aria-label="Incrementar cantidad"
               >

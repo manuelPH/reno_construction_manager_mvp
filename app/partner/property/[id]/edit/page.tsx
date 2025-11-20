@@ -41,6 +41,7 @@ import { BanosSection } from "@/components/checklist/sections/banos-section";
 import { CocinaSection } from "@/components/checklist/sections/cocina-section";
 import { ExterioresSection } from "@/components/checklist/sections/exteriores-section";
 import { useChecklist } from "@/hooks/useChecklist";
+import { ChecklistCarpentryItem } from "@/lib/checklist-storage";
 
 const CARPENTRY_ITEMS_SALON = [
   { id: "ventanas", translationKey: "ventanas" },
@@ -165,7 +166,7 @@ export default function PropertyEditPage() {
   
   console.log("page.tsx - checklist:", checklist);
   if (checklist?.sections?.["habitaciones"]) {
-    const ventanasInChecklist = checklist.sections["habitaciones"].dynamicItems?.[0]?.carpentryItems?.find(i => i.id === "ventanas");
+    const ventanasInChecklist = checklist.sections["habitaciones"].dynamicItems?.[0]?.carpentryItems?.find((i: ChecklistCarpentryItem) => i.id === "ventanas");
     console.log("page.tsx - ventanas in checklist.sections['habitaciones']:", ventanasInChecklist);
   }
 
@@ -496,7 +497,7 @@ export default function PropertyEditPage() {
         };
         console.log("page.tsx - habitacionesSectionRaw:", habitacionesSectionRaw);
         if (habitacionesSectionRaw.dynamicItems && habitacionesSectionRaw.dynamicItems.length > 0) {
-          const ventanasInRaw = habitacionesSectionRaw.dynamicItems[0]?.carpentryItems?.find(i => i.id === "ventanas");
+          const ventanasInRaw = habitacionesSectionRaw.dynamicItems[0]?.carpentryItems?.find((i: ChecklistCarpentryItem) => i.id === "ventanas");
           console.log("page.tsx - ventanas in habitacionesSectionRaw:", ventanasInRaw);
         }
         // Create a new object reference with a new array reference for dynamicItems
@@ -513,13 +514,13 @@ export default function PropertyEditPage() {
             };
         
         if (habitacionesSection.dynamicItems && habitacionesSection.dynamicItems.length > 0) {
-          const ventanasInSection = habitacionesSection.dynamicItems[0]?.carpentryItems?.find(i => i.id === "ventanas");
+          const ventanasInSection = habitacionesSection.dynamicItems[0]?.carpentryItems?.find((i: ChecklistCarpentryItem) => i.id === "ventanas");
           console.log("page.tsx - ventanas in habitacionesSection (after deep clone):", ventanasInSection);
         }
         
         // Create a key based on the carpentry items to force re-render when they change
         const sectionKey = habitacionesSection.dynamicItems && habitacionesSection.dynamicItems.length > 0
-          ? `habitaciones-${habitacionesSection.dynamicItems[0]?.carpentryItems?.find(i => i.id === "ventanas")?.cantidad || 0}-${habitacionesSection.dynamicItems[0]?.carpentryItems?.find(i => i.id === "persianas")?.cantidad || 0}-${habitacionesSection.dynamicItems[0]?.carpentryItems?.find(i => i.id === "armarios")?.cantidad || 0}`
+          ? `habitaciones-${habitacionesSection.dynamicItems[0]?.carpentryItems?.find((i: ChecklistCarpentryItem) => i.id === "ventanas")?.cantidad || 0}-${habitacionesSection.dynamicItems[0]?.carpentryItems?.find((i: ChecklistCarpentryItem) => i.id === "persianas")?.cantidad || 0}-${habitacionesSection.dynamicItems[0]?.carpentryItems?.find((i: ChecklistCarpentryItem) => i.id === "armarios")?.cantidad || 0}`
           : "habitaciones-default";
         
         console.log("page.tsx - About to render HabitacionesSection with sectionKey:", sectionKey);
@@ -804,7 +805,7 @@ export default function PropertyEditPage() {
             };
             console.log("page.tsx - default case - habitacionesSectionRaw:", habitacionesSectionRaw);
             if (habitacionesSectionRaw.dynamicItems && habitacionesSectionRaw.dynamicItems.length > 0) {
-              const ventanasInRaw = habitacionesSectionRaw.dynamicItems[habitacionIndex]?.carpentryItems?.find(i => i.id === "ventanas");
+              const ventanasInRaw = habitacionesSectionRaw.dynamicItems[habitacionIndex]?.carpentryItems?.find((i: ChecklistCarpentryItem) => i.id === "ventanas");
               console.log("page.tsx - default case - ventanas in habitacionesSectionRaw[habitacionIndex]:", ventanasInRaw);
             }
             // Create a new object reference with a new array reference for dynamicItems
@@ -820,7 +821,7 @@ export default function PropertyEditPage() {
                 };
             console.log("page.tsx - default case - habitacionesSection after deep clone:", habitacionesSection);
             if (habitacionesSection.dynamicItems && habitacionesSection.dynamicItems.length > 0) {
-              const ventanasInSection = habitacionesSection.dynamicItems[habitacionIndex]?.carpentryItems?.find(i => i.id === "ventanas");
+              const ventanasInSection = habitacionesSection.dynamicItems[habitacionIndex]?.carpentryItems?.find((i: ChecklistCarpentryItem) => i.id === "ventanas");
               console.log("page.tsx - default case - ventanas in habitacionesSection[habitacionIndex]:", ventanasInSection);
             }
             
