@@ -346,3 +346,6 @@ export const DatosInquilinoSection = forwardRef<HTMLDivElement, DatosInquilinoSe
 DatosInquilinoSection.displayName = "DatosInquilinoSection";
 
 
+
+
+

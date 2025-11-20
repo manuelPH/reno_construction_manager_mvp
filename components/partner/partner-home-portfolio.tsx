@@ -119,3 +119,6 @@ export function PartnerHomePortfolio({ properties }: PartnerHomePortfolioProps) 
 }
 
 
+
+
+

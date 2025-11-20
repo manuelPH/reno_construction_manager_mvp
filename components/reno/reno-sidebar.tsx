@@ -59,8 +59,12 @@ export function RenoSidebar({ isMobileOpen = false, onMobileToggle }: RenoSideba
   const settingsItems = getSettingsItems(t);
   const pathname = usePathname();
   
-  const isEditPage = pathname?.includes('/property/') && pathname?.includes('/edit');
-  const [collapsed, setCollapsed] = useState(isEditPage);
+  // Check if we're on any property page (detail or checklist)
+  // Routes: /reno/construction-manager/property/[id] or /reno/construction-manager/property/[id]/checklist
+  const isPropertyPage = pathname?.includes('/reno/construction-manager/property/') && 
+                         pathname !== '/reno/construction-manager/property' &&
+                         pathname.split('/').length >= 5; // Has property ID segment (at least 5 segments)
+  const [collapsed, setCollapsed] = useState(isPropertyPage);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -77,8 +81,12 @@ export function RenoSidebar({ isMobileOpen = false, onMobileToggle }: RenoSideba
 
   useEffect(() => {
     if (!isMobile) {
-      const isEditPage = pathname?.includes('/property/') && pathname?.includes('/edit');
-      setCollapsed(isEditPage);
+      // Check if we're on any property page (detail or checklist)
+      // Routes: /reno/construction-manager/property/[id] or /reno/construction-manager/property/[id]/checklist
+      const isPropertyPage = pathname?.includes('/reno/construction-manager/property/') && 
+                             pathname !== '/reno/construction-manager/property' &&
+                             pathname.split('/').length >= 5; // Has property ID segment (at least 5 segments)
+      setCollapsed(isPropertyPage);
     }
   }, [pathname, isMobile]);
 

@@ -88,7 +88,7 @@ export interface PropertyData {
   ascensor?: boolean;
   balconTerraza?: boolean;
   trastero?: boolean;
-  orientacion?: Orientation;
+  orientacion?: Orientation[];
 
   // Información económica
   precioVenta?: number;
@@ -159,6 +159,9 @@ export interface Property {
   setupStatusNotes?: string; // Free-text field for property preparation status notes
   // Initial Check phase fields
   realSettlementDate?: string; // ISO date string - real settlement/signing date (read-only)
+  // Final Check phase fields
+  realCompletionDate?: string; // ISO date string - real completion date of renovation (read-only)
+  estimatedFinalVisitDate?: string; // ISO date string - estimated date for final check visit
 }
 
 const STORAGE_KEY = "vistral_properties";
