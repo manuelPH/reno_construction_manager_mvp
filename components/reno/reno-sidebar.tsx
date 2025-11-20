@@ -16,7 +16,8 @@ import { VistralLogo } from "@/components/vistral-logo";
 import { ThemeSelector } from "@/components/user/theme-selector";
 import { LanguageSelector } from "@/components/user/language-selector";
 import { useI18n } from "@/lib/i18n";
-import { useAuth } from "@/lib/auth";
+import { useSupabaseAuthContext } from "@/lib/auth/supabase-auth-context";
+import { useAppAuth } from "@/lib/auth/app-auth-context";
 
 // Navigation items for Reno Construction Manager
 const getNavigationItems = (t: any) => [
@@ -54,13 +55,23 @@ interface RenoSidebarProps {
 
 export function RenoSidebar({ isMobileOpen = false, onMobileToggle }: RenoSidebarProps) {
   const { t } = useI18n();
-  const { user, logout } = useAuth();
+  const { user: supabaseUser, signOut } = useSupabaseAuthContext();
+  const { user: appUser, role } = useAppAuth();
+  
+  // Use Supabase signOut, fallback to mock logout if needed
+  const handleLogout = async () => {
+    await signOut();
+  };
   const navigationItems = getNavigationItems(t);
   const settingsItems = getSettingsItems(t);
   const pathname = usePathname();
   
-  const isEditPage = pathname?.includes('/property/') && pathname?.includes('/edit');
-  const [collapsed, setCollapsed] = useState(isEditPage);
+  // Check if we're on any property page (detail or checklist)
+  // Routes: /reno/construction-manager/property/[id] or /reno/construction-manager/property/[id]/checklist
+  const isPropertyPage = pathname?.includes('/reno/construction-manager/property/') && 
+                         pathname !== '/reno/construction-manager/property' &&
+                         pathname.split('/').length >= 5; // Has property ID segment (at least 5 segments)
+  const [collapsed, setCollapsed] = useState(isPropertyPage);
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -77,8 +88,12 @@ export function RenoSidebar({ isMobileOpen = false, onMobileToggle }: RenoSideba
 
   useEffect(() => {
     if (!isMobile) {
-      const isEditPage = pathname?.includes('/property/') && pathname?.includes('/edit');
-      setCollapsed(isEditPage);
+      // Check if we're on any property page (detail or checklist)
+      // Routes: /reno/construction-manager/property/[id] or /reno/construction-manager/property/[id]/checklist
+      const isPropertyPage = pathname?.includes('/reno/construction-manager/property/') && 
+                             pathname !== '/reno/construction-manager/property' &&
+                             pathname.split('/').length >= 5; // Has property ID segment (at least 5 segments)
+      setCollapsed(isPropertyPage);
     }
   }, [pathname, isMobile]);
 
@@ -202,13 +217,13 @@ export function RenoSidebar({ isMobileOpen = false, onMobileToggle }: RenoSideba
                   <button className="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm font-medium text-foreground hover:bg-accent hover:text-accent-foreground transition-colors">
                     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
                       <span className="text-xs font-semibold">
-                        {user?.name?.charAt(0).toUpperCase() || "U"}
+                        {appUser?.email?.charAt(0).toUpperCase() || supabaseUser?.email?.charAt(0).toUpperCase() || "U"}
                       </span>
                     </div>
-                    <div className="flex-1 text-left min-w-0">
-                      <p className="text-sm font-medium truncate">{user?.name || t.sidebar.user}</p>
-                      <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
-                    </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-medium truncate">{appUser?.email || supabaseUser?.email || t.sidebar.user}</p>
+                    <p className="text-xs text-muted-foreground truncate">{role || ""}</p>
+                  </div>
                     <ChevronDown className="h-4 w-4 flex-shrink-0" />
                   </button>
                 </DropdownMenuTrigger>
@@ -217,7 +232,7 @@ export function RenoSidebar({ isMobileOpen = false, onMobileToggle }: RenoSideba
                   <DropdownMenuSeparator />
                   <LanguageSelector />
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     {t.nav.logout}
                   </DropdownMenuItem>
@@ -375,14 +390,14 @@ export function RenoSidebar({ isMobileOpen = false, onMobileToggle }: RenoSideba
             )}>
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground flex-shrink-0">
                 <span className="text-xs font-semibold">
-                  {user?.name?.charAt(0).toUpperCase() || "U"}
+                  {appUser?.email?.charAt(0).toUpperCase() || supabaseUser?.email?.charAt(0).toUpperCase() || "U"}
                 </span>
               </div>
               {!collapsed && (
                 <>
                   <div className="flex-1 text-left min-w-0">
-                    <p className="text-sm font-medium truncate">{user?.name || t.sidebar.user}</p>
-                    <p className="text-xs text-muted-foreground truncate">{user?.email || ""}</p>
+                    <p className="text-sm font-medium truncate">{appUser?.email || supabaseUser?.email || t.sidebar.user}</p>
+                    <p className="text-xs text-muted-foreground truncate">{role || ""}</p>
                   </div>
                   <ChevronDown className="h-4 w-4 flex-shrink-0" />
                 </>
@@ -394,7 +409,7 @@ export function RenoSidebar({ isMobileOpen = false, onMobileToggle }: RenoSideba
             <DropdownMenuSeparator />
             <LanguageSelector />
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={logout}>
+            <DropdownMenuItem onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" />
               {t.nav.logout}
             </DropdownMenuItem>

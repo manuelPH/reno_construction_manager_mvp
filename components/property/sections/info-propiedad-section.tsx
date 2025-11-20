@@ -166,21 +166,27 @@ export const InfoPropiedadSection = forwardRef<HTMLDivElement, InfoPropiedadSect
               Orientación del inmueble <span className="text-red-500">*</span>
             </Label>
             <div className="space-y-3">
-              {(["Norte", "Sur", "Este", "Oeste"] as const).map((orientacion) => (
-                <label key={orientacion} className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={formData.orientacion === orientacion}
-                    onChange={(e) => {
-                      // Si el checkbox se marca, establecer esa orientación
-                      // Si se desmarca, establecer undefined
-                      updateField("orientacion", e.target.checked ? orientacion : undefined);
-                    }}
-                    className="h-4 w-4 rounded border-[var(--prophero-gray-300)] text-[var(--prophero-blue-600)] focus:ring-[var(--prophero-blue-500)]"
-                  />
-                  <span className="text-sm">{orientacion}</span>
-                </label>
-              ))}
+              {(["Norte", "Sur", "Este", "Oeste"] as const).map((orientacion) => {
+                const currentOrientaciones = formData.orientacion || [];
+                const isChecked = currentOrientaciones.includes(orientacion);
+                
+                return (
+                  <label key={orientacion} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={isChecked}
+                      onChange={(e) => {
+                        const updatedOrientaciones = e.target.checked
+                          ? [...currentOrientaciones, orientacion]
+                          : currentOrientaciones.filter(o => o !== orientacion);
+                        updateField("orientacion", updatedOrientaciones.length > 0 ? updatedOrientaciones : undefined);
+                      }}
+                      className="h-4 w-4 rounded border-[var(--prophero-gray-300)] text-[var(--prophero-blue-600)] focus:ring-[var(--prophero-blue-500)]"
+                    />
+                    <span className="text-sm">{orientacion}</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
 

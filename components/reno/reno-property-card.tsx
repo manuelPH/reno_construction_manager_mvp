@@ -7,7 +7,7 @@ import { Calendar } from "lucide-react";
 import { Property } from "@/lib/property-storage";
 import { isPropertyExpired } from "@/lib/property-sorting";
 
-type RenoStage = "initial-check" | "upcoming" | "reno-in-progress" | "furnishing-cleaning" | "final-check" | "reno-fixes" | "done";
+type RenoStage = "upcoming-settlements" | "initial-check" | "upcoming" | "reno-in-progress" | "furnishing-cleaning" | "final-check" | "reno-fixes" | "done";
 
 interface RenoPropertyCardProps {
   property: Property;
@@ -60,7 +60,9 @@ export function RenoPropertyCard({
     >
       {/* ID and Expired tag aligned at top */}
       <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-semibold text-muted-foreground">ID {property.id}</div>
+        <div className="text-xs font-semibold text-muted-foreground">
+          ID {property.uniqueIdFromEngagements || property.id}
+        </div>
         {isExpired && (
           <span className="rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 flex-shrink-0">
             Vencida
@@ -91,7 +93,28 @@ export function RenoPropertyCard({
       )}
 
       {/* Stage-specific content */}
-      {stage === "initial-check" || stage === "final-check" ? (
+      {stage === "initial-check" ? (
+        <div className="space-y-2">
+          {property.region && (
+            <div className="text-xs text-muted-foreground">
+              Región: {property.region}
+            </div>
+          )}
+          {property.realSettlementDate && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3 flex-shrink-0" />
+              <span>Firma: {formatDate(property.realSettlementDate)}</span>
+            </div>
+          )}
+          {property.estimatedVisitDate && (
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="h-3 w-3 flex-shrink-0" />
+              <span>Visita est.: {formatDate(property.estimatedVisitDate)}</span>
+            </div>
+          )}
+          <div className="text-xs text-muted-foreground">Hace {property.timeInStage}</div>
+        </div>
+      ) : stage === "final-check" ? (
         <div className="space-y-2">
           {showRenoDetails && property.renovador && (
             <div className="flex items-center gap-2">
@@ -100,7 +123,7 @@ export function RenoPropertyCard({
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">Jefe de Obra</span>
+              <span className="text-xs text-muted-foreground">{property.renovador || 'Jefe de Obra'}</span>
             </div>
           )}
           {showRenoDetails && property.proximaActualizacion && (
@@ -125,7 +148,7 @@ export function RenoPropertyCard({
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">Jefe de Obra</span>
+              <span className="text-xs text-muted-foreground">{property.renovador || 'Jefe de Obra'}</span>
             </div>
           )}
           {showRenoDetails && property.proximaActualizacion && (
@@ -150,7 +173,7 @@ export function RenoPropertyCard({
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">Jefe de Obra</span>
+              <span className="text-xs text-muted-foreground">{property.renovador || 'Jefe de Obra'}</span>
             </div>
           )}
           <div className="text-xs text-muted-foreground">
@@ -168,7 +191,7 @@ export function RenoPropertyCard({
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">Jefe de Obra</span>
+              <span className="text-xs text-muted-foreground">{property.renovador || 'Jefe de Obra'}</span>
             </div>
           )}
           <div className="text-xs text-muted-foreground">Hace {property.timeInStage}</div>
