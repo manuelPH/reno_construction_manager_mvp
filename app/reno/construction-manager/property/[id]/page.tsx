@@ -1,73 +1,78 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
-import { ArrowLeft, MapPin } from "lucide-react";
+import { useEffect, useCallback, useState } from "react";
+import { ArrowLeft, MapPin, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RenoSidebar } from "@/components/reno/reno-sidebar";
-import { getPropertyById, Property, updateProperty } from "@/lib/property-storage";
+import { Property } from "@/lib/property-storage";
 import { FutureDatePicker } from "@/components/property/future-date-picker";
 import { useI18n } from "@/lib/i18n";
 import { RenoKanbanPhase } from "@/lib/reno-kanban-config";
+import { useSupabaseProperty } from "@/hooks/useSupabaseProperty";
+import { convertSupabasePropertyToProperty, getPropertyRenoPhaseFromSupabase } from "@/lib/supabase/property-converter";
+import type { Database } from '@/lib/supabase/types';
+import { ReportProblemModal } from "@/components/reno/report-problem-modal";
+import { DynamicCategoriesProgress } from "@/components/reno/dynamic-categories-progress";
+import { toast } from "sonner";
+
+type PropertyUpdate = Database['public']['Tables']['properties']['Update'];
 
 export default function RenoPropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { t } = useI18n();
-  const [property, setProperty] = useState<Property | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [reportProblemOpen, setReportProblemOpen] = useState(false);
+  const propertyId = params.id && typeof params.id === "string" ? params.id : null;
+  const { property: supabaseProperty, loading: supabaseLoading, updateProperty: updateSupabaseProperty, refetch } = useSupabaseProperty(propertyId);
+  
+  // Convert Supabase property to Property format
+  const property: Property | null = supabaseProperty ? convertSupabasePropertyToProperty(supabaseProperty) : null;
+  const isLoading = supabaseLoading;
 
-  // Determine if property is in upcoming-settlements phase
-  const getPropertyRenoPhase = useCallback((prop: Property): RenoKanbanPhase => {
-    // For demo, check by ID. In production, this would come from backend
-    if (["4463793", "4463794", "4463795", "4463796", "4463797", "4463798", "4463799", "4463800"].includes(prop.id)) {
-      return "upcoming-settlements";
-    } else if (["4463801", "4463802", "4463803"].includes(prop.id)) {
-      return "initial-check";
-    } else if (["4463804", "4463805"].includes(prop.id)) {
-      return "upcoming";
-    } else if (["4463806", "4463807", "4463808"].includes(prop.id)) {
-      return "reno-in-progress";
-    } else if (["4463809", "4463810"].includes(prop.id)) {
-      return "furnishing-cleaning";
-    } else if (prop.id === "4463811") {
-      return "final-check";
-    } else if (prop.id === "4463812") {
-      return "reno-fixes";
-    } else if (["4463813", "4463814"].includes(prop.id)) {
-      return "done";
+  // Determine phase using "Set Up Status" from Supabase
+  const getPropertyRenoPhase = useCallback((): RenoKanbanPhase | null => {
+    if (!supabaseProperty) return null;
+    return getPropertyRenoPhaseFromSupabase(supabaseProperty);
+  }, [supabaseProperty]);
+
+  // Auto-save function - saves to Supabase
+  const handleAutoSave = useCallback(async (updates: Partial<Property>) => {
+    if (!property || !supabaseProperty) return;
+    
+    // Map Property updates to Supabase PropertyUpdate format
+    // Using 'any' to allow dynamic field names (estimated_visit_date or "Estimated Visit Date")
+    const supabaseUpdates: PropertyUpdate & Record<string, any> = {};
+    
+    if (updates.estimatedVisitDate !== undefined) {
+      // Try snake_case first (most common in Supabase)
+      // TODO: Update this once you confirm the exact field name in Supabase
+      supabaseUpdates['estimated_visit_date'] = updates.estimatedVisitDate || null;
     }
-    return "initial-check";
-  }, []);
-
-  // Auto-save function
-  const handleAutoSave = useCallback((updates: Partial<Property>) => {
-    if (!property) return;
-    updateProperty(property.id, updates);
-    // Reload property to reflect changes
-    const updated = getPropertyById(property.id);
-    if (updated) {
-      setProperty(updated);
+    
+    if (updates.setupStatusNotes !== undefined) {
+      supabaseUpdates.notes = updates.setupStatusNotes || null;
     }
-  }, [property]);
+    
+    // Save to Supabase
+    const success = await updateSupabaseProperty(supabaseUpdates);
+    if (success) {
+      // Refetch to get updated data
+      await refetch();
+    }
+  }, [property, supabaseProperty, updateSupabaseProperty, refetch]);
 
+  // Redirect to checklist page if phase is initial-check or final-check
   useEffect(() => {
-    if (params.id && typeof params.id === "string") {
-      const found = getPropertyById(params.id);
-      setProperty(found);
-      setIsLoading(false);
-      
-      // Redirect to checklist page if phase is initial-check or final-check
-      if (found) {
-        const phase = getPropertyRenoPhase(found);
-        if (phase === "initial-check" || phase === "final-check") {
-          router.replace(`/reno/construction-manager/property/${found.id}/checklist`);
-        }
+    if (!isLoading && property && supabaseProperty) {
+      const phase = getPropertyRenoPhase();
+      if (phase === "initial-check" || phase === "final-check") {
+        router.replace(`/reno/construction-manager/property/${property.id}/checklist`);
       }
     }
-  }, [params.id, router, getPropertyRenoPhase]);
+  }, [isLoading, property, supabaseProperty, getPropertyRenoPhase, router]);
 
   if (isLoading) {
     return (
@@ -116,10 +121,18 @@ export default function RenoPropertyDetailPage() {
                 {property.fullAddress}
               </h1>
               <p className="text-sm text-muted-foreground mt-1 flex items-center gap-6">
-                <span>ID: {property.id}</span>
+                <span>ID: {property.uniqueIdFromEngagements || property.id}</span>
                 <span>Estado: {getStageLabel(property.currentStage)}</span>
               </p>
             </div>
+            <Button
+              variant="destructive"
+              onClick={() => setReportProblemOpen(true)}
+              className="flex items-center gap-2"
+            >
+              <AlertTriangle className="h-4 w-4" />
+              Reportar Problema
+            </Button>
           </div>
         </header>
 
@@ -129,7 +142,7 @@ export default function RenoPropertyDetailPage() {
             {/* Property Information Card - First */}
             <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
               <h2 className="text-lg font-semibold mb-4">
-                {getPropertyRenoPhase(property) === "initial-check" 
+                {getPropertyRenoPhase() === "initial-check" 
                   ? t.initialCheck.propertyInformation 
                   : t.upcomingSettlements.propertyInformation}
               </h2>
@@ -165,7 +178,7 @@ export default function RenoPropertyDetailPage() {
                 )}
 
                 {/* Real Settlement Date - Only for initial-check */}
-                {getPropertyRenoPhase(property) === "initial-check" && property.realSettlementDate && (
+                {getPropertyRenoPhase() === "initial-check" && property.realSettlementDate && (
                   <div className="pt-2 border-t">
                     <label className="text-sm font-medium text-muted-foreground">
                       {t.initialCheck.realSettlementDate}
@@ -181,7 +194,7 @@ export default function RenoPropertyDetailPage() {
                 )}
 
                 {/* Estimated Visit Date - Only for initial-check */}
-                {getPropertyRenoPhase(property) === "initial-check" && property.estimatedVisitDate && (
+                {getPropertyRenoPhase() === "initial-check" && property.estimatedVisitDate && (
                   <div className="pt-2 border-t">
                     <label className="text-sm font-medium text-muted-foreground">
                       {t.initialCheck.estimatedVisitDate}
@@ -206,8 +219,8 @@ export default function RenoPropertyDetailPage() {
                   </div>
                 )}
 
-                {/* Inicio y Fin Estimado */}
-                {(property.inicio || property.finEst) && (
+                {/* Inicio y Fin Estimado - Ocultado porque se muestra en DynamicCategoriesProgress */}
+                {/* {(property.inicio || property.finEst) && (
                   <div className="pt-2 border-t">
                     <label className="text-sm font-medium text-muted-foreground">
                       Fechas de obra
@@ -233,13 +246,13 @@ export default function RenoPropertyDetailPage() {
                       )}
                     </div>
                   </div>
-                )}
+                )} */}
 
               </div>
             </div>
 
             {/* Editable Fields for Upcoming Settlements - Second */}
-            {getPropertyRenoPhase(property) === "upcoming-settlements" && (
+            {getPropertyRenoPhase() === "upcoming-settlements" && (
               <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
                 <div className="space-y-6">
                   {/* Estimated Visit Date */}
@@ -278,8 +291,13 @@ export default function RenoPropertyDetailPage() {
               </div>
             )}
 
+            {/* Dynamic Categories Progress - Only for reno-in-progress */}
+            {getPropertyRenoPhase() === "reno-in-progress" && supabaseProperty && (
+              <DynamicCategoriesProgress property={supabaseProperty} />
+            )}
+
             {/* Read-only notice for other phases */}
-            {getPropertyRenoPhase(property) !== "upcoming-settlements" && (
+            {getPropertyRenoPhase() !== "upcoming-settlements" && getPropertyRenoPhase() !== "reno-in-progress" && (
               <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
                 <p className="text-sm text-muted-foreground">
                   Esta es una vista de solo lectura. El Jefe de Obra puede ver la información pero no editarla.
@@ -289,6 +307,20 @@ export default function RenoPropertyDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Report Problem Modal */}
+      {property && (
+        <ReportProblemModal
+          open={reportProblemOpen}
+          onOpenChange={setReportProblemOpen}
+          propertyName={property.fullAddress}
+          onSuccess={() => {
+            toast.success("Reporte enviado", {
+              description: "Tu reporte ha sido enviado correctamente al equipo.",
+            });
+          }}
+        />
+      )}
     </div>
   );
 }

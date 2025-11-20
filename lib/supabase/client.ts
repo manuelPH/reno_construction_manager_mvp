@@ -1,41 +1,67 @@
+"use client";
+
 /**
  * Supabase Client Configuration
  * 
- * Create a Supabase project at https://supabase.com
- * Get your URL and anon key from Project Settings > API
+ * Uses @supabase/ssr for Next.js App Router compatibility
+ * Supports multiple environments: development, staging, production
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
+import type { Database } from './types';
+import { config, getSupabaseProjectName } from '@/lib/config/environment';
 
-// These should be set in your .env.local file
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabaseUrl = config.supabase.url;
+const supabaseAnonKey = config.supabase.anonKey;
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn(
+  const errorMessage = 
     'Missing Supabase environment variables. ' +
-    'Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local'
+    `Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in your .env file.\n` +
+    `Current environment: ${config.environment}\n` +
+    `Expected Supabase project: ${getSupabaseProjectName()}`;
+  
+  if (config.isDevelopment) {
+    console.warn(`⚠️  ${errorMessage}`);
+  } else {
+    throw new Error(errorMessage);
+  }
+}
+
+export function createClient() {
+  return createBrowserClient<Database>(
+    supabaseUrl,
+    supabaseAnonKey,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        },
+      },
+      db: {
+        schema: 'public',
+      },
+      global: {
+        headers: {
+          'x-client-info': `vistral-${config.environment}`,
+          'x-supabase-project': getSupabaseProjectName(),
+        },
+      },
+    }
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
-  db: {
-    schema: 'public',
-  },
-  global: {
-    headers: {
-      'x-client-info': 'vistral-reno-app',
-    },
-  },
-});
+// Export singleton for backward compatibility
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
 
+export const supabase = (() => {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient();
+  }
+  return supabaseInstance;
+})();
