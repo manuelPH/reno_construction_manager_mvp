@@ -322,7 +322,7 @@ export const EstadoGeneralSection = forwardRef<HTMLDivElement, EstadoGeneralSect
                                         )}
                                       >
                                         <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0", isSelected ? "text-foreground" : "text-muted-foreground")} />
-                                        <span className={cn("text-xs sm:text-sm font-medium break-words text-center", isSelected ? "text-foreground" : "text-muted-foreground")}>
+                                        <span className={cn("text-xs sm:text-sm font-medium whitespace-nowrap text-center", isSelected ? "text-foreground" : "text-muted-foreground")}>
                                           {option.label}
                                         </span>
                                       </button>
@@ -389,7 +389,7 @@ export const EstadoGeneralSection = forwardRef<HTMLDivElement, EstadoGeneralSect
                                   )}
                                 >
                                   <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0", isSelected ? "text-foreground" : "text-muted-foreground")} />
-                                  <span className={cn("text-xs sm:text-sm font-medium break-words text-center", isSelected ? "text-foreground" : "text-muted-foreground")}>
+                                  <span className={cn("text-xs sm:text-sm font-medium whitespace-nowrap text-center", isSelected ? "text-foreground" : "text-muted-foreground")}>
                                     {option.label}
                                   </span>
                                 </button>
