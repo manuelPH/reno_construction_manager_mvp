@@ -1,0 +1,370 @@
+"use client";
+
+import { useCallback, useEffect } from "react";
+import * as React from "react";
+import { Upload, X, Camera, Video, Image as ImageIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { ChecklistUploadZone as ChecklistUploadZoneType, FileUpload } from "@/lib/checklist-storage";
+import { useFileUpload } from "@/hooks/useFileUpload";
+import { cn } from "@/lib/utils";
+
+interface ChecklistUploadZoneProps {
+  title: string;
+  description: string;
+  uploadZone: ChecklistUploadZoneType;
+  onUpdate: (uploadZone: ChecklistUploadZoneType) => void;
+  isRequired?: boolean;
+  maxFiles?: number;
+  maxSizeMB?: number;
+}
+
+const DEFAULT_MAX_SIZE = 5; // MB
+const PHOTO_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const VIDEO_TYPES = ["video/mp4", "video/webm", "video/quicktime"];
+
+export function ChecklistUploadZone({
+  title,
+  description,
+  uploadZone,
+  onUpdate,
+  isRequired = false,
+  maxFiles = 10,
+  maxSizeMB = DEFAULT_MAX_SIZE,
+}: ChecklistUploadZoneProps) {
+  const handlePhotosChange = useCallback((files: FileUpload[]) => {
+    onUpdate({
+      ...uploadZone,
+      photos: files,
+    });
+  }, [uploadZone, onUpdate]);
+
+  const handleVideosChange = useCallback((files: FileUpload[]) => {
+    onUpdate({
+      ...uploadZone,
+      videos: files,
+    });
+  }, [uploadZone, onUpdate]);
+
+  // Track processed file IDs to avoid duplicates
+  const processedPhotoIdsRef = React.useRef<Set<string>>(new Set());
+  const processedVideoIdsRef = React.useRef<Set<string>>(new Set());
+
+  // Initialize refs with existing file IDs
+  React.useEffect(() => {
+    uploadZone.photos.forEach(p => processedPhotoIdsRef.current.add(p.id));
+    uploadZone.videos.forEach(v => processedVideoIdsRef.current.add(v.id));
+  }, []);
+
+  const photosHook = useFileUpload({
+    maxFileSize: maxSizeMB,
+    acceptedTypes: PHOTO_TYPES,
+    onFilesChange: (allFiles) => {
+      // Filter to only include photos
+      const photos = allFiles.filter(f => 
+        f.type.startsWith("image/")
+      );
+      // Only add photos that haven't been processed yet
+      const newPhotos = photos.filter(p => {
+        if (processedPhotoIdsRef.current.has(p.id)) {
+          return false;
+        }
+        processedPhotoIdsRef.current.add(p.id);
+        return true;
+      });
+      if (newPhotos.length > 0) {
+        handlePhotosChange([...uploadZone.photos, ...newPhotos]);
+      }
+    },
+  });
+
+  const videosHook = useFileUpload({
+    maxFileSize: maxSizeMB * 10, // Videos can be larger
+    acceptedTypes: VIDEO_TYPES,
+    onFilesChange: (allFiles) => {
+      // Filter to only include videos
+      const videos = allFiles.filter(f => 
+        f.type.startsWith("video/")
+      );
+      // Only add videos that haven't been processed yet
+      const newVideos = videos.filter(v => {
+        if (processedVideoIdsRef.current.has(v.id)) {
+          return false;
+        }
+        processedVideoIdsRef.current.add(v.id);
+        return true;
+      });
+      if (newVideos.length > 0) {
+        handleVideosChange([...uploadZone.videos, ...newVideos]);
+      }
+    },
+  });
+
+  const [localError, setLocalError] = React.useState<string | null>(null);
+
+  // Unified drop handler that routes files to the correct hook
+  const handleUnifiedDrop = useCallback(async (e: React.DragEvent) => {
+    e.preventDefault();
+    photosHook.handleDragLeave(e);
+    videosHook.handleDragLeave(e);
+    
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    
+    if (droppedFiles.length === 0) return;
+
+    // Separate photos and videos
+    const photos: File[] = [];
+    const videos: File[] = [];
+    const errors: string[] = [];
+
+    droppedFiles.forEach((file) => {
+      if (file.type.startsWith("image/")) {
+        photos.push(file);
+      } else if (file.type.startsWith("video/")) {
+        videos.push(file);
+      } else {
+        errors.push(`${file.name}: Tipo de archivo no soportado. Solo se permiten imágenes y videos.`);
+      }
+    });
+
+    // Process photos by directly calling the hook's internal addFiles logic
+    // We'll use the file input refs to trigger the hooks' file selection handlers
+    if (photos.length > 0) {
+      // Create a temporary file input and trigger the photos hook
+      const tempInput = document.createElement('input');
+      tempInput.type = 'file';
+      tempInput.multiple = true;
+      tempInput.accept = PHOTO_TYPES.join(',');
+      
+      // Create a FileList-like object
+      const dataTransfer = new DataTransfer();
+      photos.forEach(photo => dataTransfer.items.add(photo));
+      
+      // Access the input's files property
+      Object.defineProperty(tempInput, 'files', {
+        value: dataTransfer.files,
+        writable: false,
+      });
+      
+      // Create a synthetic change event
+      const changeEvent = new Event('change', { bubbles: true });
+      Object.defineProperty(changeEvent, 'target', {
+        value: tempInput,
+        writable: false,
+      });
+      
+      photosHook.handleFileSelect(changeEvent as any);
+    }
+
+    if (videos.length > 0) {
+      // Create a temporary file input and trigger the videos hook
+      const tempInput = document.createElement('input');
+      tempInput.type = 'file';
+      tempInput.multiple = true;
+      tempInput.accept = VIDEO_TYPES.join(',');
+      
+      // Create a FileList-like object
+      const dataTransfer = new DataTransfer();
+      videos.forEach(video => dataTransfer.items.add(video));
+      
+      // Access the input's files property
+      Object.defineProperty(tempInput, 'files', {
+        value: dataTransfer.files,
+        writable: false,
+      });
+      
+      // Create a synthetic change event
+      const changeEvent = new Event('change', { bubbles: true });
+      Object.defineProperty(changeEvent, 'target', {
+        value: tempInput,
+        writable: false,
+      });
+      
+      videosHook.handleFileSelect(changeEvent as any);
+    }
+
+    // Show errors if any
+    if (errors.length > 0) {
+      setLocalError(errors.join("\n"));
+    } else {
+      setLocalError(null);
+    }
+  }, [photosHook, videosHook]);
+
+  const handleRemovePhoto = useCallback((index: number) => {
+    const photoToRemove = uploadZone.photos[index];
+    if (photoToRemove) {
+      processedPhotoIdsRef.current.delete(photoToRemove.id);
+    }
+    const newPhotos = uploadZone.photos.filter((_, i) => i !== index);
+    onUpdate({
+      ...uploadZone,
+      photos: newPhotos,
+    });
+    // Clear error when removing files
+    setLocalError(null);
+  }, [uploadZone, onUpdate]);
+
+  const handleRemoveVideo = useCallback((index: number) => {
+    const videoToRemove = uploadZone.videos[index];
+    if (videoToRemove) {
+      processedVideoIdsRef.current.delete(videoToRemove.id);
+    }
+    const newVideos = uploadZone.videos.filter((_, i) => i !== index);
+    onUpdate({
+      ...uploadZone,
+      videos: newVideos,
+    });
+    // Clear error when removing files
+    setLocalError(null);
+  }, [uploadZone, onUpdate]);
+
+  // Update local error when hook errors change
+  useEffect(() => {
+    if (photosHook.error || videosHook.error) {
+      setLocalError(photosHook.error || videosHook.error || null);
+    } else {
+      setLocalError(null);
+    }
+  }, [photosHook.error, videosHook.error]);
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm font-semibold leading-tight">
+            {title} {isRequired && <span className="text-red-500">*</span>}
+          </Label>
+          <span className="text-xs text-muted-foreground leading-normal">
+            {uploadZone.photos.length} foto(s), {uploadZone.videos.length} video(s)
+          </span>
+        </div>
+        {description && (
+          <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
+        )}
+      </div>
+
+      {/* Drop Zone */}
+      <div
+        className={cn(
+          "border-2 border-dashed rounded-lg p-6 text-center transition-colors",
+          (photosHook.isDragOver || videosHook.isDragOver)
+            ? "border-[var(--prophero-blue-500)] bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)]/20"
+            : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] bg-white dark:bg-[var(--prophero-gray-900)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)]"
+        )}
+        onDragOver={(e) => {
+          e.preventDefault();
+          photosHook.handleDragOver(e);
+          videosHook.handleDragOver(e);
+        }}
+        onDragLeave={(e) => {
+          e.preventDefault();
+          photosHook.handleDragLeave(e);
+          videosHook.handleDragLeave(e);
+        }}
+        onDrop={handleUnifiedDrop}
+      >
+        <Upload className="h-8 w-8 mx-auto text-[var(--prophero-gray-400)] mb-2" />
+        <p className="text-sm text-[var(--prophero-gray-600)] dark:text-[var(--prophero-gray-400)] mb-2">
+          Arrastra y suelta archivos aquí
+        </p>
+        <p className="text-xs text-[var(--prophero-gray-500)] dark:text-[var(--prophero-gray-500)] mb-3">
+          O haz clic para explorar (máx. {maxFiles} archivos, {maxSizeMB}MB cada uno)
+        </p>
+        
+        <input
+          ref={photosHook.fileInputRef}
+          type="file"
+          multiple
+          accept={PHOTO_TYPES.join(",")}
+          onChange={photosHook.handleFileSelect}
+          className="hidden"
+        />
+        <input
+          ref={videosHook.fileInputRef}
+          type="file"
+          multiple
+          accept={VIDEO_TYPES.join(",")}
+          onChange={videosHook.handleFileSelect}
+          className="hidden"
+        />
+
+        <div className="flex gap-2 justify-center">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => photosHook.fileInputRef.current?.click()}
+            className="flex items-center gap-1"
+          >
+            <ImageIcon className="h-4 w-4" />
+            Subir fotos
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => videosHook.fileInputRef.current?.click()}
+            className="flex items-center gap-1"
+          >
+            <Video className="h-4 w-4" />
+            Subir videos
+          </Button>
+        </div>
+      </div>
+
+      {/* File Grid */}
+      {(uploadZone.photos.length > 0 || uploadZone.videos.length > 0) && (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mt-4">
+          {/* Photos */}
+          {uploadZone.photos.map((file, index) => (
+            <div
+              key={file.id || `photo-${index}`}
+              className="relative group aspect-square rounded-lg overflow-hidden border border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)]"
+            >
+              {file.data && (
+                <img
+                  src={file.data}
+                  alt={file.name}
+                  className="w-full h-full object-cover"
+                />
+              )}
+              <button
+                type="button"
+                onClick={() => handleRemovePhoto(index)}
+                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+          
+          {/* Videos */}
+          {uploadZone.videos.map((file, index) => (
+            <div
+              key={file.id || `video-${index}`}
+              className="relative group aspect-square rounded-lg overflow-hidden border border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] flex items-center justify-center"
+            >
+              <Video className="h-8 w-8 text-[var(--prophero-gray-400)]" />
+              <div className="absolute bottom-2 left-2 right-2">
+                <p className="text-xs text-foreground truncate bg-black/50 text-white px-1 py-0.5 rounded">{file.name}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleRemoveVideo(index)}
+                className="absolute top-2 right-2 p-1.5 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {localError && (
+        <p className="text-sm text-red-500 mt-2">{localError}</p>
+      )}
+    </div>
+  );
+}
+

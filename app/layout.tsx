@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { I18nProvider } from "@/lib/i18n";
 import { AuthProvider } from "@/lib/auth";
+import { SupabaseAuthProvider } from "@/lib/auth/supabase-auth-context";
+import { AppAuthProvider } from "@/lib/auth/app-auth-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,9 +33,15 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider>
           <I18nProvider>
+            {/* AuthProvider original para compatibilidad con código existente */}
             <AuthProvider>
-              {children}
-              <Toaster />
+              {/* Providers de Supabase para nueva funcionalidad */}
+              <SupabaseAuthProvider>
+                <AppAuthProvider>
+                  {children}
+                  <Toaster />
+                </AppAuthProvider>
+              </SupabaseAuthProvider>
             </AuthProvider>
           </I18nProvider>
         </ThemeProvider>

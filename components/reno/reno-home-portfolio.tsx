@@ -17,6 +17,7 @@ export function RenoHomePortfolio({ properties }: RenoHomePortfolioProps) {
 
   const stageCounts = useMemo(() => {
     const counts: Record<RenoKanbanPhase, number> = {
+      "upcoming-settlements": 0,
       "initial-check": 0,
       "upcoming": 0,
       "reno-in-progress": 0,
@@ -28,7 +29,9 @@ export function RenoHomePortfolio({ properties }: RenoHomePortfolioProps) {
 
     // Map properties to stages based on IDs (for demo)
     properties.forEach((p) => {
-      if (["4463801", "4463802", "4463803"].includes(p.id)) {
+      if (["4463793", "4463794", "4463795", "4463796", "4463797", "4463798", "4463799", "4463800"].includes(p.id)) {
+        counts["upcoming-settlements"]++;
+      } else if (["4463801", "4463802", "4463803"].includes(p.id)) {
         counts["initial-check"]++;
       } else if (["4463804", "4463805"].includes(p.id)) {
         counts["upcoming"]++;
@@ -53,6 +56,7 @@ export function RenoHomePortfolio({ properties }: RenoHomePortfolioProps) {
 
   const getStageLabel = (stage: RenoKanbanPhase) => {
     const stageMap: Record<RenoKanbanPhase, string> = {
+      "upcoming-settlements": language === "es" ? "Nuevas escrituras" : "Upcoming Settlements",
       "initial-check": language === "es" ? "Check inicial" : "Initial Check",
       "upcoming": language === "es" ? "Próximas" : "Upcoming",
       "reno-in-progress": language === "es" ? "Obras en proceso" : "Reno In Progress",
@@ -87,7 +91,7 @@ export function RenoHomePortfolio({ properties }: RenoHomePortfolioProps) {
             {renoKanbanColumns.map((column) => {
               const count = stageCounts[column.stage];
               const height = getBarHeight(count);
-              
+
               return (
                 <div
                   key={column.stage}
@@ -106,7 +110,7 @@ export function RenoHomePortfolio({ properties }: RenoHomePortfolioProps) {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 text-center leading-tight">
+                  <p className="text-xs text-muted-foreground mt-2 text-center leading-tight h-8 flex items-start justify-center overflow-hidden">
                     {getStageLabel(column.stage)}
                   </p>
                 </div>
@@ -118,5 +122,8 @@ export function RenoHomePortfolio({ properties }: RenoHomePortfolioProps) {
     </Card>
   );
 }
+
+
+
 
 
