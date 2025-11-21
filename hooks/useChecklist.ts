@@ -182,7 +182,6 @@ export function useChecklist({
         const updatedChecklist: ChecklistData = {
           ...prevChecklist,
           sections: updatedSections,
-          lastUpdated: new Date().toISOString(),
         };
 
         console.log("updatedChecklist:", updatedChecklist);

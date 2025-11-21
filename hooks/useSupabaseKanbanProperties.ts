@@ -59,11 +59,6 @@ function convertSupabasePropertyToKanbanProperty(
     realSettlementDate: undefined, // No hay en Supabase
     estimatedVisitDate: undefined, // No hay en Supabase
     setupStatusNotes: supabaseProperty.notes || undefined,
-    // Campos adicionales de Supabase
-    status: supabaseProperty.status || undefined,
-    bedrooms: supabaseProperty.bedrooms || undefined,
-    bathrooms: supabaseProperty.bathrooms || undefined,
-    square_meters: supabaseProperty.square_meters || undefined,
     // Campo para mostrar el ID único de Engagements
     uniqueIdFromEngagements: supabaseProperty['Unique ID From Engagements'] || undefined,
   };

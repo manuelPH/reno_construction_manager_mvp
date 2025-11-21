@@ -19,6 +19,22 @@ const SECTION_TO_ZONE_TYPE: Record<string, string> = {
   'exteriores': 'exterior',
 };
 
+// Helper para extraer badElements de notes (formato: "notes\nBad elements: item1, item2")
+function extractBadElementsFromNotes(notes: string | null): string[] | undefined {
+  if (!notes) return undefined;
+  const badElementsMatch = notes.match(/Bad elements:\s*(.+)/);
+  if (badElementsMatch) {
+    return badElementsMatch[1].split(',').map(item => item.trim()).filter(Boolean);
+  }
+  return undefined;
+}
+
+// Helper para limpiar notes removiendo la parte de badElements
+function cleanNotesFromBadElements(notes: string | null): string | null {
+  if (!notes) return null;
+  return notes.replace(/\nBad elements:.*$/, '').trim() || null;
+}
+
 // Mapeo de zone_type a nombre de zona
 const ZONE_TYPE_TO_NAME: Record<string, string> = {
   'entorno': 'Entorno y Zonas Comunes',
@@ -116,7 +132,6 @@ export function convertUploadZonesToElements(
         element_name: `fotos-${uploadZone.id}`,
         condition: null,
         image_urls: imageUrls.length > 0 ? imageUrls : null,
-        video_urls: null,
         notes: null,
         quantity: null,
         exists: null,
@@ -134,7 +149,6 @@ export function convertUploadZonesToElements(
         element_name: `videos-${uploadZone.id}`,
         condition: null,
         image_urls: null,
-        video_urls: videoUrls.length > 0 ? videoUrls : null,
         notes: null,
         quantity: null,
         exists: null,
@@ -159,21 +173,19 @@ export function convertQuestionsToElements(
       ?.filter(photo => photo.data)
       .map(photo => photo.data) || null;
 
-    const metadata: any = {};
-    if (question.badElements && question.badElements.length > 0) {
-      metadata.badElements = question.badElements;
-    }
+    // Nota: badElements se puede incluir en notes si es necesario
+    const notesWithBadElements = question.badElements && question.badElements.length > 0
+      ? `${question.notes || ''}\nBad elements: ${question.badElements.join(', ')}`.trim()
+      : question.notes || null;
 
     elements.push({
       zone_id: zoneId,
       element_name: question.id,
       condition: mapStatusToCondition(question.status),
-      notes: question.notes || null,
+      notes: notesWithBadElements,
       image_urls: imageUrls && imageUrls.length > 0 ? imageUrls : null,
-      video_urls: null,
       quantity: null,
       exists: null,
-      metadata: Object.keys(metadata).length > 0 ? metadata : null,
     });
   });
 
@@ -199,21 +211,20 @@ export function convertItemsToElements(
         ?.filter(photo => photo.data)
         .map(photo => photo.data) || null;
 
-      const metadata: any = {};
-      if (item.badElements && item.badElements.length > 0) {
-        metadata.badElements = item.badElements;
-      }
+      // Nota: badElements se puede incluir en notes si es necesario
+      const badElements = 'badElements' in item ? item.badElements : undefined;
+      const notesWithBadElements = badElements && badElements.length > 0
+        ? `${item.notes || ''}\nBad elements: ${badElements.join(', ')}`.trim()
+        : item.notes || null;
 
       elements.push({
         zone_id: zoneId,
         element_name: `${itemType}-${item.id}`,
         condition: mapStatusToCondition(item.estado),
-        notes: item.notes || null,
+        notes: notesWithBadElements,
         image_urls: imageUrls && imageUrls.length > 0 ? imageUrls : null,
-        video_urls: null,
         quantity: 1,
         exists: null,
-        metadata: Object.keys(metadata).length > 0 ? metadata : null,
       });
     } else if (item.units && item.units.length > 0) {
       // Múltiples unidades - crear un elemento por unidad
@@ -222,21 +233,20 @@ export function convertItemsToElements(
           ?.filter(photo => photo.data)
           .map(photo => photo.data) || null;
 
-        const metadata: any = {};
-        if (unit.badElements && unit.badElements.length > 0) {
-          metadata.badElements = unit.badElements;
-        }
+        // Nota: badElements se puede incluir en notes si es necesario
+        const badElements = 'badElements' in unit ? unit.badElements : undefined;
+        const notesWithBadElements = badElements && badElements.length > 0
+          ? `${unit.notes || ''}\nBad elements: ${badElements.join(', ')}`.trim()
+          : unit.notes || null;
 
         elements.push({
           zone_id: zoneId,
           element_name: `${itemType}-${item.id}-${index + 1}`,
           condition: mapStatusToCondition(unit.estado),
-          notes: unit.notes || null,
+          notes: notesWithBadElements,
           image_urls: imageUrls && imageUrls.length > 0 ? imageUrls : null,
-          video_urls: null,
           quantity: 1,
           exists: null,
-          metadata: Object.keys(metadata).length > 0 ? metadata : null,
         });
       });
     }
@@ -261,10 +271,8 @@ export function convertMobiliarioToElements(
     condition: null,
     notes: null,
     image_urls: null,
-    video_urls: null,
     quantity: null,
     exists: mobiliario.existeMobiliario ?? null,
-    metadata: null,
   });
 
   // Si existe mobiliario y hay question, crear elemento adicional
@@ -273,21 +281,19 @@ export function convertMobiliarioToElements(
       ?.filter(photo => photo.data)
       .map(photo => photo.data) || null;
 
-    const metadata: any = {};
-    if (mobiliario.question.badElements && mobiliario.question.badElements.length > 0) {
-      metadata.badElements = mobiliario.question.badElements;
-    }
+    // Nota: badElements se puede incluir en notes si es necesario
+    const notesWithBadElements = mobiliario.question.badElements && mobiliario.question.badElements.length > 0
+      ? `${mobiliario.question.notes || ''}\nBad elements: ${mobiliario.question.badElements.join(', ')}`.trim()
+      : mobiliario.question.notes || null;
 
     elements.push({
       zone_id: zoneId,
       element_name: 'mobiliario-detalle',
       condition: mapStatusToCondition(mobiliario.question.status),
-      notes: mobiliario.question.notes || null,
+      notes: notesWithBadElements,
       image_urls: imageUrls && imageUrls.length > 0 ? imageUrls : null,
-      video_urls: null,
       quantity: null,
       exists: null,
-      metadata: Object.keys(metadata).length > 0 ? metadata : null,
     });
   }
 
@@ -486,7 +492,8 @@ export function convertSupabaseToChecklist(
           } else if (element.element_name.startsWith('videos-')) {
             const uploadZoneId = element.element_name.replace('videos-', '');
             if (dynamicItem.uploadZone && dynamicItem.uploadZone.id === uploadZoneId) {
-              dynamicItem.uploadZone.videos = element.video_urls?.map(url => urlToFileUpload(url, true)) || [];
+              // Videos no están soportados en el esquema actual
+              dynamicItem.uploadZone.videos = [];
             }
           }
           // Questions
@@ -499,9 +506,10 @@ export function convertSupabaseToChecklist(
             const question: ChecklistQuestion = {
               id: element.element_name,
               status: mapConditionToStatus(element.condition),
-              notes: element.notes || undefined,
+              notes: cleanNotesFromBadElements(element.notes) || undefined,
               photos: element.image_urls?.map(url => urlToFileUpload(url)) || undefined,
-              badElements: (element.metadata as any)?.badElements || undefined,
+              // badElements se extraen de notes si están presentes
+              badElements: extractBadElementsFromNotes(element.notes),
             };
             if (!dynamicItem.questions) dynamicItem.questions = [];
             dynamicItem.questions.push(question);
@@ -518,7 +526,8 @@ export function convertSupabaseToChecklist(
                 status: mapConditionToStatus(element.condition),
                 notes: element.notes || undefined,
                 photos: element.image_urls?.map(url => urlToFileUpload(url)) || undefined,
-                badElements: (element.metadata as any)?.badElements || undefined,
+                // badElements se extraen de notes si están presentes
+              badElements: extractBadElementsFromNotes(element.notes),
               };
             }
           }
@@ -551,7 +560,8 @@ export function convertSupabaseToChecklist(
             if (!section.uploadZones) section.uploadZones = [];
             section.uploadZones.push(uploadZone);
           }
-          uploadZone.videos = element.video_urls?.map(url => urlToFileUpload(url, true)) || [];
+          // Videos no están soportados en el esquema actual
+          uploadZone.videos = [];
         }
         // Questions
         else if (!element.element_name.includes('-') &&
@@ -567,9 +577,9 @@ export function convertSupabaseToChecklist(
           const question: ChecklistQuestion = {
             id: element.element_name,
             status: mapConditionToStatus(element.condition),
-            notes: element.notes || undefined,
+            notes: cleanNotesFromBadElements(element.notes) || undefined,
             photos: element.image_urls?.map(url => urlToFileUpload(url)) || undefined,
-            badElements: (element.metadata as any)?.badElements || undefined,
+            badElements: extractBadElementsFromNotes(element.notes),
           };
           if (!section.questions) section.questions = [];
           section.questions.push(question);
@@ -586,7 +596,8 @@ export function convertSupabaseToChecklist(
               status: mapConditionToStatus(element.condition),
               notes: element.notes || undefined,
               photos: element.image_urls?.map(url => urlToFileUpload(url)) || undefined,
-              badElements: (element.metadata as any)?.badElements || undefined,
+              // badElements se extraen de notes si están presentes
+              badElements: extractBadElementsFromNotes(element.notes),
             };
           }
         }

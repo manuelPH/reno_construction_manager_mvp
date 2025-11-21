@@ -50,10 +50,6 @@ export function convertSupabasePropertyToProperty(
                       supabaseProperty.notes || 
                       undefined,
     // Additional Supabase fields
-    status: supabaseProperty.status || undefined,
-    bedrooms: supabaseProperty.bedrooms || undefined,
-    bathrooms: supabaseProperty.bathrooms || undefined,
-    square_meters: supabaseProperty.square_meters || undefined,
     uniqueIdFromEngagements: supabaseProperty['Unique ID From Engagements'] || undefined,
   };
 }

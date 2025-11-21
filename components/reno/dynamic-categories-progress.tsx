@@ -244,7 +244,7 @@ export function DynamicCategoriesProgress({ property }: DynamicCategoriesProgres
           property_name: property.name,
           address: property.address,
           client_name: property["Client Name"],
-          client_email: property["Client Email"],
+          client_email: property["Client email"],
           renovation_type: property.renovation_type,
           area_cluster: property.area_cluster,
         },

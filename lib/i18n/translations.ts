@@ -229,6 +229,9 @@ export interface Translations {
     whatElementsBadCondition: string;
     observationsPlaceholder: string;
     addPhotos: string;
+    dragDropFiles?: string; // Optional drag and drop text
+    clickToBrowse?: string; // Optional click to browse text
+    elements?: any; // Optional elements translations
     sections: {
       entornoZonasComunes: any;
       estadoGeneral: any;

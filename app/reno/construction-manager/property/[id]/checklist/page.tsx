@@ -149,7 +149,7 @@ export default function RenoChecklistPage() {
     if (!checklist) return;
     // Save is handled automatically by useChecklist hook
     setHasUnsavedChanges(false);
-    toast.success(t.property.saveSuccess);
+    toast.success(t.messages.saveSuccess);
   }, [checklist, t]);
 
   // Format address
@@ -586,6 +586,18 @@ export default function RenoChecklistPage() {
     );
   }
 
+  // TypeScript guard: ensure property is not null before rendering
+  if (!property) {
+    return (
+      <div className="flex h-screen overflow-hidden">
+        <RenoSidebar />
+        <div className="flex flex-1 items-center justify-center">
+          <RenoHomeLoader />
+        </div>
+      </div>
+    );
+  }
+
   const phase = getPropertyRenoPhase(property) || "initial-check";
   const habitacionesCount = checklist?.sections?.["habitaciones"]?.dynamicCount ?? propertyData?.habitaciones ?? 0;
   const banosCount = checklist?.sections?.["banos"]?.dynamicCount ?? propertyData?.banos ?? 0;
@@ -638,19 +650,28 @@ export default function RenoChecklistPage() {
 
       {/* Mobile Sidebar Menu */}
       <MobileSidebarMenu
+        address={formatAddress()}
+        overallProgress={0}
         sections={[
-          { id: "property-info", name: "Información de la Propiedad" },
-          { id: "checklist-entorno-zonas-comunes", name: t.checklist.sections.entornoZonasComunes.title },
-          { id: "checklist-estado-general", name: t.checklist.sections.estadoGeneral.title },
-          { id: "checklist-entrada-pasillos", name: t.checklist.sections.entradaPasillos.title },
-          { id: "checklist-habitaciones", name: t.checklist.sections.habitaciones.title },
-          { id: "checklist-salon", name: t.checklist.sections.salon.title },
-          { id: "checklist-banos", name: t.checklist.sections.banos.title },
-          { id: "checklist-cocina", name: t.checklist.sections.cocina.title },
-          { id: "checklist-exteriores", name: t.checklist.sections.exteriores.title },
+          { sectionId: "property-info", name: "Información de la Propiedad", progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
+          { sectionId: "checklist-entorno-zonas-comunes", name: t.checklist.sections.entornoZonasComunes.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
+          { sectionId: "checklist-estado-general", name: t.checklist.sections.estadoGeneral.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
+          { sectionId: "checklist-entrada-pasillos", name: t.checklist.sections.entradaPasillos.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
+          { sectionId: "checklist-habitaciones", name: t.checklist.sections.habitaciones.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
+          { sectionId: "checklist-salon", name: t.checklist.sections.salon.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
+          { sectionId: "checklist-banos", name: t.checklist.sections.banos.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
+          { sectionId: "checklist-cocina", name: t.checklist.sections.cocina.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
+          { sectionId: "checklist-exteriores", name: t.checklist.sections.exteriores.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
         ]}
         activeSection={activeSection}
         onSectionClick={handleSectionClick}
+        onSave={handleSave}
+        onSubmit={() => {}}
+        onDelete={() => {}}
+        canSubmit={false}
+        hasUnsavedChanges={hasUnsavedChanges}
+        habitacionesCount={habitacionesCount}
+        banosCount={banosCount}
       />
     </div>
   );
