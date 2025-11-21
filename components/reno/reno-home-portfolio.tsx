@@ -6,6 +6,8 @@ import { Property } from "@/lib/property-storage";
 import { RenoKanbanPhase, renoKanbanColumns } from "@/lib/reno-kanban-config";
 import { useI18n } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
+import { useSupabaseKanbanProperties } from "@/hooks/useSupabaseKanbanProperties";
+
 interface RenoHomePortfolioProps {
   properties: Property[];
   propertiesByPhase?: Record<RenoKanbanPhase, Property[]>;
