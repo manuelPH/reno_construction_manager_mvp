@@ -1,0 +1,154 @@
+"use client";
+
+import { Calendar, CheckCircle2, Clock, FileText } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/client";
+import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
+
+interface ChecklistHistory {
+  id: string;
+  inspection_type: 'initial' | 'final';
+  inspection_status: string;
+  created_at: string;
+  completed_at: string | null;
+  created_by: string | null;
+}
+
+interface PropertyStatusTabProps {
+  propertyId: string;
+}
+
+/**
+ * PropertyStatusTab Component
+ * 
+ * Muestra el historial de checklists realizados para la propiedad
+ */
+export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
+  const { t } = useI18n();
+  const [checklists, setChecklists] = useState<ChecklistHistory[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchChecklists = async () => {
+      if (!propertyId) return;
+
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('property_inspections')
+        .select('id, inspection_type, inspection_status, created_at, completed_at, created_by')
+        .eq('property_id', propertyId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching checklists:', error);
+        setLoading(false);
+        return;
+      }
+
+      setChecklists(data || []);
+      setLoading(false);
+    };
+
+    fetchChecklists();
+  }, [propertyId]);
+
+  if (loading) {
+    return (
+      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+        <p className="text-muted-foreground">Cargando historial...</p>
+      </div>
+    );
+  }
+
+  if (checklists.length === 0) {
+    return (
+      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+        <p className="text-muted-foreground">No hay checklists realizados aún</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {checklists.map((checklist) => {
+        const isCompleted = checklist.completed_at !== null;
+        const checklistType = checklist.inspection_type === 'initial' 
+          ? 'Check Inicial' 
+          : 'Check Final';
+        const createdDate = new Date(checklist.created_at).toLocaleDateString("es-ES", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+        const completedDate = checklist.completed_at
+          ? new Date(checklist.completed_at).toLocaleDateString("es-ES", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })
+          : null;
+
+        return (
+          <div
+            key={checklist.id}
+            className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm"
+          >
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  {isCompleted ? (
+                    <CheckCircle2 className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                  )}
+                  <h3 className="text-lg font-semibold">{checklistType}</h3>
+                  <span
+                    className={cn(
+                      "px-2 py-1 text-xs font-medium rounded-full",
+                      isCompleted
+                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                        : "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
+                    )}
+                  >
+                    {isCompleted ? "Completado" : "En progreso"}
+                  </span>
+                </div>
+
+                <div className="space-y-1 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4" />
+                    <span>Creado: {createdDate}</span>
+                  </div>
+                  {completedDate && (
+                    <div className="flex items-center gap-2">
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Completado: {completedDate}</span>
+                    </div>
+                  )}
+                  {checklist.created_by && (
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      <span>Creado por: {checklist.created_by}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <button
+                className="px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 rounded-md transition-colors"
+                onClick={() => {
+                  // Navigate to checklist view
+                  window.location.href = `/reno/construction-manager/property/${propertyId}/checklist?type=${checklist.inspection_type}`;
+                }}
+              >
+                Ver detalles →
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+

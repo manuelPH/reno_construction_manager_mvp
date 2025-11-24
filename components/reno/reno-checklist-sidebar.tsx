@@ -10,10 +10,7 @@ interface RenoChecklistSidebarProps {
   address: string;
   activeSection: string;
   onSectionClick: (sectionId: string) => void;
-  onSave: () => void;
-  onSubmit?: () => void;
-  canSubmit?: boolean;
-  hasUnsavedChanges: boolean;
+  // onSave, onSubmit, canSubmit, hasUnsavedChanges removidos - ahora están en NavbarL3
   habitacionesCount?: number;
   banosCount?: number;
 }
@@ -22,16 +19,11 @@ export function RenoChecklistSidebar({
   address,
   activeSection,
   onSectionClick,
-  onSave,
-  onSubmit,
-  canSubmit = false,
-  hasUnsavedChanges,
   habitacionesCount = 0,
   banosCount = 0,
 }: RenoChecklistSidebarProps) {
   const { t } = useI18n();
   const [expandedGroups, setExpandedGroups] = useState<string[]>([
-    "informacion-propiedad",
     "estado-caracteristicas",
   ]);
 
@@ -44,16 +36,6 @@ export function RenoChecklistSidebar({
   };
 
   const grupos = [
-    {
-      id: "informacion-propiedad",
-      name: t.sidebar.propertyInformation,
-      sections: [
-        {
-          sectionId: "property-info",
-          name: t.sidebar.propertyInformation,
-        },
-      ],
-    },
     {
       id: "estado-caracteristicas",
       name: t.sidebar.statusCharacteristics,
@@ -184,27 +166,7 @@ export function RenoChecklistSidebar({
         })}
       </div>
 
-      {/* Action Buttons */}
-      <div className="p-4 border-t space-y-2">
-        {onSubmit && (
-          <Button
-            onClick={onSubmit}
-            disabled={!canSubmit}
-            className="w-full"
-            size="lg"
-          >
-            {t.checklist.submitChecklist}
-          </Button>
-        )}
-        <Button
-          onClick={onSave}
-          variant="outline"
-          className="w-full"
-          disabled={!hasUnsavedChanges}
-        >
-          {t.property.save}
-        </Button>
-      </div>
+      {/* Action Buttons - Removed: ahora están en NavbarL3 según diseño L3 */}
     </div>
   );
 }

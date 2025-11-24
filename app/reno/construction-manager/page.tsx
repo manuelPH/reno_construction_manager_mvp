@@ -5,8 +5,7 @@ import { useRouter } from "next/navigation";
 import { RenoSidebar } from "@/components/reno/reno-sidebar";
 import { RenoHomeHeader } from "@/components/reno/reno-home-header";
 import { RenoHomeIndicators } from "@/components/reno/reno-home-indicators";
-import { RenoHomeTasks } from "@/components/reno/reno-home-tasks";
-import { RenoHomeVisits } from "@/components/reno/reno-home-visits";
+import { VisitsCalendar } from "@/components/reno/visits-calendar";
 import { RenoHomeRecentProperties } from "@/components/reno/reno-home-recent-properties";
 import { RenoHomePortfolio } from "@/components/reno/reno-home-portfolio";
 import { RenoHomeLoader } from "@/components/reno/reno-home-loader";
@@ -166,11 +165,9 @@ export default function RenoConstructionManagerHomePage() {
     return sortPropertiesByExpired(filtered);
   }, [propertiesByPhase]);
 
-  // Handle property click - navigate to property detail or task (to be defined)
-  const handlePropertyClick = (property: Property) => {
-    // For now, navigate to property detail page
-    // Later, this will open the task execution screen
-    router.push(`/reno/construction-manager/property/${property.id}`);
+  // Handle property click - navigate to property detail or task
+  const handlePropertyClick = (propertyId: string) => {
+    router.push(`/reno/construction-manager/property/${propertyId}`);
   };
 
   // Handle add visit
@@ -217,19 +214,11 @@ export default function RenoConstructionManagerHomePage() {
                 totalVisitasMesDelta={indicators.totalVisitasMesDelta}
               />
 
-              {/* Tasks and Visits Row */}
-              <div className="grid gap-6 md:grid-cols-2">
-                <RenoHomeTasks
-                  checks={checksForToday}
-                  visits={visitsForToday}
-                  onPropertyClick={handlePropertyClick}
-                />
-                <RenoHomeVisits
-                  visits={visitsForToday}
-                  onPropertyClick={handlePropertyClick}
-                  onAddVisit={handleAddVisit}
-                />
-              </div>
+              {/* Calendar Row */}
+              <VisitsCalendar
+                propertiesByPhase={propertiesByPhase}
+                onPropertyClick={handlePropertyClick}
+              />
 
               {/* Recent Properties and Portfolio Row */}
               <div className="grid gap-6 md:grid-cols-2">

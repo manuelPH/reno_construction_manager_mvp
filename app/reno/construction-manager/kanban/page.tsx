@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import { RenoSidebar } from "@/components/reno/reno-sidebar";
-import { RenoKanbanHeader } from "@/components/reno/reno-kanban-header";
+import { NavbarL1 } from "@/components/layout/navbar-l1";
 import { RenoKanbanBoard } from "@/components/reno/reno-kanban-board";
+import { useI18n } from "@/lib/i18n";
 
 export default function RenoConstructionManagerKanbanPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { t } = useI18n();
 
   return (
     <div className="flex h-screen overflow-hidden">
-      {/* Sidebar */}
+      {/* Sidebar L1: Navegación principal de plataforma */}
       <RenoSidebar 
         isMobileOpen={isMobileMenuOpen}
         onMobileToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -19,10 +21,14 @@ export default function RenoConstructionManagerKanbanPage() {
 
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden w-full md:w-auto">
-        <RenoKanbanHeader 
-          searchQuery={searchQuery} 
+        {/* Navbar L1: Navegación secundaria con buscador, filtros */}
+        <NavbarL1
+          classNameTitle={t.property.management}
+          searchQuery={searchQuery}
           setSearchQuery={setSearchQuery}
-          onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          onFilterClick={() => {
+            console.log("Filter - Coming soon");
+          }}
         />
         
         {/* Kanban Board */}

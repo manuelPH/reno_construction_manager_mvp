@@ -480,6 +480,157 @@ export type Database = {
           },
         ]
       }
+      property_comments: {
+        Row: {
+          id: string
+          property_id: string
+          comment_text: string
+          created_by: string | null
+          created_at: string
+          updated_at: string
+          synced_to_airtable: boolean
+          airtable_sync_date: string | null
+          is_reminder: boolean | null
+          reminder_date: string | null
+          reminder_notified: boolean | null
+          reminder_notification_date: string | null
+        }
+        Insert: {
+          id?: string
+          property_id: string
+          comment_text: string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          synced_to_airtable?: boolean
+          airtable_sync_date?: string | null
+          is_reminder?: boolean | null
+          reminder_date?: string | null
+          reminder_notified?: boolean | null
+          reminder_notification_date?: string | null
+        }
+        Update: {
+          id?: string
+          property_id?: string
+          comment_text?: string
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+          synced_to_airtable?: boolean
+          airtable_sync_date?: string | null
+          is_reminder?: boolean | null
+          reminder_date?: string | null
+          reminder_notified?: boolean | null
+          reminder_notification_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_property_comments_property"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_reminders: {
+        Row: {
+          id: string
+          comment_id: string
+          property_id: string
+          reminder_text: string
+          reminder_date: string
+          created_by: string | null
+          notified: boolean
+          notification_date: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          comment_id: string
+          property_id: string
+          reminder_text: string
+          reminder_date: string
+          created_by?: string | null
+          notified?: boolean
+          notification_date?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          comment_id?: string
+          property_id?: string
+          reminder_text?: string
+          reminder_date?: string
+          created_by?: string | null
+          notified?: boolean
+          notification_date?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_property_reminders_property"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "property_reminders_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "property_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      property_visits: {
+        Row: {
+          id: string
+          property_id: string
+          visit_date: string
+          visit_type: string
+          notes: string | null
+          created_by: string | null
+          notified: boolean
+          notification_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          property_id: string
+          visit_date: string
+          visit_type?: string
+          notes?: string | null
+          created_by?: string | null
+          notified?: boolean
+          notification_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          property_id?: string
+          visit_date?: string
+          visit_type?: string
+          notes?: string | null
+          created_by?: string | null
+          notified?: boolean
+          notification_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_property_visits_property"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string | null

@@ -6,7 +6,14 @@ import { ArrowLeft, MapPin, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { RenoSidebar } from "@/components/reno/reno-sidebar";
+import { NavbarL2 } from "@/components/layout/navbar-l2";
+import { HeaderL2 } from "@/components/layout/header-l2";
+import { PropertyTabs } from "@/components/layout/property-tabs";
+import { PropertySummaryTab } from "@/components/reno/property-summary-tab";
+import { PropertyStatusTab } from "@/components/reno/property-status-tab";
+import { PropertyActionTab } from "@/components/reno/property-action-tab";
+import { PropertyCommentsSection } from "@/components/reno/property-comments-section";
+import { PropertyStatusSidebar } from "@/components/reno/property-status-sidebar";
 import { RenoHomeLoader } from "@/components/reno/reno-home-loader";
 import { Property } from "@/lib/property-storage";
 import { FutureDatePicker } from "@/components/property/future-date-picker";
@@ -28,6 +35,7 @@ export default function RenoPropertyDetailPage() {
   const router = useRouter();
   const { t } = useI18n();
   const [reportProblemOpen, setReportProblemOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("tareas"); // Tab por defecto: Tareas
   const propertyId = params.id && typeof params.id === "string" ? params.id : null;
   const { property: supabaseProperty, loading: supabaseLoading, updateProperty: updateSupabaseProperty, refetch } = useSupabaseProperty(propertyId);
   
@@ -37,7 +45,6 @@ export default function RenoPropertyDetailPage() {
 
   // Local state for form fields to enable fluid typing
   const [localEstimatedVisitDate, setLocalEstimatedVisitDate] = useState<string | undefined>(property?.estimatedVisitDate);
-  const [localSetupStatusNotes, setLocalSetupStatusNotes] = useState<string | undefined>(property?.setupStatusNotes);
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
@@ -45,13 +52,11 @@ export default function RenoPropertyDetailPage() {
   useEffect(() => {
     if (property) {
       setLocalEstimatedVisitDate(property.estimatedVisitDate);
-      setLocalSetupStatusNotes(property.setupStatusNotes);
       setHasUnsavedChanges(false);
     }
-  }, [property?.estimatedVisitDate, property?.setupStatusNotes]);
+  }, [property?.estimatedVisitDate]);
 
   // Debounce timer refs
-  const notesDebounceRef = useRef<NodeJS.Timeout | null>(null);
   const dateDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
   // Determine phase using "Set Up Status" from Supabase
@@ -72,7 +77,7 @@ export default function RenoPropertyDetailPage() {
       
       const supabaseUpdates: PropertyUpdate & Record<string, any> = {
         'Estimated Visit Date': localEstimatedVisitDate || null,
-        'Setup Status Notes': localSetupStatusNotes || null,
+        // Setup Status Notes ahora se maneja a través de comentarios
         updated_at: new Date().toISOString(),
       };
       
@@ -89,10 +94,9 @@ export default function RenoPropertyDetailPage() {
         // If transitioning to initial-check, update Airtable
         if (phaseChanged) {
           try {
-            // 1. Append notes to SetUpnotes in Airtable with timestamp
-            if (localSetupStatusNotes) {
-              await appendSetUpNotesToAirtable(propertyId, localSetupStatusNotes);
-            }
+            // 1. Sync comments to Airtable (replaces SetUpnotes)
+            // Los comentarios se sincronizan automáticamente cuando se agregan
+            // Aquí podríamos forzar una sincronización si es necesario
             
             // 2. Update Estimated Visit Date in Airtable (field ID: fldIhqPOAFL52MMBn)
             const tableName = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_NAME || 'Properties';
@@ -149,27 +153,8 @@ export default function RenoPropertyDetailPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [propertyId, supabaseProperty, localEstimatedVisitDate, localSetupStatusNotes, updateSupabaseProperty, refetch, getPropertyRenoPhase, router]);
+  }, [propertyId, supabaseProperty, localEstimatedVisitDate, updateSupabaseProperty, refetch, getPropertyRenoPhase, router]);
 
-  // Handle notes change
-  const handleNotesChange = useCallback((value: string) => {
-    setLocalSetupStatusNotes(value);
-    setHasUnsavedChanges(true);
-    
-    // Only auto-save if NOT in upcoming-settlements phase
-    const currentPhase = getPropertyRenoPhase();
-    if (currentPhase !== 'upcoming-settlements') {
-      // Clear existing debounce timer
-      if (notesDebounceRef.current) {
-        clearTimeout(notesDebounceRef.current);
-      }
-      
-      // Auto-save after 2 seconds of inactivity (silent, no toast)
-      notesDebounceRef.current = setTimeout(async () => {
-        await saveToSupabase(false);
-      }, 2000);
-    }
-  }, [saveToSupabase, getPropertyRenoPhase]);
 
   // Handle date change
   const handleDateChange = useCallback((date: string | undefined) => {
@@ -194,10 +179,6 @@ export default function RenoPropertyDetailPage() {
   // Manual save handler
   const handleManualSave = useCallback(async () => {
     // Clear any pending debounce timers
-    if (notesDebounceRef.current) {
-      clearTimeout(notesDebounceRef.current);
-      notesDebounceRef.current = null;
-    }
     if (dateDebounceRef.current) {
       clearTimeout(dateDebounceRef.current);
       dateDebounceRef.current = null;
@@ -209,156 +190,109 @@ export default function RenoPropertyDetailPage() {
   // Cleanup debounce timers on unmount
   useEffect(() => {
     return () => {
-      if (notesDebounceRef.current) clearTimeout(notesDebounceRef.current);
       if (dateDebounceRef.current) clearTimeout(dateDebounceRef.current);
     };
   }, []);
 
-  // Redirect to checklist page if phase is initial-check or final-check
-  useEffect(() => {
-    if (!isLoading && property && supabaseProperty) {
-      const phase = getPropertyRenoPhase();
-      if (phase === "initial-check" || phase === "final-check") {
-        // Use propertyId from params (Supabase ID) instead of property.id
-        router.replace(`/reno/construction-manager/property/${propertyId}/checklist`);
-      }
+  // Calculate progress (simplified - could be improved)
+  const progress = 25; // TODO: Calculate from checklist completion
+
+  // Get pending items based on phase
+  const getPendingItems = () => {
+    const phase = getPropertyRenoPhase();
+    const items = [];
+    
+    if (phase === "upcoming-settlements") {
+      items.push({
+        label: "Completar información de nuevas escrituras",
+        onClick: () => setActiveTab("tareas"),
+      });
     }
-  }, [isLoading, property, supabaseProperty, getPropertyRenoPhase, router, propertyId]);
+    if (phase === "initial-check") {
+      items.push({
+        label: "Completar checklist inicial",
+        onClick: () => router.push(`/reno/construction-manager/property/${propertyId}/checklist`),
+      });
+    }
+    if (phase === "final-check") {
+      items.push({
+        label: "Completar checklist final",
+        onClick: () => router.push(`/reno/construction-manager/property/${propertyId}/checklist`),
+      });
+    }
+    
+    return items;
+  };
 
-  if (isLoading) {
-    return (
-      <div className="flex h-screen overflow-hidden">
-        <RenoSidebar />
-        <div className="flex flex-1 items-center justify-center">
-          <RenoHomeLoader />
-        </div>
-      </div>
-    );
-  }
+  // Define tabs
+  const tabs = [
+    { id: "tareas", label: "Tareas" },
+    { id: "resumen", label: "Resumen" },
+    { id: "estado-propiedad", label: "Estado de la propiedad" },
+    { id: "presupuesto-reforma", label: "Presupuesto de reforma" },
+  ];
 
-  if (!property) {
-    return (
-      <div className="flex h-screen overflow-hidden">
-        <RenoSidebar />
-        <div className="flex flex-1 flex-col items-center justify-center">
-          <p className="text-lg font-semibold text-foreground mb-2">
-            Propiedad no encontrada
-          </p>
-          <Button onClick={() => router.push("/reno/construction-manager/kanban")} variant="outline">
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Volver al kanban
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex h-screen overflow-hidden">
-      <RenoSidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Header */}
-        <header className="border-b bg-card dark:bg-[var(--prophero-gray-900)] px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push("/reno/construction-manager/kanban")}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-foreground">
-                {property.fullAddress}
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1 flex items-center gap-6">
-                <span>ID: {property.uniqueIdFromEngagements || property.id}</span>
-                <span>Estado: {getRenoPhaseLabel(getPropertyRenoPhase(), t)}</span>
-              </p>
-            </div>
-            <Button
-              variant="destructive"
-              onClick={() => setReportProblemOpen(true)}
-              className="flex items-center gap-2"
-            >
-              <AlertTriangle className="h-4 w-4" />
-              Reportar Problema
-            </Button>
-          </div>
-        </header>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 bg-[var(--prophero-gray-50)] dark:bg-[var(--prophero-gray-950)]">
-          <div className="max-w-4xl mx-auto space-y-6">
-            {/* Property Information Card - First */}
-            <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-              <h2 className="text-lg font-semibold mb-4">
-                {getPropertyRenoPhase() === "initial-check" 
-                  ? t.initialCheck.propertyInformation 
-                  : t.upcomingSettlements.propertyInformation}
-              </h2>
+  // Render active tab content
+  const renderTabContent = () => {
+    const currentPhase = getPropertyRenoPhase();
+    
+    switch (activeTab) {
+      case "tareas":
+        // For initial-check or final-check phases, show checklist CTA
+        if (currentPhase === "initial-check" || currentPhase === "final-check") {
+          const checklistType = currentPhase === "final-check" ? "Check Final" : "Check Inicial";
+          return (
+            <div className="space-y-6">
+              <PropertyActionTab property={property} supabaseProperty={supabaseProperty} />
               
-              <div className="space-y-4">
-                {/* Address */}
-                <div>
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Dirección completa
-                  </label>
-                  <div className="mt-1 flex items-start gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <p className="text-base font-medium">{property.fullAddress}</p>
+              {/* Checklist CTA Card */}
+              <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border-2 border-primary/20 p-8 shadow-lg">
+                <div className="text-center space-y-4">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
+                    <svg
+                      className="w-8 h-8 text-primary"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                      />
+                    </svg>
                   </div>
+                  
+                  <h3 className="text-2xl font-bold text-foreground">
+                    {checklistType}
+                  </h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    {currentPhase === "initial-check"
+                      ? "Completa el checklist inicial para evaluar el estado de la propiedad antes de comenzar las obras."
+                      : "Completa el checklist final para verificar que todas las obras se han realizado correctamente."}
+                  </p>
+                  
+                  <Button
+                    onClick={() => router.push(`/reno/construction-manager/property/${propertyId}/checklist`)}
+                    size="lg"
+                    className="mt-4 min-w-[200px]"
+                  >
+                    {currentPhase === "initial-check"
+                      ? "Abrir Checklist Inicial"
+                      : "Abrir Checklist Final"}
+                  </Button>
                 </div>
-
-                {/* Property Type */}
-                <div className="pt-2 border-t">
-                  <label className="text-sm font-medium text-muted-foreground">
-                    Tipo de propiedad
-                  </label>
-                  <p className="mt-1 text-base">{property.propertyType}</p>
-                </div>
-
-                {/* Region */}
-                {property.region && (
-                  <div className="pt-2 border-t">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Región
-                    </label>
-                    <p className="mt-1 text-base">{property.region}</p>
-                  </div>
-                )}
-
-                {/* Real Settlement Date - Only for initial-check */}
-                {getPropertyRenoPhase() === "initial-check" && property.realSettlementDate && (
-                  <div className="pt-2 border-t">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      {t.initialCheck.realSettlementDate}
-                    </label>
-                    <p className="mt-1 text-base">
-                      {new Date(property.realSettlementDate).toLocaleDateString("es-ES", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })}
-                    </p>
-                  </div>
-                )}
-
-                {/* Reno Type */}
-                {property.renoType && (
-                  <div className="pt-2 border-t">
-                    <label className="text-sm font-medium text-muted-foreground">
-                      Tipo de renovación
-                    </label>
-                    <p className="mt-1 text-base">{property.renoType}</p>
-                  </div>
-                )}
-
               </div>
             </div>
-
-            {/* Editable Fields for Upcoming Settlements - Second */}
-            {getPropertyRenoPhase() === "upcoming-settlements" && (
+          );
+        }
+        
+        // For upcoming-settlements, show editable fields
+        if (currentPhase === "upcoming-settlements") {
+          return (
+            <div className="space-y-6">
+              {/* Editable Fields for Upcoming Settlements */}
               <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
                 <div className="space-y-6">
                   {/* Estimated Visit Date */}
@@ -377,37 +311,10 @@ export default function RenoPropertyDetailPage() {
                     />
                   </div>
 
-                  {/* Setup Status Notes */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">
-                      {t.upcomingSettlements.setupStatusNotes}
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {t.upcomingSettlements.setupStatusNotesDescription}
-                    </p>
-                    <Textarea
-                      value={localSetupStatusNotes || ""}
-                      onChange={(e) => handleNotesChange(e.target.value)}
-                      placeholder={t.upcomingSettlements.setupStatusNotesPlaceholder}
-                      rows={4}
-                      className="resize-none"
-                    />
-                  </div>
+                  {/* Comments moved to sidebar */}
 
                   {/* Action Buttons */}
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <div className="text-sm text-muted-foreground">
-                      {hasUnsavedChanges && (
-                        <span className="text-amber-600 dark:text-amber-400">
-                          Tienes cambios sin guardar
-                        </span>
-                      )}
-                      {!hasUnsavedChanges && !isSaving && (
-                        <span className="text-green-600 dark:text-green-400">
-                          ✓ Todos los cambios guardados
-                        </span>
-                      )}
-                    </div>
+                  <div className="flex items-center justify-end pt-4 border-t">
                     <div className="flex gap-2">
                       <Button
                         onClick={handleManualSave}
@@ -448,79 +355,113 @@ export default function RenoPropertyDetailPage() {
                   </div>
                 </div>
               </div>
-            )}
-
-            {/* Editable Fields for Initial Check - Estimated Visit Date */}
-            {getPropertyRenoPhase() === "initial-check" && (
-              <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-                <div className="space-y-6">
-                  {/* Estimated Visit Date */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-semibold">
-                      {t.initialCheck.estimatedVisitDate}
-                    </Label>
-                    <p className="text-xs text-muted-foreground">
-                      {t.upcomingSettlements.estimatedVisitDateDescription}
-                    </p>
-                    <FutureDatePicker
-                      value={localEstimatedVisitDate}
-                      onChange={handleDateChange}
-                      placeholder="DD/MM/YYYY"
-                      errorMessage={t.upcomingSettlements.dateMustBeFuture}
-                    />
-                  </div>
-
-                  {/* Save Button */}
-                  <div className="flex items-center justify-between pt-4 border-t">
-                    <div className="text-sm text-muted-foreground">
-                      {hasUnsavedChanges && (
-                        <span className="text-amber-600 dark:text-amber-400">
-                          Tienes cambios sin guardar
-                        </span>
-                      )}
-                      {!hasUnsavedChanges && !isSaving && (
-                        <span className="text-green-600 dark:text-green-400">
-                          ✓ Todos los cambios guardados
-                        </span>
-                      )}
-                    </div>
-                    <Button
-                      onClick={handleManualSave}
-                      disabled={isSaving || !hasUnsavedChanges}
-                      className="min-w-[120px]"
-                    >
-                      {isSaving ? (
-                        <>
-                          <span className="mr-2">Guardando...</span>
-                          <span className="animate-spin">⏳</span>
-                        </>
-                      ) : (
-                        "Guardar cambios"
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Dynamic Categories Progress - Only for reno-in-progress */}
-            {getPropertyRenoPhase() === "reno-in-progress" && supabaseProperty && (
-              <DynamicCategoriesProgress property={supabaseProperty} />
-            )}
-
-            {/* Read-only notice for other phases */}
-            {getPropertyRenoPhase() !== "upcoming-settlements" && 
-             getPropertyRenoPhase() !== "initial-check" && 
-             getPropertyRenoPhase() !== "upcoming" &&
-             getPropertyRenoPhase() !== "reno-in-progress" &&
-             getPropertyRenoPhase() !== "furnishing-cleaning" && (
-              <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-                <p className="text-sm text-muted-foreground">
-                  Esta es una vista de solo lectura. El Jefe de Obra puede ver la información pero no editarla.
-                </p>
-              </div>
-            )}
+            </div>
+          );
+        }
+        
+        // For other phases, show action tab
+        return <PropertyActionTab property={property} supabaseProperty={supabaseProperty} propertyId={propertyId} />;
+      case "resumen":
+        return <PropertySummaryTab property={property} supabaseProperty={supabaseProperty} />;
+      case "estado-propiedad":
+        return propertyId ? <PropertyStatusTab propertyId={propertyId} /> : null;
+      case "presupuesto-reforma":
+        return (
+          <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+            <p className="text-muted-foreground">Presupuesto de reforma - Coming soon</p>
           </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen overflow-hidden">
+        <div className="flex flex-1 items-center justify-center">
+          <RenoHomeLoader />
+        </div>
+      </div>
+    );
+  }
+
+  if (!property) {
+    return (
+      <div className="flex h-screen overflow-hidden">
+        <div className="flex flex-1 flex-col items-center justify-center">
+          <p className="text-lg font-semibold text-foreground mb-2">
+            Propiedad no encontrada
+          </p>
+          <button 
+            onClick={() => router.push("/reno/construction-manager/kanban")} 
+            className="px-4 py-2 rounded-md border border-input bg-background hover:bg-accent"
+          >
+            Volver al kanban
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex h-screen overflow-hidden">
+      {/* L2: Sin Sidebar - se oculta para enfocar al usuario */}
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {/* Navbar L2: Botón atrás + Acciones críticas */}
+        <NavbarL2
+          onBack={() => router.push("/reno/construction-manager/kanban")}
+          classNameTitle="Propiedad"
+          actions={[
+            {
+              label: "Reportar Problema",
+              onClick: () => setReportProblemOpen(true),
+              variant: "outline",
+              icon: <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500" />,
+            },
+          ]}
+        />
+
+        {/* Header L2: Título extenso de la entidad */}
+        <HeaderL2
+          title={property.fullAddress}
+          subtitle={
+            <>
+              <span>ID: {property.uniqueIdFromEngagements || property.id}</span>
+              <span className="mx-2">·</span>
+              <span>Estado: {getRenoPhaseLabel(getPropertyRenoPhase(), t)}</span>
+            </>
+          }
+          badge={{
+            label: getRenoPhaseLabel(getPropertyRenoPhase(), t),
+            variant: getPropertyRenoPhase() === "upcoming-settlements" ? "default" : "secondary",
+          }}
+        />
+
+        {/* Tabs Navigation */}
+        <PropertyTabs
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+
+        {/* Content with Sidebar */}
+        <div className="flex flex-1 overflow-hidden">
+          {/* Main Content */}
+          <div className="flex-1 overflow-y-auto p-6 bg-[var(--prophero-gray-50)] dark:bg-[var(--prophero-gray-950)]">
+            <div className="max-w-4xl mx-auto">
+              {renderTabContent()}
+            </div>
+          </div>
+
+          {/* Right Sidebar - Status */}
+          <PropertyStatusSidebar
+            property={property}
+            supabaseProperty={supabaseProperty}
+            propertyId={propertyId}
+            progress={progress}
+            pendingItems={getPendingItems()}
+          />
         </div>
       </div>
 

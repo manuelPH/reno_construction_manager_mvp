@@ -2,12 +2,10 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useRef, startTransition, useEffect, useCallback, useMemo, useState } from "react";
-import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { RenoSidebar } from "@/components/reno/reno-sidebar";
+import { NavbarL3 } from "@/components/layout/navbar-l3";
+import { HeaderL3 } from "@/components/layout/header-l3";
 import { RenoChecklistSidebar } from "@/components/reno/reno-checklist-sidebar";
 import { RenoHomeLoader } from "@/components/reno/reno-home-loader";
-import { PropertyInfoSection } from "@/components/reno/property-info-section";
 import { MobileSidebarMenu } from "@/components/property/mobile-sidebar-menu";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -46,7 +44,7 @@ export default function RenoChecklistPage() {
   const router = useRouter();
   const sectionRefs = useRef<Record<string, HTMLDivElement>>({});
   const { t } = useI18n();
-  const [activeSection, setActiveSection] = useState("property-info");
+  const [activeSection, setActiveSection] = useState("checklist-entorno-zonas-comunes");
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // Get property ID from params
@@ -78,15 +76,7 @@ export default function RenoChecklistPage() {
     return getPropertyRenoPhaseFromSupabase(supabaseProperty);
   }, [supabaseProperty]);
 
-  // Redirect back if not in initial-check or final-check phase
-  useEffect(() => {
-    if (!isLoading && property && supabaseProperty) {
-      const phase = getPropertyRenoPhase(property);
-      if (phase && phase !== "initial-check" && phase !== "final-check") {
-        router.replace(`/reno/construction-manager/property/${property.id}`);
-      }
-    }
-  }, [property, supabaseProperty, isLoading, getPropertyRenoPhase, router]);
+  // Ya no redirigimos - el checklist está disponible en todas las fases
 
   // Determine checklist type based on phase
   const checklistType: ChecklistType = useMemo(() => {
@@ -231,14 +221,6 @@ export default function RenoChecklistPage() {
     const phase = getPropertyRenoPhase(property) || "initial-check";
 
     switch (activeSection) {
-      case "property-info":
-        return (
-          <PropertyInfoSection
-            property={property}
-            phase={phase}
-            onStartChecklist={() => handleSectionClick("checklist-entorno-zonas-comunes")}
-          />
-        );
       case "checklist-entorno-zonas-comunes":
         return (
           <EntornoZonasComunesSection
@@ -593,7 +575,6 @@ export default function RenoChecklistPage() {
   if (isFullyLoading) {
     return (
       <div className="flex h-screen overflow-hidden">
-        <RenoSidebar />
         <div className="flex flex-1 items-center justify-center">
           <RenoHomeLoader />
         </div>
@@ -604,7 +585,6 @@ export default function RenoChecklistPage() {
   if (!property && !isLoading && !checklistLoading) {
     return (
       <div className="flex h-screen overflow-hidden">
-        <RenoSidebar />
         <div className="flex flex-1 flex-col items-center justify-center">
           <p className="text-lg font-semibold text-foreground mb-2">
             Propiedad no encontrada
@@ -619,10 +599,12 @@ export default function RenoChecklistPage() {
               ID buscado: {propertyId}
             </p>
           )}
-          <Button onClick={() => router.push("/reno/construction-manager/kanban")} variant="outline">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+          <button 
+            onClick={() => router.push("/reno/construction-manager/kanban")} 
+            className="px-4 py-2 rounded-md border border-input bg-background hover:bg-accent"
+          >
             Volver al kanban
-          </Button>
+          </button>
         </div>
       </div>
     );
@@ -632,7 +614,6 @@ export default function RenoChecklistPage() {
   if (!property) {
     return (
       <div className="flex h-screen overflow-hidden">
-        <RenoSidebar />
         <div className="flex flex-1 items-center justify-center">
           <RenoHomeLoader />
         </div>
@@ -644,59 +625,132 @@ export default function RenoChecklistPage() {
   const habitacionesCount = checklist?.sections?.["habitaciones"]?.dynamicCount ?? propertyData?.habitaciones ?? 0;
   const banosCount = checklist?.sections?.["banos"]?.dynamicCount ?? propertyData?.banos ?? 0;
 
+  // Get section title and subtitle for HeaderL3
+  const getSectionInfo = () => {
+    switch (activeSection) {
+      case "checklist-entorno-zonas-comunes":
+        return {
+          title: t.checklist.sections.entornoZonasComunes.title,
+          subtitle: t.checklist.sections.entornoZonasComunes.description || "",
+        };
+      case "checklist-estado-general":
+        return {
+          title: t.checklist.sections.estadoGeneral.title,
+          subtitle: t.checklist.sections.estadoGeneral.description || "",
+        };
+      case "checklist-entrada-pasillos":
+        return {
+          title: t.checklist.sections.entradaPasillos.title,
+          subtitle: t.checklist.sections.entradaPasillos.description || "",
+        };
+      case "checklist-habitaciones":
+        return {
+          title: t.checklist.sections.habitaciones.title,
+          subtitle: t.checklist.sections.habitaciones.description || "",
+        };
+      case "checklist-salon":
+        return {
+          title: t.checklist.sections.salon.title,
+          subtitle: t.checklist.sections.salon.description || "",
+        };
+      case "checklist-banos":
+        return {
+          title: t.checklist.sections.banos.title,
+          subtitle: t.checklist.sections.banos.description || "",
+        };
+      case "checklist-cocina":
+        return {
+          title: t.checklist.sections.cocina.title,
+          subtitle: t.checklist.sections.cocina.description || "",
+        };
+      case "checklist-exteriores":
+        return {
+          title: t.checklist.sections.exteriores.title,
+          subtitle: t.checklist.sections.exteriores.description || "",
+        };
+      default:
+        // Handle dynamic sections (habitaciones-X, banos-X)
+        if (activeSection.startsWith("checklist-habitaciones-")) {
+          const match = activeSection.match(/checklist-habitaciones-(\d+)/);
+          const num = match ? match[1] : "1";
+          return {
+            title: `${t.checklist.sections.habitaciones.bedroom} ${num}`,
+            subtitle: "",
+          };
+        }
+        if (activeSection.startsWith("checklist-banos-")) {
+          const match = activeSection.match(/checklist-banos-(\d+)/);
+          const num = match ? match[1] : "1";
+          return {
+            title: `${t.checklist.sections.banos.bathroom} ${num}`,
+            subtitle: "",
+          };
+        }
+        return {
+          title: t.checklist.title,
+          subtitle: "",
+        };
+    }
+  };
+
+  const sectionInfo = getSectionInfo();
+  // Determinar el título del formulario basado en la fase, pero permitir todas las fases
+  const getFormTitle = () => {
+    const currentPhase = getPropertyRenoPhase(property);
+    if (currentPhase === "final-check") return t.kanban.finalCheck;
+    if (currentPhase === "initial-check") return t.kanban.initialCheck;
+    return t.checklist.title; // Fallback para otras fases
+  };
+  const formTitle = property ? getFormTitle() : t.checklist.title;
+
   return (
     <div className="flex h-screen overflow-hidden">
-      <RenoSidebar />
-
-      {/* Desktop Sidebar */}
+      {/* L3: Sidebar de contenido (navegación de pasos del formulario) */}
       <RenoChecklistSidebar
         address={formatAddress()}
         activeSection={activeSection}
         onSectionClick={handleSectionClick}
-        onSave={handleSave}
-        onSubmit={async () => {
-          if (!property) return;
-          const phase = getPropertyRenoPhase(property);
-          if (phase === "initial-check") {
-            await finalizeChecklist({
-              estimatedVisitDate: property.estimatedVisitDate,
-              autoVisitDate: new Date().toISOString().split('T')[0],
-              nextRenoSteps: supabaseProperty?.next_reno_steps || undefined,
-            });
-            // Redirect to kanban after finalizing
-            setTimeout(() => {
-              router.push("/reno/construction-manager/kanban");
-            }, 2000);
-          }
-        }}
-        canSubmit={getPropertyRenoPhase(property) === "initial-check"}
-        hasUnsavedChanges={hasUnsavedChanges}
         habitacionesCount={habitacionesCount}
         banosCount={banosCount}
       />
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* Header */}
-        <header className="border-b bg-card dark:bg-[var(--prophero-gray-900)] px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => router.push("/reno/construction-manager/kanban")}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <div className="flex-1">
-              <h1 className="text-2xl font-bold text-foreground">
-                {property.fullAddress}
-              </h1>
-              <p className="text-sm text-muted-foreground mt-1">
-                ID: {property.id} · {phase === "initial-check" ? t.kanban.initialCheck : t.kanban.finalCheck}
-              </p>
-            </div>
-          </div>
-        </header>
+        {/* Navbar L3: Botón atrás + Título formulario + Acciones */}
+        <NavbarL3
+          onBack={() => router.push("/reno/construction-manager/kanban")}
+          formTitle={formTitle}
+          statusText={hasUnsavedChanges ? undefined : "Cambios guardados"}
+          actions={[
+            {
+              label: t.property.save,
+              onClick: handleSave,
+              variant: "outline",
+              disabled: !hasUnsavedChanges,
+            },
+            ...(getPropertyRenoPhase(property) === "initial-check" ? [{
+              label: t.checklist.submitChecklist,
+              onClick: async () => {
+                if (!property) return;
+                await finalizeChecklist({
+                  estimatedVisitDate: property.estimatedVisitDate,
+                  autoVisitDate: new Date().toISOString().split('T')[0],
+                  nextRenoSteps: supabaseProperty?.next_reno_steps || undefined,
+                });
+                setTimeout(() => {
+                  router.push("/reno/construction-manager/kanban");
+                }, 2000);
+              },
+              variant: "default" as const,
+            }] : []),
+          ]}
+        />
+
+        {/* Header L3: Título y subtítulo de sección actual */}
+        <HeaderL3
+          title={sectionInfo.title}
+          subtitle={sectionInfo.subtitle}
+        />
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-[var(--prophero-gray-50)] dark:bg-[var(--prophero-gray-950)]">
@@ -706,12 +760,11 @@ export default function RenoChecklistPage() {
         </div>
       </div>
 
-      {/* Mobile Sidebar Menu */}
+      {/* Mobile Sidebar Menu - Botones removidos, ahora están en NavbarL3 */}
       <MobileSidebarMenu
         address={formatAddress()}
         overallProgress={0}
         sections={[
-          { sectionId: "property-info", name: t.sidebar.propertyInformation, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
           { sectionId: "checklist-entorno-zonas-comunes", name: t.checklist.sections.entornoZonasComunes.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
           { sectionId: "checklist-estado-general", name: t.checklist.sections.estadoGeneral.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
           { sectionId: "checklist-entrada-pasillos", name: t.checklist.sections.entradaPasillos.title, progress: 0, requiredFieldsCount: 0, completedRequiredFieldsCount: 0, optionalFieldsCount: 0, completedOptionalFieldsCount: 0 },
@@ -723,25 +776,11 @@ export default function RenoChecklistPage() {
         ]}
         activeSection={activeSection}
         onSectionClick={handleSectionClick}
-        onSave={handleSave}
-        onSubmit={async () => {
-          if (!property) return;
-          const phase = getPropertyRenoPhase(property);
-          if (phase === "initial-check") {
-            await finalizeChecklist({
-              estimatedVisitDate: property.estimatedVisitDate,
-              autoVisitDate: new Date().toISOString().split('T')[0],
-              nextRenoSteps: supabaseProperty?.next_reno_steps || undefined,
-            });
-            // Redirect to kanban after finalizing
-            setTimeout(() => {
-              router.push("/reno/construction-manager/kanban");
-            }, 2000);
-          }
-        }}
+        onSave={() => {}} // Vacío - botones ahora en NavbarL3
+        onSubmit={() => {}} // Vacío - botones ahora en NavbarL3
         onDelete={() => {}}
-        canSubmit={getPropertyRenoPhase(property) === "initial-check"}
-        hasUnsavedChanges={hasUnsavedChanges}
+        canSubmit={false} // Deshabilitado - botones ahora en NavbarL3
+        hasUnsavedChanges={false} // No necesario - botones ahora en NavbarL3
         habitacionesCount={habitacionesCount}
         banosCount={banosCount}
       />

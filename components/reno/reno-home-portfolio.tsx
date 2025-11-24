@@ -70,10 +70,10 @@ export function RenoHomePortfolio({ properties }: RenoHomePortfolioProps) {
           {t.dashboard.portfolioDescription}
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <div className="space-y-4">
           {/* Chart */}
-          <div className="flex items-end justify-between gap-2 h-[220px]">
+          <div className="flex items-end justify-between gap-2 h-[220px] relative">
             {renoKanbanColumns.map((column) => {
               const count = stageCounts[column.stage];
               const height = getBarHeight(count);
@@ -91,7 +91,7 @@ export function RenoHomePortfolio({ properties }: RenoHomePortfolioProps) {
                       title={`${getStageLabel(column.stage)}: ${count}`}
                     />
                     {count > 0 && (
-                      <span className="absolute -top-5 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                      <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs font-medium text-foreground bg-card dark:bg-[var(--prophero-gray-900)] border border-border rounded px-2 py-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap pointer-events-none">
                         {count}
                       </span>
                     )}

@@ -339,37 +339,8 @@ export function MobileSidebarMenu({
               })}
             </div>
 
-            {/* Action Buttons */}
-            <div className="p-4 border-t space-y-2 sticky bottom-0 bg-card dark:bg-[var(--prophero-gray-900)]">
-              <Button
-                onClick={() => {
-                  onSubmit();
-                  setIsOpen(false);
-                }}
-                disabled={!canSubmit}
-                className="w-full"
-                size="lg"
-              >
-                {t.property.submitReview}
-              </Button>
-              <div className="pt-2 pb-1">
-                <button
-                  onClick={() => {
-                    onSave();
-                    setIsOpen(false);
-                  }}
-                  disabled={!hasUnsavedChanges}
-                  className={cn(
-                    "w-full text-sm font-medium transition-colors",
-                    hasUnsavedChanges
-                      ? "text-[var(--prophero-blue-600)] dark:text-[var(--prophero-blue-400)] hover:text-[var(--prophero-blue-700)] dark:hover:text-[var(--prophero-blue-300)]"
-                      : "text-muted-foreground cursor-not-allowed"
-                  )}
-                >
-                  {t.property.save}
-                </button>
-              </div>
-            </div>
+            {/* Action Buttons - Removed: ahora están en Navbar según diseño L3 */}
+            {/* Los botones de acción están en la NavbarL3, no en el sidebar móvil */}
           </div>
         </>
       )}
