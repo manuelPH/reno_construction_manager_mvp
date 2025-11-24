@@ -42,11 +42,16 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
 
       if (error) {
         console.error('Error fetching checklists:', error);
+        setChecklists([]);
         setLoading(false);
         return;
       }
 
-      setChecklists(data || []);
+      if (data) {
+        setChecklists(data as ChecklistHistory[]);
+      } else {
+        setChecklists([]);
+      }
       setLoading(false);
     };
 
