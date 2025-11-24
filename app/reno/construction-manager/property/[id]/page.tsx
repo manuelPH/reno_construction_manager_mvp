@@ -236,6 +236,15 @@ export default function RenoPropertyDetailPage() {
   const renderTabContent = () => {
     const currentPhase = getPropertyRenoPhase();
     
+    // Early return if property is null
+    if (!property) {
+      return (
+        <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+          <p className="text-muted-foreground">Cargando propiedad...</p>
+        </div>
+      );
+    }
+    
     switch (activeTab) {
       case "tareas":
         // For initial-check or final-check phases, show checklist CTA
