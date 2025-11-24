@@ -68,7 +68,8 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
       // Type guard to ensure data is an array and handle potential type issues
       if (Array.isArray(data)) {
         // Convert to ChecklistHistory format, defaulting inspection_type if missing
-        const checklists: ChecklistHistory[] = data.map((item: any) => ({
+        // Use unknown first as TypeScript suggests when types don't overlap
+        const checklists: ChecklistHistory[] = (data as unknown as any[]).map((item: any) => ({
           id: item.id,
           inspection_type: item.inspection_type || 'initial', // Default to 'initial' if missing
           inspection_status: item.inspection_status || 'in_progress',
