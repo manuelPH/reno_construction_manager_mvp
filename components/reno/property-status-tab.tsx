@@ -34,13 +34,31 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
       if (!propertyId) return;
 
       const supabase = createClient();
-      const { data, error } = await supabase
+      
+      // Try to fetch with inspection_type first
+      let { data, error } = await supabase
         .from('property_inspections')
         .select('id, inspection_type, inspection_status, created_at, completed_at, created_by')
         .eq('property_id', propertyId)
         .order('created_at', { ascending: false });
 
-      if (error) {
+      // If the error is that the column doesn't exist, try without inspection_type
+      if (error && (error.code === '42883' || error.message?.includes('column') || error.message?.includes('does not exist'))) {
+        console.warn('Campo inspection_type no existe aún, buscando sin filtro:', error);
+        const { data: allData, error: allError } = await supabase
+          .from('property_inspections')
+          .select('id, inspection_status, created_at, completed_at, created_by')
+          .eq('property_id', propertyId)
+          .order('created_at', { ascending: false });
+        
+        if (allError) {
+          console.error('Error fetching checklists:', allError);
+          setChecklists([]);
+          setLoading(false);
+          return;
+        }
+        data = allData;
+      } else if (error) {
         console.error('Error fetching checklists:', error);
         setChecklists([]);
         setLoading(false);
@@ -49,7 +67,16 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
 
       // Type guard to ensure data is an array and handle potential type issues
       if (Array.isArray(data)) {
-        setChecklists(data as ChecklistHistory[]);
+        // Convert to ChecklistHistory format, defaulting inspection_type if missing
+        const checklists: ChecklistHistory[] = data.map((item: any) => ({
+          id: item.id,
+          inspection_type: item.inspection_type || 'initial', // Default to 'initial' if missing
+          inspection_status: item.inspection_status || 'in_progress',
+          created_at: item.created_at,
+          completed_at: item.completed_at,
+          created_by: item.created_by,
+        }));
+        setChecklists(checklists);
       } else {
         setChecklists([]);
       }
