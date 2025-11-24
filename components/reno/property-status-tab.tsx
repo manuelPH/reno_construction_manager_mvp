@@ -47,7 +47,8 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
         return;
       }
 
-      if (data) {
+      // Type guard to ensure data is an array and handle potential type issues
+      if (Array.isArray(data)) {
         setChecklists(data as ChecklistHistory[]);
       } else {
         setChecklists([]);
