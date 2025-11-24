@@ -60,7 +60,23 @@ export function usePropertyComments(propertyId: string | null): UsePropertyComme
         throw fetchError;
       }
 
-      setComments(data || []);
+      // Convert null to undefined for optional fields to match PropertyComment type
+      const normalizedData: PropertyComment[] = (data || []).map((item: any) => ({
+        id: item.id,
+        property_id: item.property_id,
+        comment_text: item.comment_text,
+        created_by: item.created_by,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        synced_to_airtable: item.synced_to_airtable,
+        airtable_sync_date: item.airtable_sync_date,
+        is_reminder: item.is_reminder ?? undefined,
+        reminder_date: item.reminder_date ?? undefined,
+        reminder_notified: item.reminder_notified ?? undefined,
+        reminder_notification_date: item.reminder_notification_date ?? undefined,
+      }));
+
+      setComments(normalizedData);
     } catch (err) {
       const error = err instanceof Error ? err : new Error("Error al cargar comentarios");
       setError(error);
@@ -124,8 +140,15 @@ export function usePropertyComments(propertyId: string | null): UsePropertyComme
             });
         }
 
-        // Add to local state
-        setComments((prev) => [data, ...prev]);
+        // Add to local state (normalize null to undefined)
+        const normalizedComment: PropertyComment = {
+          ...data,
+          is_reminder: data.is_reminder ?? undefined,
+          reminder_date: data.reminder_date ?? undefined,
+          reminder_notified: data.reminder_notified ?? undefined,
+          reminder_notification_date: data.reminder_notification_date ?? undefined,
+        };
+        setComments((prev) => [normalizedComment, ...prev]);
 
         toast.success(isReminder ? "Recordatorio creado correctamente" : "Comentario agregado correctamente");
         return true;
