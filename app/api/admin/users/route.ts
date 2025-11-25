@@ -120,10 +120,12 @@ export async function POST(request: NextRequest) {
     let supabaseUserId: string;
     
     try {
-      const { data: existingUser } = await supabase.auth.admin.getUserByEmail(email);
+      // Buscar usuario existente por email usando listUsers
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const existingUser = existingUsers?.users?.find(u => u.email === email);
       
-      if (existingUser?.user) {
-        supabaseUserId = existingUser.user.id;
+      if (existingUser) {
+        supabaseUserId = existingUser.id;
       } else {
         // Crear usuario en Supabase
         const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
