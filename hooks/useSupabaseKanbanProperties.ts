@@ -317,8 +317,12 @@ export function useSupabaseKanbanProperties() {
 
   // Convert and group properties by kanban phase
   const propertiesByPhase = useMemo(() => {
+    // Log initial-check properties BEFORE conversion
+    const initialCheckBeforeConversion = supabaseProperties.filter(p => p.reno_phase === 'initial-check');
     console.log('[useSupabaseKanbanProperties] 🔄 Converting properties by phase...', {
       supabasePropertiesCount: supabaseProperties.length,
+      initialCheckCount: initialCheckBeforeConversion.length,
+      initialCheckIds: initialCheckBeforeConversion.map(p => p.id).slice(0, 10),
       timestamp: new Date().toISOString(),
     });
 
