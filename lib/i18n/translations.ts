@@ -20,6 +20,7 @@ export interface Translations {
   nav: {
     home: string;
     properties: string;
+    renoManagement: string;
     notifications: string;
     help: string;
     logout: string;
@@ -453,6 +454,7 @@ export const translations: Record<Language, Translations> = {
     nav: {
       home: "Inicio",
       properties: "Gestión de propiedades",
+      renoManagement: "Gestión de Reno",
       notifications: "Notificaciones",
       help: "Ayuda",
       logout: "Cerrar sesión",
@@ -1281,6 +1283,7 @@ export const translations: Record<Language, Translations> = {
     nav: {
       home: "Home",
       properties: "Property Management",
+      renoManagement: "Reno Management",
       notifications: "Notifications",
       help: "Help",
       logout: "Logout",

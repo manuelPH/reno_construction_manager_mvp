@@ -27,7 +27,7 @@ const getNavigationItems = (t: any) => [
     icon: Home,
   },
   {
-    label: t.nav.properties,
+    label: t.nav.renoManagement,
     href: "/reno/construction-manager/kanban",
     icon: Grid,
   },
