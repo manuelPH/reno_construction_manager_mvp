@@ -51,6 +51,15 @@ export default function RenoPropertyDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
+  // Debounce timer refs
+  const dateDebounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Determine phase using "Set Up Status" from Supabase
+  const getPropertyRenoPhase = useCallback((): RenoKanbanPhase | null => {
+    if (!supabaseProperty) return null;
+    return getPropertyRenoPhaseFromSupabase(supabaseProperty);
+  }, [supabaseProperty]);
+
   // Update local state when property changes
   useEffect(() => {
     if (property) {
@@ -58,6 +67,11 @@ export default function RenoPropertyDetailPage() {
       setHasUnsavedChanges(false);
     }
   }, [property?.estimatedVisitDate]);
+
+  // Reset the check flag when propertyId changes (navigating to a different property)
+  useEffect(() => {
+    hasCheckedInitialTab.current = false;
+  }, [propertyId]);
 
   // Auto-switch to summary tab for reno-budget and furnishing-cleaning phases without tasks
   useEffect(() => {
@@ -76,20 +90,6 @@ export default function RenoPropertyDetailPage() {
       hasCheckedInitialTab.current = true;
     }
   }, [isLoading, categoriesLoading, propertyId, dynamicCategories.length, getPropertyRenoPhase]);
-  
-  // Reset the check flag when propertyId changes (navigating to a different property)
-  useEffect(() => {
-    hasCheckedInitialTab.current = false;
-  }, [propertyId]);
-
-  // Debounce timer refs
-  const dateDebounceRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Determine phase using "Set Up Status" from Supabase
-  const getPropertyRenoPhase = useCallback((): RenoKanbanPhase | null => {
-    if (!supabaseProperty) return null;
-    return getPropertyRenoPhaseFromSupabase(supabaseProperty);
-  }, [supabaseProperty]);
 
   // Save function - saves to Supabase with correct field names
   const saveToSupabase = useCallback(async (showToast = true, transitionToInitialCheck = false) => {
