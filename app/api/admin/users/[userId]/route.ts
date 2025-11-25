@@ -9,7 +9,7 @@ import { syncAuth0RoleToSupabase } from '@/lib/auth/auth0-role-sync';
  */
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -32,7 +32,7 @@ export async function PATCH(
 
     const body = await request.json();
     const { email, name, role } = body;
-    const userId = params.userId;
+    const { userId } = await params;
 
     // Actualizar en Supabase
     const updates: any = {};
@@ -90,7 +90,7 @@ export async function PATCH(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { userId: string } }
+  { params }: { params: Promise<{ userId: string }> }
 ) {
   try {
     const supabase = await createClient();
@@ -111,7 +111,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const userId = params.userId;
+    const { userId } = await params;
 
     // No permitir auto-eliminación
     if (userId === user.id) {
