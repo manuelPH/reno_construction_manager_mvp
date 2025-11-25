@@ -47,28 +47,29 @@ export function FaviconSwitcher() {
           }
         ) as HTMLLinkElement[];
 
-        // Eliminar los existentes que no coincidan (con verificación de seguridad)
+        // En lugar de remover elementos, solo actualizar el href de los existentes
+        // Esto evita conflictos con React durante el desmontaje
+        let foundCorrectLink = false;
         existingLinks.forEach((link) => {
-          if (!link.href.includes(iconPath)) {
-            // Verificar que el link todavía está en el DOM antes de eliminarlo
-            try {
-              // Verificar que el elemento todavía está conectado al DOM y no estamos desmontando
-              if (!isUnmountingRef.current && link.isConnected && link.parentNode) {
-                link.remove();
+          try {
+            if (link.isConnected && link.parentNode && !isUnmountingRef.current) {
+              if (link.href.includes(iconPath)) {
+                // Actualizar el existente con timestamp
+                link.href = `${iconPath}?v=${Date.now()}`;
+                foundCorrectLink = true;
+              } else {
+                // Actualizar el href del link existente en lugar de removerlo
+                link.href = `${iconPath}?v=${Date.now()}`;
+                foundCorrectLink = true;
               }
-            } catch (e) {
-              // Silenciar todos los errores durante manipulación del DOM
             }
+          } catch (e) {
+            // Silenciar todos los errores durante manipulación del DOM
           }
         });
 
-        // No crear nuevos elementos si estamos desmontando
-        if (isUnmountingRef.current) return;
-
-        // Crear nuevo link si no existe uno con el path correcto
-        const hasCorrectLink = existingLinks.some((link) => link.href.includes(iconPath));
-        
-        if (!hasCorrectLink && document.head && !isUnmountingRef.current) {
+        // Solo crear nuevo link si no existe ninguno y no estamos desmontando
+        if (!foundCorrectLink && document.head && !isUnmountingRef.current) {
           try {
             const link = document.createElement("link");
             link.rel = rel;
@@ -81,17 +82,6 @@ export function FaviconSwitcher() {
           } catch (e) {
             // Silenciar errores
           }
-        } else {
-          // Actualizar el existente con timestamp
-          existingLinks.forEach((link) => {
-            try {
-              if (link.href.includes(iconPath) && link.parentNode && !isUnmountingRef.current) {
-                link.href = `${iconPath}?v=${Date.now()}`;
-              }
-            } catch (e) {
-              // Silenciar errores
-            }
-          });
         }
       } catch (error) {
         // Silenciar errores de manipulación del DOM durante desmontaje
@@ -103,12 +93,13 @@ export function FaviconSwitcher() {
     updateOrCreateLink("shortcut icon");
     updateOrCreateLink("apple-touch-icon");
 
-    // También eliminar y recrear el favicon.ico si existe
+    // Actualizar favicon.ico si existe (en lugar de removerlo)
     if (!isUnmountingRef.current) {
       try {
         const faviconIco = document.querySelector("link[rel='icon'][type='image/x-icon']") as HTMLLinkElement;
         if (faviconIco && faviconIco.isConnected && faviconIco.parentNode) {
-          faviconIco.remove();
+          // Actualizar href en lugar de remover
+          faviconIco.href = `${iconPath}?v=${Date.now()}`;
         }
       } catch (error) {
         // Silenciar errores durante desmontaje
