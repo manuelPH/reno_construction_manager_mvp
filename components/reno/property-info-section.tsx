@@ -15,9 +15,12 @@ interface PropertyInfoSectionProps {
 export function PropertyInfoSection({ property, phase, onStartChecklist }: PropertyInfoSectionProps) {
   const { t } = useI18n();
 
+  const { language } = useI18n();
+  
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    const locale = language === "es" ? "es-ES" : "en-US";
+    return new Date(dateString).toLocaleDateString(locale, {
       year: "numeric",
       month: "long",
       day: "numeric",
@@ -41,7 +44,7 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
         {/* Address */}
         <div>
           <label className="text-sm font-medium text-muted-foreground">
-            Dirección completa
+            {t.property.fullAddress}
           </label>
           <div className="mt-1 flex items-start gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
@@ -52,7 +55,7 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
         {/* Property Type */}
         <div className="pt-2 border-t">
           <label className="text-sm font-medium text-muted-foreground">
-            Tipo de propiedad
+            {t.property.propertyType}
           </label>
           <p className="mt-1 text-base">{property.propertyType}</p>
         </div>
@@ -61,7 +64,7 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
         {property.region && (
           <div className="pt-2 border-t">
             <label className="text-sm font-medium text-muted-foreground">
-              Región
+              {t.propertyCard.region}
             </label>
             <p className="mt-1 text-base">{property.region}</p>
           </div>
@@ -95,7 +98,7 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
         {isFinalCheck && property.realCompletionDate && (
           <div className="pt-2 border-t">
             <label className="text-sm font-medium text-muted-foreground">
-              Fecha real de finalización
+              {t.finalCheck?.realCompletionDate || "Fecha real de finalización"}
             </label>
             <p className="mt-1 text-base">
               {formatDate(property.realCompletionDate)}
@@ -107,7 +110,7 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
         {isFinalCheck && property.estimatedFinalVisitDate && (
           <div className="pt-2 border-t">
             <label className="text-sm font-medium text-muted-foreground">
-              Fecha estimada de visita
+              {t.finalCheck?.estimatedVisitDate || t.initialCheck.estimatedVisitDate}
             </label>
             <p className="mt-1 text-base">
               {formatDate(property.estimatedFinalVisitDate)}
@@ -119,7 +122,7 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
         {property.renoType && (
           <div className="pt-2 border-t">
             <label className="text-sm font-medium text-muted-foreground">
-              Tipo de renovación
+              {t.property.renovationType}
             </label>
             <p className="mt-1 text-base">{property.renoType}</p>
           </div>
@@ -129,17 +132,17 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
         {(property.inicio || property.finEst) && (
           <div className="pt-2 border-t">
             <label className="text-sm font-medium text-muted-foreground">
-              Fechas de obra
+              {t.propertyAction.workDates}
             </label>
             <div className="mt-1 space-y-1">
               {property.inicio && (
                 <p className="text-base">
-                  Inicio: {formatDate(property.inicio)}
+                  {t.propertyAction.startDate}: {formatDate(property.inicio)}
                 </p>
               )}
               {property.finEst && (
                 <p className="text-base">
-                  Fin estimado: {formatDate(property.finEst)}
+                  {t.propertyAction.estimatedEndDate}: {formatDate(property.finEst)}
                 </p>
               )}
             </div>
@@ -155,7 +158,7 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
             className="w-full"
             size="lg"
           >
-            Iniciar checklist
+            {t.checklist.startChecklist || "Iniciar checklist"}
           </Button>
         </div>
       )}

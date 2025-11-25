@@ -74,6 +74,9 @@ export interface Translations {
     delete: string;
     save: string;
     submitReview: string;
+    fullAddress: string;
+    propertyType: string;
+    renovationType: string;
     sections: {
       basicInfo: string;
       economicInfo: string;
@@ -330,6 +333,7 @@ export interface Translations {
       nextRenoSteps: string;
       renovator: string;
       renovationDates: string;
+      workDates: string;
       startDate: string;
       estimatedEndDate: string;
       estimatedVisitDate: string;
@@ -478,6 +482,9 @@ export const translations: Record<Language, Translations> = {
       delete: "Eliminar propiedad",
       save: "Guardar cambios",
       submitReview: "Enviar a revisión",
+      fullAddress: "Dirección completa",
+      propertyType: "Tipo de propiedad",
+      renovationType: "Tipo de renovación",
       sections: {
         basicInfo: "Información de la propiedad",
         economicInfo: "Información económica",
@@ -1177,6 +1184,7 @@ export const translations: Record<Language, Translations> = {
       nextRenoSteps: "Próximos Pasos de Reforma",
       renovator: "Reformador",
       renovationDates: "Fechas de Reforma",
+      workDates: "Fechas de obra",
       startDate: "Fecha de Inicio",
       estimatedEndDate: "Fecha Estimada de Finalización",
       estimatedVisitDate: "Fecha Estimada de Visita",
@@ -1287,6 +1295,9 @@ export const translations: Record<Language, Translations> = {
       delete: "Delete Property",
       save: "Save Changes",
       submitReview: "Submit for Review",
+      fullAddress: "Full Address",
+      propertyType: "Property Type",
+      renovationType: "Renovation Type",
       sections: {
         basicInfo: "Property Information",
         economicInfo: "Economic Information",
@@ -1985,6 +1996,7 @@ export const translations: Record<Language, Translations> = {
       nextRenoSteps: "Next Renovation Steps",
       renovator: "Renovator",
       renovationDates: "Renovation Dates",
+      workDates: "Work Dates",
       startDate: "Start Date",
       estimatedEndDate: "Estimated End Date",
       estimatedVisitDate: "Estimated Visit Date",
