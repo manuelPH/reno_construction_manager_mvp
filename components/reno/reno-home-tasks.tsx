@@ -52,25 +52,13 @@ export function RenoHomeTasks({ checks, visits, onPropertyClick }: RenoHomeTasks
     return () => container.removeEventListener("scroll", handleScroll);
   }, [activeTab, checks, visits, displayedCount]);
 
-  // Determine stage based on property ID or currentStage
+  // Determine stage based on property renoPhase
   const getPropertyStage = (property: Property): RenoKanbanPhase => {
-    if (["4463793", "4463794", "4463795", "4463796", "4463797", "4463798", "4463799", "4463800"].includes(property.id)) {
-      return "upcoming-settlements";
-    } else if (["4463801", "4463802", "4463803"].includes(property.id)) {
-      return "initial-check";
-    } else if (["4463804", "4463805"].includes(property.id)) {
-      return "upcoming";
-    } else if (["4463806", "4463807", "4463808"].includes(property.id)) {
-      return "reno-in-progress";
-    } else if (["4463809", "4463810"].includes(property.id)) {
-      return "furnishing-cleaning";
-    } else if (property.id === "4463811") {
-      return "final-check";
-    } else if (property.id === "4463812") {
-      return "reno-fixes";
-    } else if (["4463813", "4463814"].includes(property.id)) {
-      return "done";
+    // Use renoPhase if available, otherwise fallback to default
+    if (property.renoPhase && ["upcoming-settlements", "initial-check", "upcoming", "reno-in-progress", "furnishing-cleaning", "final-check", "reno-fixes", "done"].includes(property.renoPhase)) {
+      return property.renoPhase as RenoKanbanPhase;
     }
+    // Default fallback
     return "initial-check";
   };
 

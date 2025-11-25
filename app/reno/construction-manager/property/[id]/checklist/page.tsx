@@ -77,15 +77,16 @@ export default function RenoChecklistPage() {
     return getPropertyRenoPhaseFromSupabase(supabaseProperty);
   }, [supabaseProperty]);
 
-  // Redirect back if not in initial-check or final-check phase
+  // Redirect back if not in final-check phase (initial-check is accessible from all phases)
   useEffect(() => {
     if (!isLoading && property && supabaseProperty) {
       const phase = getPropertyRenoPhase(property);
-      if (phase && phase !== "initial-check" && phase !== "final-check") {
+      // Only redirect if trying to access final-check but not in final-check phase
+      if (checklistType === "reno_final" && phase && phase !== "final-check") {
         router.replace(`/reno/construction-manager/property/${property.id}`);
       }
     }
-  }, [property, supabaseProperty, isLoading, getPropertyRenoPhase, router]);
+  }, [property, supabaseProperty, isLoading, checklistType, getPropertyRenoPhase, router]);
 
   // Determine checklist type based on phase
   const checklistType: ChecklistType = useMemo(() => {
