@@ -60,16 +60,17 @@ export default function RenoPropertyDetailPage() {
 
   // Auto-switch to summary tab for reno-budget and furnishing-cleaning phases without tasks
   useEffect(() => {
-    if (isLoading || categoriesLoading) return; // Wait for data to load
+    if (isLoading || categoriesLoading || !propertyId) return; // Wait for data to load
     
     const phase = getPropertyRenoPhase();
     const hasNoTasks = dynamicCategories.length === 0;
     
     // If property is in reno-budget or furnishing-cleaning and has no tasks, switch to summary
+    // Only switch if currently on "tareas" tab (initial state)
     if ((phase === "reno-budget" || phase === "furnishing-cleaning") && hasNoTasks && activeTab === "tareas") {
       setActiveTab("resumen");
     }
-  }, [isLoading, categoriesLoading, dynamicCategories.length, activeTab, getPropertyRenoPhase]);
+  }, [isLoading, categoriesLoading, propertyId, dynamicCategories.length, activeTab, getPropertyRenoPhase]);
 
   // Debounce timer refs
   const dateDebounceRef = useRef<NodeJS.Timeout | null>(null);
