@@ -328,7 +328,27 @@ export function useSupabaseKanbanProperties() {
     const phaseCounts: Record<string, number> = {};
 
     supabaseProperties.forEach((supabaseProperty) => {
+      // Debug: log initial-check properties before conversion
+      if (supabaseProperty.reno_phase === 'initial-check') {
+        console.log('[useSupabaseKanbanProperties] 🔍 Found initial-check property before conversion:', {
+          id: supabaseProperty.id,
+          reno_phase: supabaseProperty.reno_phase,
+          setUpStatus: supabaseProperty['Set Up Status'],
+        });
+      }
+      
       const kanbanProperty = convertSupabasePropertyToKanbanProperty(supabaseProperty);
+      
+      // Debug: log initial-check properties after conversion
+      if (supabaseProperty.reno_phase === 'initial-check') {
+        console.log('[useSupabaseKanbanProperties] 🔍 After conversion:', {
+          id: supabaseProperty.id,
+          kanbanPropertyExists: !!kanbanProperty,
+          kanbanRenoPhase: kanbanProperty?.renoPhase,
+          willBeAdded: kanbanProperty && kanbanProperty.renoPhase && kanbanProperty.renoPhase in grouped,
+        });
+      }
+      
       if (kanbanProperty && kanbanProperty.renoPhase) {
         // Use the renoPhase that was already assigned during conversion
         const phase = kanbanProperty.renoPhase;
@@ -337,16 +357,36 @@ export function useSupabaseKanbanProperties() {
           grouped[phase as RenoKanbanPhase].push(kanbanProperty);
           phaseCounts[phase] = (phaseCounts[phase] || 0) + 1;
           convertedCount++;
+          
+          // Debug log for initial-check phase
+          if (phase === 'initial-check') {
+            console.log('[useSupabaseKanbanProperties] ✅ Added to initial-check:', {
+              id: kanbanProperty.id,
+              renoPhase: kanbanProperty.renoPhase,
+              supabaseRenoPhase: supabaseProperty.reno_phase,
+              setUpStatus: supabaseProperty['Set Up Status'],
+            });
+          }
         } else {
           console.warn('[useSupabaseKanbanProperties] ⚠️ Property without valid phase:', {
             id: supabaseProperty.id,
             status: supabaseProperty['Set Up Status'],
             renoPhase: kanbanProperty.renoPhase,
             mappedPhase: phase,
+            phaseInGrouped: phase ? phase in grouped : false,
           });
           skippedCount++;
         }
       } else {
+        // Debug log for properties that couldn't be converted
+        if (supabaseProperty.reno_phase === 'initial-check') {
+          console.warn('[useSupabaseKanbanProperties] ⚠️ Initial-check property not converted:', {
+            id: supabaseProperty.id,
+            reno_phase: supabaseProperty.reno_phase,
+            setUpStatus: supabaseProperty['Set Up Status'],
+            kanbanProperty: kanbanProperty ? 'exists but no renoPhase' : 'null',
+          });
+        }
         skippedCount++;
       }
     });
