@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { VistralLogo } from "@/components/vistral-logo";
 import { useI18n } from "@/lib/i18n";
+import { Auth0LoginButton } from "@/components/auth/auth0-login-button";
 
 export function LoginForm() {
   const { t } = useI18n();
@@ -24,6 +25,31 @@ export function LoginForm() {
 
   const handleShowForm = () => {
     setShowForm(true);
+  };
+
+  const handleAuth0Login = async () => {
+    setError(null);
+    setLoading(true);
+
+    try {
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: 'auth0',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (oauthError) {
+        throw oauthError;
+      }
+      // El redirect se maneja automáticamente
+    } catch (err: any) {
+      console.error('Auth0 login error:', err);
+      const errorMessage = err.message || "Error al iniciar sesión con Auth0";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      setLoading(false);
+    }
   };
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -123,13 +149,31 @@ export function LoginForm() {
         </div>
 
         {/* Primary Button */}
-        <div className="pt-2">
+        <div className="pt-2 space-y-3">
           <Button 
             onClick={handleShowForm}
             className="w-full text-base h-12 font-medium"
             size="lg"
           >
             {t.login.secureLoginButton}
+          </Button>
+          
+          {/* Auth0 Login Button */}
+          <Button 
+            onClick={handleAuth0Login}
+            variant="outline"
+            className="w-full text-base h-12 font-medium"
+            size="lg"
+            disabled={loading}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Conectando...
+              </>
+            ) : (
+              "Continuar con Auth0"
+            )}
           </Button>
         </div>
 
@@ -211,6 +255,19 @@ export function LoginForm() {
               t.login.loginButton
             )}
           </Button>
+
+          {/* Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-card px-2 text-muted-foreground">O</span>
+            </div>
+          </div>
+
+          {/* Auth0 Login Button (SDK) */}
+          <Auth0LoginButton />
 
           <div className="text-center text-sm text-muted-foreground">
             <button

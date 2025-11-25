@@ -38,6 +38,7 @@
     "verify:table-empty": "tsx scripts/verify-table-empty.ts"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^2.9.0",
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-collapsible": "^1.1.12",
     "@radix-ui/react-dialog": "^1.1.15",
