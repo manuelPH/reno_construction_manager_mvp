@@ -619,7 +619,7 @@ export function VisitsCalendar({
                         <button
                           key={visit.id}
                           onClick={() => setSelectedVisit(visit)}
-                          className="flex items-center gap-2 px-3 py-1.5 rounded-md border bg-card hover:bg-accent transition-colors text-left"
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-md border bg-white/10 dark:bg-white/10 hover:bg-white/20 dark:hover:bg-white/20 transition-colors text-left"
                         >
                           {getVisitIcon(visit.visit_type)}
                           <span className="text-xs font-medium">
@@ -662,7 +662,7 @@ export function VisitsCalendar({
                         <button
                           key={visit.id}
                           onClick={() => setSelectedVisit(visit)}
-                          className="w-full flex items-start gap-1.5 px-2 py-1 rounded text-xs border bg-card hover:bg-accent transition-colors text-left"
+                          className="w-full flex items-start gap-1.5 px-2 py-1 rounded text-xs border bg-white/10 dark:bg-white/10 hover:bg-white/20 dark:hover:bg-white/20 transition-colors text-left"
                         >
                           {getVisitIcon(visit.visit_type)}
                           <div className="flex-1 min-w-0">
