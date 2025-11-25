@@ -5,7 +5,7 @@ import { MapPin, Home, Calendar, Building2, Euro, FileText, Map, ChevronLeft, Ch
 import { Property } from "@/lib/property-storage";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface PropertySummaryTabProps {
@@ -180,6 +180,9 @@ export function PropertySummaryTab({
       {/* Modal para ver imagen en pantalla completa */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-7xl w-full h-[90vh] p-0 bg-black/95">
+          <DialogTitle className="sr-only">
+            {t.property.gallery || "Galería de imágenes"} - {modalImageIndex + 1} de {picsUrls.length}
+          </DialogTitle>
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Botón cerrar */}
             <Button
