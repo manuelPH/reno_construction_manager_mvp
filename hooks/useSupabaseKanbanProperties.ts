@@ -353,6 +353,21 @@ export function useSupabaseKanbanProperties() {
         acc[phase] = props.length;
         return acc;
       }, {} as Record<string, number>),
+      initialCheckDetails: {
+        count: grouped['initial-check'].length,
+        sampleIds: grouped['initial-check'].slice(0, 3).map(p => ({
+          id: p.id,
+          renoPhase: p.renoPhase,
+        })),
+        allRenoPhases: supabaseProperties
+          .filter(p => p.reno_phase === 'initial-check')
+          .slice(0, 5)
+          .map(p => ({
+            id: p.id,
+            reno_phase: p.reno_phase,
+            setUpStatus: p['Set Up Status'],
+          })),
+      },
       timestamp: new Date().toISOString(),
     });
 
