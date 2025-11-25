@@ -433,7 +433,7 @@ export function VisitsCalendar({
             <button
               onClick={() => setViewMode("day")}
               className={cn(
-                "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                "px-4 py-3 text-sm font-medium rounded-md transition-colors",
                 viewMode === "day"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -444,7 +444,7 @@ export function VisitsCalendar({
             <button
               onClick={() => setViewMode("week")}
               className={cn(
-                "px-3 py-1 text-xs font-medium rounded-md transition-colors",
+                "px-4 py-3 text-sm font-medium rounded-md transition-colors",
                 viewMode === "week"
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:text-foreground"
@@ -458,21 +458,21 @@ export function VisitsCalendar({
           <div className="flex items-center gap-1">
             <Button
               variant="outline"
-              size="sm"
+              className="px-4 py-3 text-sm font-medium h-auto"
               onClick={goToPreviousPeriod}
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              className="px-4 py-3 text-sm font-medium h-auto"
               onClick={goToToday}
             >
               {t.calendar.today}
             </Button>
             <Button
               variant="outline"
-              size="sm"
+              className="px-4 py-3 text-sm font-medium h-auto"
               onClick={goToNextPeriod}
             >
               <ChevronRight className="h-4 w-4" />
@@ -482,7 +482,7 @@ export function VisitsCalendar({
           {/* Botón crear */}
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant="outline">
+              <Button variant="outline" className="px-4 py-3 text-sm font-medium h-auto">
                 <Plus className="h-4 w-4 mr-2" />
                 {t.calendar.create}
               </Button>
