@@ -295,6 +295,96 @@ export interface Translations {
     deleteConfirm: string;
   };
   
+  // Property Tabs
+  propertyTabs: {
+    tasks: string;
+    summary: string;
+    propertyStatus: string;
+    renovationBudget: string;
+  };
+  
+  // Property Sidebar
+  propertySidebar: {
+    createdOn: string;
+    dataCompleted: string;
+    pending: string;
+    completeInitialChecklist: string;
+    completeFinalChecklist: string;
+    completeNewSettlementsInfo: string;
+    technicalConstructor: string;
+    siteManager: string;
+    reminders: string;
+    comments: string;
+    checklistInProgress: string;
+    continueChecklist: string;
+    noChecklistStarted: string;
+    openChecklist: string;
+    startChecklist: string;
+    propertyCreatedOn: string;
+    noPendingReminders: string;
+  };
+  
+  // Property Action Tab
+    propertyAction: {
+      preparationStatus: string;
+      nextRenoSteps: string;
+      renovator: string;
+      renovationDates: string;
+      startDate: string;
+      estimatedEndDate: string;
+      estimatedVisitDate: string;
+      openInitialChecklist: string;
+      openFinalChecklist: string;
+      completeInitialChecklist: string;
+      completeFinalChecklist: string;
+      initialCheckDescription: string;
+      finalCheckDescription: string;
+    };
+  
+  // Property Page
+  propertyPage: {
+    property: string;
+    reportProblem: string;
+    propertyNotFound: string;
+    backToKanban: string;
+    loadingProperty: string;
+    renovationBudget: string;
+    comingSoon: string;
+  };
+  
+  // Property Status Tab
+  propertyStatusTab: {
+    loadingHistory: string;
+    noChecklistsYet: string;
+    completed: string;
+    inProgress: string;
+    created: string;
+    completedOn: string;
+    createdBy: string;
+    viewDetails: string;
+  };
+  
+  // Property Card
+    propertyCard: {
+      expired: string;
+      region: string;
+      signing: string;
+      estimatedVisit: string;
+      next: string;
+      today: string;
+      workInProgress: string;
+      cleaningFurnishing: string;
+      repairs: string;
+      completed: string;
+      ago: string;
+      days: string;
+      day: string;
+      hours: string;
+      hour: string;
+      lessThanHour: string;
+      siteManager: string;
+    };
+  
   // Checklist
   checklist: {
     title: string;
@@ -1057,6 +1147,84 @@ export const translations: Record<Language, Translations> = {
       syncedToAirtable: "Sincronizado con Airtable",
       deleteConfirm: "¿Estás seguro de que quieres eliminar este comentario?",
     },
+    propertyTabs: {
+      tasks: "Tareas",
+      summary: "Resumen",
+      propertyStatus: "Estado de la propiedad",
+      renovationBudget: "Presupuesto de reforma",
+    },
+    propertySidebar: {
+      createdOn: "Creada el",
+      dataCompleted: "Datos completados",
+      pending: "Pendiente",
+      completeInitialChecklist: "Completar checklist inicial",
+      completeFinalChecklist: "Completar checklist final",
+      completeNewSettlementsInfo: "Completar información de nuevas escrituras",
+      technicalConstructor: "Constructor Técnico",
+      siteManager: "Jefe de Obra",
+      reminders: "Recordatorios",
+      comments: "Comentarios",
+      checklistInProgress: "Checklist en progreso",
+      continueChecklist: "Continuar checklist",
+      noChecklistStarted: "No hay checklist iniciado aún",
+      openChecklist: "Abrir Checklist",
+      startChecklist: "Iniciar Checklist",
+      propertyCreatedOn: "Propiedad creada el",
+      noPendingReminders: "No hay recordatorios pendientes",
+    },
+    propertyAction: {
+      preparationStatus: "Estado de Preparación",
+      nextRenoSteps: "Próximos Pasos de Reforma",
+      renovator: "Reformador",
+      renovationDates: "Fechas de Reforma",
+      startDate: "Fecha de Inicio",
+      estimatedEndDate: "Fecha Estimada de Finalización",
+      estimatedVisitDate: "Fecha Estimada de Visita",
+      openInitialChecklist: "Abrir Checklist Inicial",
+      openFinalChecklist: "Abrir Checklist Final",
+      completeInitialChecklist: "Completa el checklist inicial para evaluar el estado de la propiedad antes de comenzar las obras.",
+      completeFinalChecklist: "Completa el checklist final para verificar que todas las obras se han realizado correctamente.",
+      initialCheckDescription: "Completa el checklist inicial para evaluar el estado de la propiedad antes de comenzar las obras.",
+      finalCheckDescription: "Completa el checklist final para verificar que todas las obras se han realizado correctamente.",
+    },
+    propertyPage: {
+      property: "Propiedad",
+      reportProblem: "Reportar Problema",
+      propertyNotFound: "Propiedad no encontrada",
+      backToKanban: "Volver al kanban",
+      loadingProperty: "Cargando propiedad...",
+      renovationBudget: "Presupuesto de reforma",
+      comingSoon: "Coming soon",
+    },
+    propertyStatusTab: {
+      loadingHistory: "Cargando historial...",
+      noChecklistsYet: "No hay checklists realizados aún",
+      completed: "Completado",
+      inProgress: "En progreso",
+      created: "Creado",
+      completedOn: "Completado",
+      createdBy: "Creado por",
+      viewDetails: "Ver detalles",
+    },
+    propertyCard: {
+      expired: "Vencida",
+      region: "Región",
+      signing: "Firma",
+      estimatedVisit: "Visita est.",
+      next: "Próxima",
+      today: "Hoy",
+      workInProgress: "Obra en proceso hace",
+      cleaningFurnishing: "Limpieza y amoblamiento hace",
+      repairs: "Reparaciones hace",
+      completed: "Finalizada hace",
+      ago: "Hace",
+      days: "días",
+      day: "día",
+      hours: "horas",
+      hour: "hora",
+      lessThanHour: "Hace menos de 1 hora",
+      siteManager: "Jefe de Obra",
+    },
   },
   en: {
     common: {
@@ -1786,6 +1954,84 @@ export const translations: Record<Language, Translations> = {
       remindAt: "Remind at",
       syncedToAirtable: "Synced to Airtable",
       deleteConfirm: "Are you sure you want to delete this comment?",
+    },
+    propertyTabs: {
+      tasks: "Tasks",
+      summary: "Summary",
+      propertyStatus: "Property Status",
+      renovationBudget: "Renovation Budget",
+    },
+    propertySidebar: {
+      createdOn: "Created on",
+      dataCompleted: "Data completed",
+      pending: "Pending",
+      completeInitialChecklist: "Complete initial checklist",
+      completeFinalChecklist: "Complete final checklist",
+      completeNewSettlementsInfo: "Complete new settlements information",
+      technicalConstructor: "Technical Constructor",
+      siteManager: "Site Manager",
+      reminders: "Reminders",
+      comments: "Comments",
+      checklistInProgress: "Checklist in progress",
+      continueChecklist: "Continue checklist",
+      noChecklistStarted: "No checklist started yet",
+      openChecklist: "Open Checklist",
+      startChecklist: "Start Checklist",
+      propertyCreatedOn: "Property created on",
+      noPendingReminders: "No pending reminders",
+    },
+    propertyAction: {
+      preparationStatus: "Preparation Status",
+      nextRenoSteps: "Next Renovation Steps",
+      renovator: "Renovator",
+      renovationDates: "Renovation Dates",
+      startDate: "Start Date",
+      estimatedEndDate: "Estimated End Date",
+      estimatedVisitDate: "Estimated Visit Date",
+      openInitialChecklist: "Open Initial Checklist",
+      openFinalChecklist: "Open Final Checklist",
+      completeInitialChecklist: "Complete the initial checklist to evaluate the property's status before starting the works.",
+      completeFinalChecklist: "Complete the final checklist to verify that all works have been completed correctly.",
+      initialCheckDescription: "Complete the initial checklist to evaluate the property's status before starting the works.",
+      finalCheckDescription: "Complete the final checklist to verify that all works have been completed correctly.",
+    },
+    propertyPage: {
+      property: "Property",
+      reportProblem: "Report Problem",
+      propertyNotFound: "Property not found",
+      backToKanban: "Back to kanban",
+      loadingProperty: "Loading property...",
+      renovationBudget: "Renovation Budget",
+      comingSoon: "Coming soon",
+    },
+    propertyStatusTab: {
+      loadingHistory: "Loading history...",
+      noChecklistsYet: "No checklists completed yet",
+      completed: "Completed",
+      inProgress: "In progress",
+      created: "Created",
+      completedOn: "Completed",
+      createdBy: "Created by",
+      viewDetails: "View details",
+    },
+    propertyCard: {
+      expired: "Expired",
+      region: "Region",
+      signing: "Signing",
+      estimatedVisit: "Est. visit",
+      next: "Next",
+      today: "Today",
+      workInProgress: "Work in progress",
+      cleaningFurnishing: "Cleaning & furnishing",
+      repairs: "Repairs",
+      completed: "Completed",
+      ago: "Ago",
+      days: "days",
+      day: "day",
+      hours: "hours",
+      hour: "hour",
+      lessThanHour: "Less than 1 hour ago",
+      siteManager: "Site Manager",
     },
   },
 };

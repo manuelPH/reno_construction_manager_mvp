@@ -23,7 +23,7 @@ export function PropertyActionTab({
   supabaseProperty,
   propertyId,
 }: PropertyActionTabProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
 
   const renoPhase = supabaseProperty?.reno_phase || "upcoming-settlements";
   const nextRenoSteps = supabaseProperty?.next_reno_steps;
@@ -41,7 +41,7 @@ export function PropertyActionTab({
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return null;
     try {
-      return new Date(dateString).toLocaleDateString("es-ES", {
+      return new Date(dateString).toLocaleDateString(language === "es" ? "es-ES" : "en-US", {
         year: "numeric",
         month: "long",
         day: "numeric",
@@ -61,7 +61,7 @@ export function PropertyActionTab({
             <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <FileText className="h-5 w-5" />
-                Estado de Preparación
+                {t.propertyAction.preparationStatus}
               </h3>
               <p className="text-sm text-foreground">{setUpStatus}</p>
             </div>
@@ -72,7 +72,7 @@ export function PropertyActionTab({
             <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Wrench className="h-5 w-5" />
-                Próximos Pasos de Reforma
+                {t.propertyAction.nextRenoSteps}
               </h3>
               <p className="text-sm text-foreground whitespace-pre-wrap">{nextRenoSteps}</p>
             </div>
@@ -83,7 +83,7 @@ export function PropertyActionTab({
             <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <User className="h-5 w-5" />
-                Reformador
+                {t.propertyAction.renovator}
               </h3>
               <p className="text-sm text-foreground">{renovatorName}</p>
             </div>
@@ -94,18 +94,18 @@ export function PropertyActionTab({
             <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
               <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Fechas de Reforma
+                {t.propertyAction.renovationDates}
               </h3>
               <div className="space-y-3">
                 {renoStartDate && (
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Fecha de Inicio</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t.propertyAction.startDate}</label>
                     <p className="text-sm text-foreground mt-1">{formatDate(renoStartDate)}</p>
                   </div>
                 )}
                 {estimatedEndDate && (
                   <div>
-                    <label className="text-sm font-medium text-muted-foreground">Fecha Estimada de Finalización</label>
+                    <label className="text-sm font-medium text-muted-foreground">{t.propertyAction.estimatedEndDate}</label>
                     <p className="text-sm text-foreground mt-1">{formatDate(estimatedEndDate)}</p>
                   </div>
                 )}
@@ -120,7 +120,7 @@ export function PropertyActionTab({
         <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
             <Calendar className="h-5 w-5" />
-            Fecha Estimada de Visita
+            {t.propertyAction.estimatedVisitDate}
           </h3>
           <p className="text-sm text-foreground">
             {formatDate(estimatedVisitDate)}

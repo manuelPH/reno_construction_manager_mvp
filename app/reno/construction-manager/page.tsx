@@ -113,8 +113,13 @@ export default function RenoConstructionManagerHomePage() {
 
   // Calculate indicators
   const indicators = useMemo(() => {
-    // Obras Activas: only reno-in-progress
-    const obrasActivas = propertiesByPhase?.['reno-in-progress']?.length || 0;
+    // Obras Activas: all properties between reno-in-progress and final-check
+    // Includes: reno-in-progress, furnishing-cleaning, and final-check
+    const obrasActivas = (
+      (propertiesByPhase?.['reno-in-progress']?.length || 0) +
+      (propertiesByPhase?.['furnishing-cleaning']?.length || 0) +
+      (propertiesByPhase?.['final-check']?.length || 0)
+    );
 
     // Visitas para hoy: properties that need update today (including expired ones from yesterday)
     const visitasParaHoy = properties.filter((p) => {

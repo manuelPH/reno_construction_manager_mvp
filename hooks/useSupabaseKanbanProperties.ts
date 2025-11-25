@@ -322,8 +322,9 @@ export function useSupabaseKanbanProperties() {
 
     supabaseProperties.forEach((supabaseProperty) => {
       const kanbanProperty = convertSupabasePropertyToKanbanProperty(supabaseProperty);
-      if (kanbanProperty) {
-        const phase = mapSetUpStatusToKanbanPhase(supabaseProperty['Set Up Status']);
+      if (kanbanProperty && kanbanProperty.renoPhase) {
+        // Use the renoPhase that was already assigned during conversion
+        const phase = kanbanProperty.renoPhase;
         if (phase && grouped[phase]) {
           grouped[phase].push(kanbanProperty);
           phaseCounts[phase] = (phaseCounts[phase] || 0) + 1;
@@ -332,6 +333,7 @@ export function useSupabaseKanbanProperties() {
           console.warn('[useSupabaseKanbanProperties] ⚠️ Property without valid phase:', {
             id: supabaseProperty.id,
             status: supabaseProperty['Set Up Status'],
+            renoPhase: kanbanProperty.renoPhase,
             mappedPhase: phase,
           });
           skippedCount++;

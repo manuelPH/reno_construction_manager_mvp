@@ -9,8 +9,10 @@ export function mapSetUpStatusToKanbanPhase(setUpStatus: string | null): RenoKan
   const status = setUpStatus.trim().toLowerCase();
 
   // Mapeo de valores de "Set Up Status" a columnas del kanban
+  // IMPORTANTE: Ordenar de más específico a menos específico para evitar coincidencias incorrectas
   const mapping: Record<string, RenoKanbanPhase> = {
-    // Nuevas escrituras → upcoming-settlements
+    // Upcoming Settlements - View: viwpYQ0hsSSdFrSD1
+    // Estas son propiedades que están próximas a escrituración
     'pending to visit': 'upcoming-settlements',
     'nuevas escrituras': 'upcoming-settlements',
     
@@ -18,11 +20,13 @@ export function mapSetUpStatusToKanbanPhase(setUpStatus: string | null): RenoKan
     'check inicial': 'initial-check',
     'initial check': 'initial-check',
     
-    // Proximas propiedades → upcoming
+    // Upcoming - Waiting for reno budget (diferente de upcoming-settlements)
+    // Estas son propiedades esperando presupuesto de renovación
+    'pending to validate budget (client & renovator) & reno to start': 'upcoming',
     'pending to validate budget': 'upcoming',
+    'pending to validate budget & reno to start': 'upcoming',
     'reno to start': 'upcoming',
     'proximas propiedades': 'upcoming',
-    'pending to validate budget & reno to start': 'upcoming',
     
     // Obras en proceso → reno-in-progress
     'reno in progress': 'reno-in-progress',

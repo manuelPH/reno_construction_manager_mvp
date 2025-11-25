@@ -9,6 +9,7 @@
 
 import Airtable from 'airtable';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { mapSetUpStatusToKanbanPhase } from '@/lib/supabase/kanban-mapping';
 
 interface AirtableProperty {
   id: string; // Airtable record ID
@@ -406,16 +407,11 @@ function mapAirtableToSupabase(airtableProperty: AirtableProperty): any {
       'Start Date'
     ]) || null,
     // Determinar fase basada en Set Up Status
+    // IMPORTANTE: Usar la función de mapeo para mantener consistencia
     reno_phase: (() => {
       const setUpStatus = getFieldValue('Set Up Status', ['Set Up Status', 'Set up status']);
-      if (setUpStatus === 'Initial Check' || setUpStatus === 'initial check') {
-        return 'initial-check';
-      }
-      if (setUpStatus === 'Pending to validate Budget (Client & renovator) & Reno to start' ||
-          setUpStatus === 'Pending to validate Budget') {
-        return 'upcoming-settlements';
-      }
-      return 'upcoming-settlements'; // Default
+      const mappedPhase = mapSetUpStatusToKanbanPhase(setUpStatus);
+      return mappedPhase || null; // No usar default, dejar que el mapeo decida
     })(),
     airtable_property_id: airtableProperty.id,
     updated_at: new Date().toISOString(),

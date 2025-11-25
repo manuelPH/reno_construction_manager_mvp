@@ -204,19 +204,19 @@ export default function RenoPropertyDetailPage() {
     
     if (phase === "upcoming-settlements") {
       items.push({
-        label: "Completar información de nuevas escrituras",
+        label: t.propertySidebar.completeNewSettlementsInfo,
         onClick: () => setActiveTab("tareas"),
       });
     }
     if (phase === "initial-check") {
       items.push({
-        label: "Completar checklist inicial",
+        label: t.propertySidebar.completeInitialChecklist,
         onClick: () => router.push(`/reno/construction-manager/property/${propertyId}/checklist`),
       });
     }
     if (phase === "final-check") {
       items.push({
-        label: "Completar checklist final",
+        label: t.propertySidebar.completeFinalChecklist,
         onClick: () => router.push(`/reno/construction-manager/property/${propertyId}/checklist`),
       });
     }
@@ -226,30 +226,30 @@ export default function RenoPropertyDetailPage() {
 
   // Define tabs
   const tabs = [
-    { id: "tareas", label: "Tareas" },
-    { id: "resumen", label: "Resumen" },
-    { id: "estado-propiedad", label: "Estado de la propiedad" },
-    { id: "presupuesto-reforma", label: "Presupuesto de reforma" },
+    { id: "tareas", label: t.propertyTabs.tasks },
+    { id: "resumen", label: t.propertyTabs.summary },
+    { id: "estado-propiedad", label: t.propertyTabs.propertyStatus },
+    { id: "presupuesto-reforma", label: t.propertyTabs.renovationBudget },
   ];
 
   // Render active tab content
   const renderTabContent = () => {
     const currentPhase = getPropertyRenoPhase();
     
-    // Early return if property is null
-    if (!property) {
-      return (
-        <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-          <p className="text-muted-foreground">Cargando propiedad...</p>
-        </div>
-      );
-    }
+      // Early return if property is null
+      if (!property) {
+        return (
+          <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+            <p className="text-muted-foreground">{t.propertyPage.loadingProperty}</p>
+          </div>
+        );
+      }
     
     switch (activeTab) {
       case "tareas":
         // For initial-check or final-check phases, show checklist CTA
         if (currentPhase === "initial-check" || currentPhase === "final-check") {
-          const checklistType = currentPhase === "final-check" ? "Check Final" : "Check Inicial";
+          const checklistType = currentPhase === "final-check" ? t.kanban.finalCheck : t.kanban.initialCheck;
           return (
             <div className="space-y-6">
               <PropertyActionTab property={property} supabaseProperty={supabaseProperty} />
@@ -278,8 +278,8 @@ export default function RenoPropertyDetailPage() {
                   </h3>
                   <p className="text-muted-foreground max-w-md mx-auto">
                     {currentPhase === "initial-check"
-                      ? "Completa el checklist inicial para evaluar el estado de la propiedad antes de comenzar las obras."
-                      : "Completa el checklist final para verificar que todas las obras se han realizado correctamente."}
+                      ? t.propertyAction.initialCheckDescription
+                      : t.propertyAction.finalCheckDescription}
                   </p>
                   
                   <Button
@@ -288,8 +288,8 @@ export default function RenoPropertyDetailPage() {
                     className="mt-4 min-w-[200px]"
                   >
                     {currentPhase === "initial-check"
-                      ? "Abrir Checklist Inicial"
-                      : "Abrir Checklist Final"}
+                      ? t.propertyAction.openInitialChecklist
+                      : t.propertyAction.openFinalChecklist}
                   </Button>
                 </div>
               </div>
@@ -377,7 +377,7 @@ export default function RenoPropertyDetailPage() {
       case "presupuesto-reforma":
         return (
           <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-            <p className="text-muted-foreground">Presupuesto de reforma - Coming soon</p>
+            <p className="text-muted-foreground">{t.propertyPage.renovationBudget} - {t.propertyPage.comingSoon}</p>
           </div>
         );
       default:
@@ -400,13 +400,13 @@ export default function RenoPropertyDetailPage() {
       <div className="flex h-screen overflow-hidden">
         <div className="flex flex-1 flex-col items-center justify-center">
           <p className="text-lg font-semibold text-foreground mb-2">
-            Propiedad no encontrada
+            {t.propertyPage.propertyNotFound}
           </p>
           <button 
             onClick={() => router.push("/reno/construction-manager/kanban")} 
             className="px-4 py-2 rounded-md border border-input bg-background hover:bg-accent"
           >
-            Volver al kanban
+            {t.propertyPage.backToKanban}
           </button>
         </div>
       </div>
@@ -420,10 +420,10 @@ export default function RenoPropertyDetailPage() {
         {/* Navbar L2: Botón atrás + Acciones críticas */}
         <NavbarL2
           onBack={() => router.push("/reno/construction-manager/kanban")}
-          classNameTitle="Propiedad"
+          classNameTitle={t.propertyPage.property}
           actions={[
             {
-              label: "Reportar Problema",
+              label: t.propertyPage.reportProblem,
               onClick: () => setReportProblemOpen(true),
               variant: "outline",
               icon: <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500" />,
