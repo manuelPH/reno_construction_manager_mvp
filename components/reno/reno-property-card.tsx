@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar } from "lucide-react";
 import { Property } from "@/lib/property-storage";
 import { isPropertyExpired } from "@/lib/property-sorting";
+import { useI18n } from "@/lib/i18n";
 
-type RenoStage = "upcoming-settlements" | "initial-check" | "upcoming" | "reno-in-progress" | "furnishing-cleaning" | "final-check" | "reno-fixes" | "done";
+type RenoStage = "upcoming-settlements" | "initial-check" | "reno-budget" | "reno-in-progress" | "furnishing-cleaning" | "final-check" | "reno-fixes" | "done";
 
 interface RenoPropertyCardProps {
   property: Property;
@@ -26,6 +27,7 @@ export function RenoPropertyCard({
   isHighlighted = false,
   showRenoDetails = true,
 }: RenoPropertyCardProps) {
+  const { t, language } = useI18n();
   const isExpired = isPropertyExpired(property);
 
   const needsUpdateToday = property.proximaActualizacion
@@ -35,57 +37,48 @@ export function RenoPropertyCard({
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
     const date = new Date(dateString);
-    return date.toLocaleDateString("es-ES", {
+    const locale = language === "es" ? "es-ES" : "en-US";
+    return date.toLocaleDateString(locale, {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
     });
   };
 
-  // Función para obtener los estilos del badge según el tipo de renovación
-  // Todos usan la paleta de azules de Vistral con diferentes tonos:
-  // - Light Reno: azul más clarito (blue-100)
-  // - Medium Reno: azul medio (blue-300/400)
-  // - Major Reno: azul más oscuro (blue-600/700)
-  const getRenoTypeBadgeStyles = (renoType?: string) => {
-    if (!renoType) return null;
+  // Calculate time in current phase - use updated_at if available, otherwise use created_at
+  // This is an approximation - ideally we'd have a phase_entered_at field
+  const calculateTimeInPhase = () => {
+    // Try to use updated_at if available (when phase changed), otherwise use created_at
+    const phaseDate = property.ultimaActualizacion 
+      ? new Date(property.ultimaActualizacion)
+      : new Date(property.createdAt);
     
-    const typeLower = renoType.toLowerCase();
-    
-    // Light Reno: azul más clarito
-    if (typeLower.includes('light')) {
-      return {
-        bg: 'bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)]/20',
-        text: 'text-[var(--prophero-blue-600)] dark:text-[var(--prophero-blue-300)]',
-        border: 'border-[var(--prophero-blue-200)] dark:border-[var(--prophero-blue-800)]/30'
-      };
+    const now = new Date();
+    const diffMs = now.getTime() - phaseDate.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+
+    if (diffMins < 60) {
+      return t.propertyCard.lessThanHour;
     }
-    
-    // Medium Reno: azul medio
-    if (typeLower.includes('medium')) {
-      return {
-        bg: 'bg-[var(--prophero-blue-100)] dark:bg-[var(--prophero-blue-900)]/20',
-        text: 'text-[var(--prophero-blue-700)] dark:text-[var(--prophero-blue-400)]',
-        border: 'border-[var(--prophero-blue-300)] dark:border-[var(--prophero-blue-700)]/30'
-      };
+    if (diffHours < 24) {
+      return language === "es" 
+        ? `Hace ${diffHours} ${diffHours === 1 ? t.propertyCard.hour : t.propertyCard.hours}`
+        : `${diffHours} ${diffHours === 1 ? t.propertyCard.hour : t.propertyCard.hours} ago`;
     }
-    
-    // Major Reno: azul más oscuro
-    if (typeLower.includes('major')) {
-      return {
-        bg: 'bg-[var(--prophero-blue-200)] dark:bg-[var(--prophero-blue-800)]/20',
-        text: 'text-[var(--prophero-blue-800)] dark:text-[var(--prophero-blue-200)]',
-        border: 'border-[var(--prophero-blue-400)] dark:border-[var(--prophero-blue-600)]/30'
-      };
+    if (diffDays === 0) {
+      return t.propertyCard.today;
     }
-    
-    // Default: azul medio (por si acaso)
-    return {
-      bg: 'bg-[var(--prophero-blue-100)] dark:bg-[var(--prophero-blue-900)]/20',
-      text: 'text-[var(--prophero-blue-700)] dark:text-[var(--prophero-blue-400)]',
-      border: 'border-[var(--prophero-blue-300)] dark:border-[var(--prophero-blue-700)]/30'
-    };
+    if (diffDays === 1) {
+      return language === "es" ? `Hace 1 ${t.propertyCard.day}` : `1 ${t.propertyCard.day} ago`;
+    }
+    return language === "es"
+      ? `Hace ${diffDays} ${diffDays === 1 ? t.propertyCard.day : t.propertyCard.days}`
+      : `${diffDays} ${diffDays === 1 ? t.propertyCard.day : t.propertyCard.days} ago`;
   };
+
+  const timeInPhase = calculateTimeInPhase();
 
   return (
     <div 
@@ -110,7 +103,7 @@ export function RenoPropertyCard({
         </div>
         {isExpired && (
           <span className="rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 flex-shrink-0">
-            Vencida
+            {t.propertyCard.expired}
           </span>
         )}
       </div>
@@ -127,6 +120,51 @@ export function RenoPropertyCard({
 
       {/* Tags */}
       {showRenoDetails && property.renoType && (() => {
+        // Función para obtener los estilos del badge según el tipo de renovación
+        // Todos usan la paleta de azules de Vistral con diferentes tonos:
+        // - Light Reno: azul más clarito (blue-50)
+        // - Medium Reno: azul medio (blue-100)
+        // - Major Reno: azul más oscuro (blue-200)
+        const getRenoTypeBadgeStyles = (renoType?: string) => {
+          if (!renoType) return null;
+          
+          const typeLower = renoType.toLowerCase();
+          
+          // Light Reno: azul más clarito
+          if (typeLower.includes('light')) {
+            return {
+              bg: 'bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)]/20',
+              text: 'text-[var(--prophero-blue-600)] dark:text-[var(--prophero-blue-300)]',
+              border: 'border-[var(--prophero-blue-200)] dark:border-[var(--prophero-blue-800)]/30'
+            };
+          }
+          
+          // Medium Reno: azul medio
+          if (typeLower.includes('medium')) {
+            return {
+              bg: 'bg-[var(--prophero-blue-100)] dark:bg-[var(--prophero-blue-900)]/20',
+              text: 'text-[var(--prophero-blue-700)] dark:text-[var(--prophero-blue-400)]',
+              border: 'border-[var(--prophero-blue-300)] dark:border-[var(--prophero-blue-700)]/30'
+            };
+          }
+          
+          // Major Reno: azul más oscuro
+          if (typeLower.includes('major')) {
+            return {
+              bg: 'bg-[var(--prophero-blue-200)] dark:bg-[var(--prophero-blue-800)]/20',
+              text: 'text-[var(--prophero-blue-800)] dark:text-[var(--prophero-blue-200)]',
+              border: 'border-[var(--prophero-blue-400)] dark:border-[var(--prophero-blue-600)]/30'
+            };
+          }
+          
+          // Default: azul medio (por si acaso)
+          return {
+            bg: 'bg-[var(--prophero-blue-100)] dark:bg-[var(--prophero-blue-900)]/20',
+            text: 'text-[var(--prophero-blue-700)] dark:text-[var(--prophero-blue-400)]',
+            border: 'border-[var(--prophero-blue-300)] dark:border-[var(--prophero-blue-700)]/30'
+          };
+        };
+
         const badgeStyles = getRenoTypeBadgeStyles(property.renoType);
         if (!badgeStyles) return null;
         
@@ -147,22 +185,22 @@ export function RenoPropertyCard({
         <div className="space-y-2">
           {property.region && (
             <div className="text-xs text-muted-foreground">
-              Región: {property.region}
+              {t.propertyCard.region}: {property.region}
             </div>
           )}
           {property.realSettlementDate && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="h-3 w-3 flex-shrink-0" />
-              <span>Firma: {formatDate(property.realSettlementDate)}</span>
+              <span>{t.propertyCard.signing}: {formatDate(property.realSettlementDate)}</span>
             </div>
           )}
           {property.estimatedVisitDate && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="h-3 w-3 flex-shrink-0" />
-              <span>Visita est.: {formatDate(property.estimatedVisitDate)}</span>
+              <span>{t.propertyCard.estimatedVisit}: {formatDate(property.estimatedVisitDate)}</span>
             </div>
           )}
-          <div className="text-xs text-muted-foreground">Hace {property.timeInStage}</div>
+          <div className="text-xs text-muted-foreground">{timeInPhase}</div>
         </div>
       ) : stage === "final-check" ? (
         <div className="space-y-2">
@@ -173,21 +211,21 @@ export function RenoPropertyCard({
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">{property.renovador || 'Jefe de Obra'}</span>
+              <span className="text-xs text-muted-foreground">{property.renovador || t.propertyCard.siteManager}</span>
             </div>
           )}
           {showRenoDetails && property.proximaActualizacion && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="h-3 w-3 flex-shrink-0" />
               <span>
-                Próxima: {formatDate(property.proximaActualizacion)}
+                {t.propertyCard.next}: {formatDate(property.proximaActualizacion)}
                 {needsUpdateToday && (
-                  <span className="ml-1 text-[var(--prophero-blue-600)] font-medium">(Hoy)</span>
+                  <span className="ml-1 text-[var(--prophero-blue-600)] font-medium">({t.propertyCard.today})</span>
                 )}
               </span>
             </div>
           )}
-          <div className="text-xs text-muted-foreground">Hace {property.timeInStage}</div>
+          <div className="text-xs text-muted-foreground">{timeInPhase}</div>
         </div>
       ) : stage === "reno-in-progress" ? (
         <div className="space-y-2">
@@ -198,21 +236,21 @@ export function RenoPropertyCard({
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">{property.renovador || 'Jefe de Obra'}</span>
+              <span className="text-xs text-muted-foreground">{property.renovador || t.propertyCard.siteManager}</span>
             </div>
           )}
           {showRenoDetails && property.proximaActualizacion && (
             <div className="flex items-center gap-1 text-xs text-muted-foreground">
               <Calendar className="h-3 w-3 flex-shrink-0" />
               <span>
-                Próxima: {formatDate(property.proximaActualizacion)}
+                {t.propertyCard.next}: {formatDate(property.proximaActualizacion)}
                 {needsUpdateToday && (
-                  <span className="ml-1 text-[var(--prophero-blue-600)] font-medium">(Hoy)</span>
+                  <span className="ml-1 text-[var(--prophero-blue-600)] font-medium">({t.propertyCard.today})</span>
                 )}
               </span>
             </div>
           )}
-          <div className="text-xs text-muted-foreground">Obra en proceso hace {property.timeInStage}</div>
+          <div className="text-xs text-muted-foreground">{t.propertyCard.workInProgress} {timeInPhase}</div>
         </div>
       ) : stage === "furnishing-cleaning" || stage === "reno-fixes" ? (
         <div className="space-y-2">
@@ -223,16 +261,16 @@ export function RenoPropertyCard({
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">{property.renovador || 'Jefe de Obra'}</span>
+              <span className="text-xs text-muted-foreground">{property.renovador || t.propertyCard.siteManager}</span>
             </div>
           )}
           <div className="text-xs text-muted-foreground">
-            {stage === "furnishing-cleaning" && "Limpieza y amoblamiento hace "}
-            {stage === "reno-fixes" && "Reparaciones hace "}
-            {property.timeInStage}
+            {stage === "furnishing-cleaning" && `${t.propertyCard.cleaningFurnishing} `}
+            {stage === "reno-fixes" && `${t.propertyCard.repairs} `}
+            {timeInPhase}
           </div>
         </div>
-      ) : stage === "upcoming" ? (
+      ) : stage === "reno-budget" ? (
         <div className="space-y-2">
           {showRenoDetails && property.renovador && (
             <div className="flex items-center gap-2">
@@ -241,14 +279,14 @@ export function RenoPropertyCard({
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">{property.renovador || 'Jefe de Obra'}</span>
+              <span className="text-xs text-muted-foreground">{property.renovador || t.propertyCard.siteManager}</span>
             </div>
           )}
-          <div className="text-xs text-muted-foreground">Hace {property.timeInStage}</div>
+          <div className="text-xs text-muted-foreground">{timeInPhase}</div>
         </div>
       ) : stage === "done" ? (
         <div className="space-y-2">
-          <div className="text-xs text-muted-foreground">Finalizada hace {property.timeInStage}</div>
+          <div className="text-xs text-muted-foreground">{t.propertyCard.completed} {timeInPhase}</div>
         </div>
       ) : null}
     </div>

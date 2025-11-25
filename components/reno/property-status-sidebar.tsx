@@ -41,7 +41,7 @@ export function PropertyStatusSidebar({
   progress = 0,
   pendingItems = [],
 }: PropertyStatusSidebarProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [commentsExpanded, setCommentsExpanded] = useState(true);
   const [checklistExpanded, setChecklistExpanded] = useState(false);
   const [hasChecklist, setHasChecklist] = useState(false);
@@ -86,7 +86,7 @@ export function PropertyStatusSidebar({
 
   // Format date
   const formattedDate = createdAt
-    ? new Date(createdAt).toLocaleDateString("es-ES", {
+    ? new Date(createdAt).toLocaleDateString(language === "es" ? "es-ES" : "en-US", {
         year: "numeric",
         month: "2-digit",
         day: "2-digit",
@@ -96,17 +96,17 @@ export function PropertyStatusSidebar({
   // Get phase label
   const getPhaseLabel = () => {
     const phaseLabels: Record<string, string> = {
-      "upcoming-settlements": "Nuevas escrituras",
-      "initial-check": "Check inicial",
-      "reno-in-progress": "Obras en proceso",
-      "final-check": "Check final",
-      "done": "Finalizada",
+      "upcoming-settlements": t.kanban.upcomingSettlements,
+      "initial-check": t.kanban.initialCheck,
+      "reno-in-progress": t.kanban.renoInProgress,
+      "final-check": t.kanban.finalCheck,
+      "done": t.kanban.done,
     };
     return phaseLabels[renoPhase] || renoPhase;
   };
 
   const getChecklistLabel = () => {
-    return renoPhase === "final-check" ? "Check Final" : "Check Inicial";
+    return renoPhase === "final-check" ? t.kanban.finalCheck : t.kanban.initialCheck;
   };
 
   return (
@@ -119,7 +119,7 @@ export function PropertyStatusSidebar({
               {getPhaseLabel()}
             </span>
             <span className="text-xs text-muted-foreground">
-              {formattedDate ? `Creada el ${formattedDate}` : ""}
+              {formattedDate ? `${t.propertySidebar.createdOn} ${formattedDate}` : ""}
             </span>
           </div>
 
@@ -127,7 +127,7 @@ export function PropertyStatusSidebar({
           {progress > 0 && (
             <div className="mt-4">
               <div className="flex items-center justify-between mb-1">
-                <span className="text-xs text-muted-foreground">Datos completados</span>
+                <span className="text-xs text-muted-foreground">{t.propertySidebar.dataCompleted}</span>
                 <span className="text-xs font-medium">{progress}%</span>
               </div>
               <div className="w-full h-2 bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-800)] rounded-full overflow-hidden">
@@ -145,7 +145,7 @@ export function PropertyStatusSidebar({
           <div>
             <h4 className="text-sm font-semibold mb-3 flex items-center gap-2">
               <Clock className="h-4 w-4 text-muted-foreground" />
-              Pendiente
+              {t.propertySidebar.pending}
             </h4>
             <div className="space-y-2">
               {pendingItems.map((item, index) => (
@@ -175,7 +175,7 @@ export function PropertyStatusSidebar({
             <div>
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-muted-foreground" />
-                Constructor Técnico
+                {t.propertySidebar.technicalConstructor}
               </h4>
               <p className="text-sm text-foreground">{technicalConstructor}</p>
             </div>
@@ -185,7 +185,7 @@ export function PropertyStatusSidebar({
             <div>
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
                 <User className="h-4 w-4 text-muted-foreground" />
-                Jefe de Obra
+                {t.propertySidebar.siteManager}
               </h4>
               <p className="text-sm text-foreground">{responsibleOwner}</p>
             </div>
@@ -220,7 +220,7 @@ export function PropertyStatusSidebar({
                 {hasChecklist ? (
                   <>
                     <div className="text-xs text-muted-foreground mb-2">
-                      Checklist en progreso
+                      {t.propertySidebar.checklistInProgress}
                     </div>
                     <div className="w-full h-2 bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-800)] rounded-full overflow-hidden">
                       <div
@@ -236,12 +236,12 @@ export function PropertyStatusSidebar({
                       }}
                       className="w-full text-left p-2 rounded-md text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                     >
-                      Continuar checklist →
+                      {t.propertySidebar.continueChecklist} →
                     </button>
                   </>
                 ) : (
                   <div className="text-xs text-muted-foreground mb-2">
-                    No hay checklist iniciado aún
+                    {t.propertySidebar.noChecklistStarted}
                   </div>
                 )}
                 <button
@@ -252,7 +252,7 @@ export function PropertyStatusSidebar({
                   }}
                   className="w-full px-3 py-2 text-sm font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
                 >
-                  {hasChecklist ? "Abrir Checklist" : "Iniciar Checklist"}
+                  {hasChecklist ? t.propertySidebar.openChecklist : t.propertySidebar.startChecklist}
                 </button>
               </div>
             )}
@@ -266,7 +266,7 @@ export function PropertyStatusSidebar({
               <div className="flex items-center justify-between w-full cursor-pointer py-2">
                 <h4 className="text-sm font-semibold flex items-center gap-2">
                   <Bell className="h-4 w-4 text-muted-foreground" />
-                  Recordatorios
+                  {t.propertySidebar.reminders}
                 </h4>
               </div>
             </CollapsibleTrigger>
@@ -287,7 +287,7 @@ export function PropertyStatusSidebar({
             >
               <div className="flex items-center gap-2">
                 <MessageSquare className="h-4 w-4 text-muted-foreground" />
-                Comentarios
+                {t.propertySidebar.comments}
               </div>
               {commentsExpanded ? (
                 <ChevronUp className="h-4 w-4" />
@@ -308,7 +308,7 @@ export function PropertyStatusSidebar({
         {formattedDate && (
           <div className="pt-4 border-t">
             <p className="text-xs text-muted-foreground">
-              Propiedad creada el {formattedDate}
+              {t.propertySidebar.propertyCreatedOn} {formattedDate}
             </p>
           </div>
         )}

@@ -15,9 +15,12 @@ interface PropertyInfoSectionProps {
 export function PropertyInfoSection({ property, phase, onStartChecklist }: PropertyInfoSectionProps) {
   const { t } = useI18n();
 
+  const { language } = useI18n();
+  
   const formatDate = (dateString?: string) => {
     if (!dateString) return "N/A";
-    return new Date(dateString).toLocaleDateString("es-ES", {
+    const locale = language === "es" ? "es-ES" : "en-US";
+    return new Date(dateString).toLocaleDateString(locale, {
       year: "numeric",
       month: "long",
       day: "numeric",

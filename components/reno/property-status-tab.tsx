@@ -25,7 +25,7 @@ interface PropertyStatusTabProps {
  * Muestra el historial de checklists realizados para la propiedad
  */
 export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
-  const { t } = useI18n();
+  const { t, language } = useI18n();
   const [checklists, setChecklists] = useState<ChecklistHistory[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -93,7 +93,7 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
   if (loading) {
     return (
       <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-        <p className="text-muted-foreground">Cargando historial...</p>
+        <p className="text-muted-foreground">{t.propertyStatusTab.loadingHistory}</p>
       </div>
     );
   }
@@ -101,7 +101,7 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
   if (checklists.length === 0) {
     return (
       <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-        <p className="text-muted-foreground">No hay checklists realizados aún</p>
+        <p className="text-muted-foreground">{t.propertyStatusTab.noChecklistsYet}</p>
       </div>
     );
   }
@@ -111,15 +111,16 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
       {checklists.map((checklist) => {
         const isCompleted = checklist.completed_at !== null;
         const checklistType = checklist.inspection_type === 'initial' 
-          ? 'Check Inicial' 
-          : 'Check Final';
-        const createdDate = new Date(checklist.created_at).toLocaleDateString("es-ES", {
+          ? t.kanban.initialCheck 
+          : t.kanban.finalCheck;
+        const locale = language === "es" ? "es-ES" : "en-US";
+        const createdDate = new Date(checklist.created_at).toLocaleDateString(locale, {
           year: "numeric",
           month: "long",
           day: "numeric",
         });
         const completedDate = checklist.completed_at
-          ? new Date(checklist.completed_at).toLocaleDateString("es-ES", {
+          ? new Date(checklist.completed_at).toLocaleDateString(locale, {
               year: "numeric",
               month: "long",
               day: "numeric",
@@ -148,25 +149,25 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
                         : "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200"
                     )}
                   >
-                    {isCompleted ? "Completado" : "En progreso"}
+                    {isCompleted ? t.propertyStatusTab.completed : t.propertyStatusTab.inProgress}
                   </span>
                 </div>
 
                 <div className="space-y-1 text-sm text-muted-foreground">
                   <div className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" />
-                    <span>Creado: {createdDate}</span>
+                    <span>{t.propertyStatusTab.created}: {createdDate}</span>
                   </div>
                   {completedDate && (
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="h-4 w-4" />
-                      <span>Completado: {completedDate}</span>
+                      <span>{t.propertyStatusTab.completedOn}: {completedDate}</span>
                     </div>
                   )}
                   {checklist.created_by && (
                     <div className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      <span>Creado por: {checklist.created_by}</span>
+                      <span>{t.propertyStatusTab.createdBy}: {checklist.created_by}</span>
                     </div>
                   )}
                 </div>
@@ -179,7 +180,7 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
                   window.location.href = `/reno/construction-manager/property/${propertyId}/checklist?type=${checklist.inspection_type}`;
                 }}
               >
-                Ver detalles →
+                {t.propertyStatusTab.viewDetails} →
               </button>
             </div>
           </div>

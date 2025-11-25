@@ -27,6 +27,7 @@ import { DynamicCategoriesProgress } from "@/components/reno/dynamic-categories-
 import { toast } from "sonner";
 import { appendSetUpNotesToAirtable } from "@/lib/airtable/initial-check-sync";
 import { updateAirtableWithRetry, findRecordByPropertyId } from "@/lib/airtable/client";
+import { useDynamicCategories } from "@/hooks/useDynamicCategories";
 
 type PropertyUpdate = Database['public']['Tables']['properties']['Update'];
 
@@ -38,6 +39,8 @@ export default function RenoPropertyDetailPage() {
   const [activeTab, setActiveTab] = useState("tareas"); // Tab por defecto: Tareas
   const propertyId = params.id && typeof params.id === "string" ? params.id : null;
   const { property: supabaseProperty, loading: supabaseLoading, updateProperty: updateSupabaseProperty, refetch } = useSupabaseProperty(propertyId);
+  const { categories: dynamicCategories, loading: categoriesLoading } = useDynamicCategories(propertyId);
+  const hasCheckedInitialTab = useRef(false); // Track if we've already checked and set the initial tab
   
   // Convert Supabase property to Property format
   const property: Property | null = supabaseProperty ? convertSupabasePropertyToProperty(supabaseProperty) : null;
@@ -48,14 +51,6 @@ export default function RenoPropertyDetailPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
-  // Update local state when property changes
-  useEffect(() => {
-    if (property) {
-      setLocalEstimatedVisitDate(property.estimatedVisitDate);
-      setHasUnsavedChanges(false);
-    }
-  }, [property?.estimatedVisitDate]);
-
   // Debounce timer refs
   const dateDebounceRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -64,6 +59,37 @@ export default function RenoPropertyDetailPage() {
     if (!supabaseProperty) return null;
     return getPropertyRenoPhaseFromSupabase(supabaseProperty);
   }, [supabaseProperty]);
+
+  // Update local state when property changes
+  useEffect(() => {
+    if (property) {
+      setLocalEstimatedVisitDate(property.estimatedVisitDate);
+      setHasUnsavedChanges(false);
+    }
+  }, [property?.estimatedVisitDate]);
+
+  // Reset the check flag when propertyId changes (navigating to a different property)
+  useEffect(() => {
+    hasCheckedInitialTab.current = false;
+  }, [propertyId]);
+
+  // Auto-switch to summary tab for reno-budget and furnishing-cleaning phases without tasks
+  useEffect(() => {
+    // Only check once when data is loaded
+    if (hasCheckedInitialTab.current || isLoading || categoriesLoading || !propertyId) return;
+    
+    const phase = getPropertyRenoPhase();
+    const hasNoTasks = dynamicCategories.length === 0;
+    
+    // If property is in reno-budget or furnishing-cleaning and has no tasks, switch to summary
+    if ((phase === "reno-budget" || phase === "furnishing-cleaning") && hasNoTasks) {
+      setActiveTab("resumen");
+      hasCheckedInitialTab.current = true;
+    } else {
+      // Mark as checked even if we don't switch, to avoid re-checking
+      hasCheckedInitialTab.current = true;
+    }
+  }, [isLoading, categoriesLoading, propertyId, dynamicCategories.length, getPropertyRenoPhase]);
 
   // Save function - saves to Supabase with correct field names
   const saveToSupabase = useCallback(async (showToast = true, transitionToInitialCheck = false) => {
@@ -204,19 +230,19 @@ export default function RenoPropertyDetailPage() {
     
     if (phase === "upcoming-settlements") {
       items.push({
-        label: "Completar información de nuevas escrituras",
+        label: t.propertySidebar.completeNewSettlementsInfo,
         onClick: () => setActiveTab("tareas"),
       });
     }
     if (phase === "initial-check") {
       items.push({
-        label: "Completar checklist inicial",
+        label: t.propertySidebar.completeInitialChecklist,
         onClick: () => router.push(`/reno/construction-manager/property/${propertyId}/checklist`),
       });
     }
     if (phase === "final-check") {
       items.push({
-        label: "Completar checklist final",
+        label: t.propertySidebar.completeFinalChecklist,
         onClick: () => router.push(`/reno/construction-manager/property/${propertyId}/checklist`),
       });
     }
@@ -226,30 +252,30 @@ export default function RenoPropertyDetailPage() {
 
   // Define tabs
   const tabs = [
-    { id: "tareas", label: "Tareas" },
-    { id: "resumen", label: "Resumen" },
-    { id: "estado-propiedad", label: "Estado de la propiedad" },
-    { id: "presupuesto-reforma", label: "Presupuesto de reforma" },
+    { id: "tareas", label: t.propertyTabs.tasks },
+    { id: "resumen", label: t.propertyTabs.summary },
+    { id: "estado-propiedad", label: t.propertyTabs.propertyStatus },
+    { id: "presupuesto-reforma", label: t.propertyTabs.renovationBudget },
   ];
 
   // Render active tab content
   const renderTabContent = () => {
     const currentPhase = getPropertyRenoPhase();
     
-    // Early return if property is null
-    if (!property) {
-      return (
-        <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-          <p className="text-muted-foreground">Cargando propiedad...</p>
-        </div>
-      );
-    }
+      // Early return if property is null
+      if (!property) {
+        return (
+          <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+            <p className="text-muted-foreground">{t.propertyPage.loadingProperty}</p>
+          </div>
+        );
+      }
     
     switch (activeTab) {
       case "tareas":
         // For initial-check or final-check phases, show checklist CTA
         if (currentPhase === "initial-check" || currentPhase === "final-check") {
-          const checklistType = currentPhase === "final-check" ? "Check Final" : "Check Inicial";
+          const checklistType = currentPhase === "final-check" ? t.kanban.finalCheck : t.kanban.initialCheck;
           return (
             <div className="space-y-6">
               <PropertyActionTab property={property} supabaseProperty={supabaseProperty} />
@@ -278,8 +304,8 @@ export default function RenoPropertyDetailPage() {
                   </h3>
                   <p className="text-muted-foreground max-w-md mx-auto">
                     {currentPhase === "initial-check"
-                      ? "Completa el checklist inicial para evaluar el estado de la propiedad antes de comenzar las obras."
-                      : "Completa el checklist final para verificar que todas las obras se han realizado correctamente."}
+                      ? t.propertyAction.initialCheckDescription
+                      : t.propertyAction.finalCheckDescription}
                   </p>
                   
                   <Button
@@ -288,8 +314,8 @@ export default function RenoPropertyDetailPage() {
                     className="mt-4 min-w-[200px]"
                   >
                     {currentPhase === "initial-check"
-                      ? "Abrir Checklist Inicial"
-                      : "Abrir Checklist Final"}
+                      ? t.propertyAction.openInitialChecklist
+                      : t.propertyAction.openFinalChecklist}
                   </Button>
                 </div>
               </div>
@@ -368,9 +394,16 @@ export default function RenoPropertyDetailPage() {
           );
         }
         
-        // For reno-in-progress phase, show progress tracking
-        if (currentPhase === "reno-in-progress" && supabaseProperty) {
-          return <DynamicCategoriesProgress property={supabaseProperty} />;
+        // For reno-in-progress, show DynamicCategoriesProgress
+        if (currentPhase === "reno-in-progress") {
+          return (
+            <div className="space-y-6">
+              <PropertyActionTab property={property} supabaseProperty={supabaseProperty} propertyId={propertyId} />
+              {supabaseProperty && (
+                <DynamicCategoriesProgress property={supabaseProperty} />
+              )}
+            </div>
+          );
         }
         
         // For other phases, show action tab
@@ -382,7 +415,7 @@ export default function RenoPropertyDetailPage() {
       case "presupuesto-reforma":
         return (
           <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-            <p className="text-muted-foreground">Presupuesto de reforma - Coming soon</p>
+            <p className="text-muted-foreground">{t.propertyPage.renovationBudget} - {t.propertyPage.comingSoon}</p>
           </div>
         );
       default:
@@ -405,13 +438,13 @@ export default function RenoPropertyDetailPage() {
       <div className="flex h-screen overflow-hidden">
         <div className="flex flex-1 flex-col items-center justify-center">
           <p className="text-lg font-semibold text-foreground mb-2">
-            Propiedad no encontrada
+            {t.propertyPage.propertyNotFound}
           </p>
           <button 
             onClick={() => router.push("/reno/construction-manager/kanban")} 
             className="px-4 py-2 rounded-md border border-input bg-background hover:bg-accent"
           >
-            Volver al kanban
+            {t.propertyPage.backToKanban}
           </button>
         </div>
       </div>
@@ -425,10 +458,10 @@ export default function RenoPropertyDetailPage() {
         {/* Navbar L2: Botón atrás + Acciones críticas */}
         <NavbarL2
           onBack={() => router.push("/reno/construction-manager/kanban")}
-          classNameTitle="Propiedad"
+          classNameTitle={t.propertyPage.property}
           actions={[
             {
-              label: "Reportar Problema",
+              label: t.propertyPage.reportProblem,
               onClick: () => setReportProblemOpen(true),
               variant: "outline",
               icon: <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500" />,
@@ -502,7 +535,7 @@ function getRenoPhaseLabel(phase: RenoKanbanPhase | null, t: ReturnType<typeof u
   const phaseLabels: Record<RenoKanbanPhase, string> = {
     "upcoming-settlements": t.kanban.upcomingSettlements,
     "initial-check": t.kanban.initialCheck,
-    "upcoming": t.kanban.upcoming,
+    "reno-budget": t.kanban.renoBudget,
     "reno-in-progress": t.kanban.renoInProgress,
     "furnishing-cleaning": t.kanban.furnishingCleaning,
     "final-check": t.kanban.finalCheck,

@@ -7,7 +7,6 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Property } from "@/lib/property-storage";
 import { useI18n } from "@/lib/i18n";
-import { X } from "lucide-react";
 
 export interface KanbanFilters {
   renovatorNames: string[];
@@ -114,19 +113,19 @@ export function RenoKanbanFilters({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Filtros</DialogTitle>
+          <DialogTitle>{t.kanban.filters || "Filtros"}</DialogTitle>
           <DialogDescription>
-            Selecciona uno o más valores para filtrar las propiedades. Los filtros se combinan con OR (cualquiera de los seleccionados).
+            {t.kanban.filtersDescription || "Selecciona uno o más valores para filtrar las propiedades. Los filtros se combinan con OR (cualquiera de los seleccionados)."}
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">
           {/* Renovator Name */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Renovator Name</Label>
+            <Label className="text-base font-semibold">{t.kanban.renovatorName || "Renovator Name"}</Label>
             <div className="space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
               {uniqueValues.renovatorNames.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay valores disponibles</p>
+                <p className="text-sm text-muted-foreground">{t.kanban.noValuesAvailable || "No hay valores disponibles"}</p>
               ) : (
                 uniqueValues.renovatorNames.map((name) => (
                   <div key={name} className="flex items-center space-x-2">
@@ -149,10 +148,10 @@ export function RenoKanbanFilters({
 
           {/* Technical Constructor */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Technical Constructor</Label>
+            <Label className="text-base font-semibold">{t.kanban.technicalConstructor || "Technical Constructor"}</Label>
             <div className="space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
               {uniqueValues.technicalConstructors.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay valores disponibles</p>
+                <p className="text-sm text-muted-foreground">{t.kanban.noValuesAvailable || "No hay valores disponibles"}</p>
               ) : (
                 uniqueValues.technicalConstructors.map((constructor) => (
                   <div key={constructor} className="flex items-center space-x-2">
@@ -175,10 +174,10 @@ export function RenoKanbanFilters({
 
           {/* Area Cluster */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">Area Cluster</Label>
+            <Label className="text-base font-semibold">{t.kanban.areaCluster || "Area Cluster"}</Label>
             <div className="space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
               {uniqueValues.areaClusters.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No hay valores disponibles</p>
+                <p className="text-sm text-muted-foreground">{t.kanban.noValuesAvailable || "No hay valores disponibles"}</p>
               ) : (
                 uniqueValues.areaClusters.map((cluster) => (
                   <div key={cluster} className="flex items-center space-x-2">
@@ -206,10 +205,10 @@ export function RenoKanbanFilters({
             onClick={handleClearAll}
             disabled={!hasActiveFilters}
           >
-            Limpiar todos
+            {t.kanban.clearAll || "Limpiar todos"}
           </Button>
           <Button onClick={() => onOpenChange(false)}>
-            Aplicar filtros
+            {t.kanban.applyFilters || "Aplicar filtros"}
           </Button>
         </div>
       </DialogContent>

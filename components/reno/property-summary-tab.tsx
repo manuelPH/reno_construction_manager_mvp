@@ -5,7 +5,7 @@ import { MapPin, Home, Calendar, Building2, Euro, FileText, Map, ChevronLeft, Ch
 import { Property } from "@/lib/property-storage";
 import { useI18n } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 interface PropertySummaryTabProps {
@@ -58,27 +58,38 @@ export function PropertySummaryTab({
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalImageIndex, setModalImageIndex] = useState(0);
+  const [imageErrors, setImageErrors] = useState<Set<number>>(new Set());
+  const [modalImageError, setModalImageError] = useState(false);
 
   // Abrir modal con imagen específica
   const openModal = (index: number) => {
     setModalImageIndex(index);
+    setModalImageError(false);
     setIsModalOpen(true);
   };
 
   // Navegación en el modal
   const goToPreviousModal = () => {
-    setModalImageIndex((prev) => (prev === 0 ? picsUrls.length - 1 : prev - 1));
+    setModalImageIndex((prev) => {
+      const newIndex = prev === 0 ? picsUrls.length - 1 : prev - 1;
+      setModalImageError(false);
+      return newIndex;
+    });
   };
 
   const goToNextModal = () => {
-    setModalImageIndex((prev) => (prev === picsUrls.length - 1 ? 0 : prev + 1));
+    setModalImageIndex((prev) => {
+      const newIndex = prev === picsUrls.length - 1 ? 0 : prev + 1;
+      setModalImageError(false);
+      return newIndex;
+    });
   };
 
   return (
     <div className="space-y-6">
       {/* Image Gallery - Grid con imagen principal */}
       <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">Galería de imágenes</h3>
+        <h3 className="text-lg font-semibold mb-4">{t.property.gallery || "Galería de imágenes"}</h3>
         {hasPics ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             {/* Imagen principal (izquierda) - ocupa 2 columnas */}
@@ -86,27 +97,26 @@ export function PropertySummaryTab({
               className="md:col-span-2 aspect-video relative rounded-lg overflow-hidden bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] cursor-pointer group"
               onClick={() => openModal(currentImageIndex)}
             >
-              <img
-                src={picsUrls[currentImageIndex]}
-                alt={`Imagen ${currentImageIndex + 1} de ${picsUrls.length}`}
-                className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  const parent = target.parentElement;
-                  if (parent && !parent.querySelector('.image-error-placeholder')) {
-                    const placeholder = document.createElement('div');
-                    placeholder.className = 'image-error-placeholder w-full h-full flex items-center justify-center';
-                    placeholder.innerHTML = `
-                      <div class="text-center">
-                        <Home class="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-                        <p class="text-sm text-muted-foreground">Error al cargar imagen</p>
-                      </div>
-                    `;
-                    parent.appendChild(placeholder);
-                  }
-                }}
-              />
+              {imageErrors.has(currentImageIndex) ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <svg className="h-12 w-12 text-muted-foreground mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <p className="text-sm text-muted-foreground">Error al cargar imagen</p>
+                  </div>
+                </div>
+              ) : (
+                <img
+                  src={picsUrls[currentImageIndex]}
+                  alt={`Imagen ${currentImageIndex + 1} de ${picsUrls.length}`}
+                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                  onError={() => {
+                    setImageErrors((prev) => new Set(prev).add(currentImageIndex));
+                  }}
+                />
+              )}
               {/* Overlay con contador */}
               <div className="absolute bottom-4 right-4 bg-black/50 text-white px-3 py-1 rounded-full text-xs">
                 {currentImageIndex + 1} / {picsUrls.length}
@@ -129,15 +139,23 @@ export function PropertySummaryTab({
                     openModal(1);
                   }}
                 >
-                  <img
-                    src={picsUrls[1]}
-                    alt="Miniatura 2"
-                    className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
+                  {imageErrors.has(1) ? (
+                    <div className="w-full h-full flex items-center justify-center bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)]">
+                      <svg className="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                      </svg>
+                    </div>
+                  ) : (
+                    <img
+                      src={picsUrls[1]}
+                      alt="Miniatura 2"
+                      className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                      onError={() => {
+                        setImageErrors((prev) => new Set(prev).add(1));
+                      }}
+                    />
+                  )}
                   {/* Overlay oscuro en hover */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
                 </div>
@@ -154,10 +172,10 @@ export function PropertySummaryTab({
                 <div className="text-center">
                   <Grid3x3 className="h-8 w-8 text-muted-foreground group-hover:text-[var(--prophero-blue-600)] dark:group-hover:text-[var(--prophero-blue-400)] transition-colors mx-auto mb-2" />
                   <p className="text-sm font-semibold text-muted-foreground group-hover:text-[var(--prophero-blue-600)] dark:group-hover:text-[var(--prophero-blue-400)] transition-colors">
-                    Ver todas
+                    {t.property.viewAll || "Ver todas"}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    {picsUrls.length} {picsUrls.length === 1 ? 'foto' : 'fotos'}
+                    {picsUrls.length} {picsUrls.length === 1 ? (t.property.photo || 'foto') : (t.property.photos || 'fotos')}
                   </p>
                 </div>
               </button>
@@ -167,8 +185,8 @@ export function PropertySummaryTab({
           <div className="aspect-video bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] rounded-lg flex items-center justify-center">
             <div className="text-center">
               <Home className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
-              <p className="text-sm font-medium text-muted-foreground">Galería de imágenes</p>
-              <p className="text-xs text-muted-foreground mt-1">No hay imágenes disponibles</p>
+              <p className="text-sm font-medium text-muted-foreground">{t.property.gallery || "Galería de imágenes"}</p>
+              <p className="text-xs text-muted-foreground mt-1">{t.property.noImagesAvailable || "No hay imágenes disponibles"}</p>
             </div>
           </div>
         )}
@@ -177,6 +195,9 @@ export function PropertySummaryTab({
       {/* Modal para ver imagen en pantalla completa */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-7xl w-full h-[90vh] p-0 bg-black/95">
+          <DialogTitle className="sr-only">
+            {t.property.gallery || "Galería de imágenes"} - {modalImageIndex + 1} de {picsUrls.length}
+          </DialogTitle>
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Botón cerrar */}
             <Button
@@ -190,37 +211,33 @@ export function PropertySummaryTab({
 
             {/* Imagen en pantalla completa */}
             {picsUrls[modalImageIndex] ? (
-              <img
-                key={modalImageIndex} // Forzar re-render cuando cambia el índice
-                src={picsUrls[modalImageIndex]}
-                alt={`Imagen ${modalImageIndex + 1} de ${picsUrls.length}`}
-                className="max-w-full max-h-full object-contain"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                  // Mostrar mensaje de error
-                  const parent = target.parentElement;
-                  if (parent && !parent.querySelector('.modal-image-error')) {
-                    const errorDiv = document.createElement('div');
-                    errorDiv.className = 'modal-image-error text-white text-center';
-                    errorDiv.innerHTML = `
-                      <div class="flex flex-col items-center">
-                        <svg class="h-16 w-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        <p class="text-lg">Error al cargar la imagen</p>
-                        <p class="text-sm opacity-75 mt-2">Imagen ${modalImageIndex + 1} de ${picsUrls.length}</p>
-                      </div>
-                    `;
-                    parent.appendChild(errorDiv);
-                  }
-                }}
-              />
+              modalImageError || imageErrors.has(modalImageIndex) ? (
+                <div className="text-white text-center">
+                  <div className="flex flex-col items-center">
+                    <svg className="h-16 w-16 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <p className="text-lg">Error al cargar la imagen</p>
+                    <p className="text-sm opacity-75 mt-2">Imagen {modalImageIndex + 1} de {picsUrls.length}</p>
+                  </div>
+                </div>
+              ) : (
+                <img
+                  key={modalImageIndex} // Forzar re-render cuando cambia el índice
+                  src={picsUrls[modalImageIndex]}
+                  alt={`Imagen ${modalImageIndex + 1} de ${picsUrls.length}`}
+                  className="max-w-full max-h-full object-contain"
+                  onError={() => {
+                    setModalImageError(true);
+                    setImageErrors((prev) => new Set(prev).add(modalImageIndex));
+                  }}
+                />
+              )
             ) : (
               <div className="text-white text-center">
                 <Home className="h-16 w-16 mx-auto mb-4 opacity-50" />
-                <p className="text-lg">No se pudo cargar la imagen</p>
+                <p className="text-lg">{t.property.couldNotLoadImage || "No se pudo cargar la imagen"}</p>
               </div>
             )}
 

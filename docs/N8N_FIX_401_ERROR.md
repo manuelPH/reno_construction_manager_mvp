@@ -183,3 +183,7 @@ Si después de seguir estos pasos aún tienes el error 401:
 3. Verifica que el Service Role Key sea del proyecto correcto (DEV vs PROD)
 
 
+
+
+
+

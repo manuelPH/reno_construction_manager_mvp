@@ -251,3 +251,7 @@ Luego úsalas en los headers:
 - [n8n HTTP Request Node](https://docs.n8n.io/integrations/builtin/core-nodes/n8n-nodes-base.httprequest/)
 
 
+
+
+
+

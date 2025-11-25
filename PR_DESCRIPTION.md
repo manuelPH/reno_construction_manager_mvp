@@ -134,3 +134,7 @@ npm run verify:technical-construction
 **Autor**: Manuel  
 **Fecha**: 2025-01-XX
 
+
+
+
+

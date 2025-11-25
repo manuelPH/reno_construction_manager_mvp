@@ -113,8 +113,13 @@ export default function RenoConstructionManagerHomePage() {
 
   // Calculate indicators
   const indicators = useMemo(() => {
-    // Obras Activas: only reno-in-progress
-    const obrasActivas = propertiesByPhase?.['reno-in-progress']?.length || 0;
+    // Obras Activas: all properties between reno-in-progress and final-check
+    // Includes: reno-in-progress, furnishing-cleaning, and final-check
+    const obrasActivas = (
+      (propertiesByPhase?.['reno-in-progress']?.length || 0) +
+      (propertiesByPhase?.['furnishing-cleaning']?.length || 0) +
+      (propertiesByPhase?.['final-check']?.length || 0)
+    );
 
     // Visitas para hoy: properties that need update today (including expired ones from yesterday)
     const visitasParaHoy = properties.filter((p) => {
@@ -139,35 +144,10 @@ export default function RenoConstructionManagerHomePage() {
     };
   }, [properties]);
 
-  // Get checks to execute today (initial-check and final-check with proximaActualizacion = today or expired)
-  const checksForToday = useMemo(() => {
-    const initialCheck = propertiesByPhase?.['initial-check'] || [];
-    const finalCheck = propertiesByPhase?.['final-check'] || [];
-    const allChecks = [...initialCheck, ...finalCheck];
-    
-    const filtered = allChecks.filter((p) => {
-      return isToday(p.proximaActualizacion) || isExpired(p);
-    });
-    
-    // Sort expired first
-    return sortPropertiesByExpired(filtered);
-  }, [propertiesByPhase]);
-
-  // Get visits for today (reno-in-progress with proximaActualizacion = today or expired)
-  const visitsForToday = useMemo(() => {
-    const renoInProgress = propertiesByPhase?.['reno-in-progress'] || [];
-    
-    const filtered = renoInProgress.filter((p) => {
-      return isToday(p.proximaActualizacion) || isExpired(p);
-    });
-    
-    // Sort expired first
-    return sortPropertiesByExpired(filtered);
-  }, [propertiesByPhase]);
 
   // Handle property click - navigate to property detail or task
-  const handlePropertyClick = (propertyId: string) => {
-    router.push(`/reno/construction-manager/property/${propertyId}`);
+  const handlePropertyClick = (property: Property) => {
+    router.push(`/reno/construction-manager/property/${property.id}`);
   };
 
   // Handle add visit
@@ -218,12 +198,13 @@ export default function RenoConstructionManagerHomePage() {
               <VisitsCalendar
                 propertiesByPhase={propertiesByPhase}
                 onPropertyClick={handlePropertyClick}
+                onAddVisit={handleAddVisit}
               />
 
               {/* Recent Properties and Portfolio Row */}
               <div className="grid gap-6 md:grid-cols-2">
                 <RenoHomeRecentProperties properties={filteredProperties} />
-                <RenoHomePortfolio properties={filteredProperties} />
+                <RenoHomePortfolio properties={filteredProperties} propertiesByPhase={propertiesByPhase} />
               </div>
             </div>
           )}

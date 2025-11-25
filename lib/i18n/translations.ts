@@ -20,6 +20,7 @@ export interface Translations {
   nav: {
     home: string;
     properties: string;
+    renoManagement: string;
     notifications: string;
     help: string;
     logout: string;
@@ -74,6 +75,16 @@ export interface Translations {
     delete: string;
     save: string;
     submitReview: string;
+    fullAddress: string;
+    propertyType: string;
+    renovationType: string;
+    gallery: string;
+    viewAll: string;
+    noImagesAvailable: string;
+    couldNotLoadImage: string;
+    photo: string;
+    photos: string;
+    saveSuccess: string;
     sections: {
       basicInfo: string;
       economicInfo: string;
@@ -100,10 +111,18 @@ export interface Translations {
     searchPlaceholder: string;
     addProperty: string;
     filterProperties: string;
+    filters: string;
+    filtersDescription: string;
+    renovatorName: string;
+    technicalConstructor: string;
+    areaCluster: string;
+    noValuesAvailable: string;
+    clearAll: string;
+    applyFilters: string;
       // Reno Construction Manager phases
       upcomingSettlements: string;
       initialCheck: string;
-      upcoming: string;
+      renoBudget: string;
       renoInProgress: string;
       furnishingCleaning: string;
       finalCheck: string;
@@ -235,6 +254,157 @@ export interface Translations {
     visits: string;
   };
   
+  // Calendar, Visits & Reminders
+  calendar: {
+    title: string;
+    subtitle: string;
+    day: string;
+    week: string;
+    today: string;
+    create: string;
+    createVisit: string;
+    createReminder: string;
+    visitType: string;
+    property: string;
+    selectProperty: string;
+    dateTime: string;
+    notes: string;
+    notesPlaceholder: string;
+    dateTimePlaceholder: string;
+    dateTimeError: string;
+    cancel: string;
+    creating: string;
+    visitCreated: string;
+    reminderCreated: string;
+    visitCreateError: string;
+    selectPropertyAndDate: string;
+    noPropertiesAssigned: string;
+    noPropertiesAvailable: string;
+    address: string;
+    lastComment: string;
+    close: string;
+    goToTask: string;
+    noVisits: string;
+    loading: string;
+    visitTypes: {
+      initialCheck: string;
+      finalCheck: string;
+      obraSeguimiento: string;
+      reminder: string;
+      visit: string;
+    };
+  };
+  
+  // Comments
+  comments: {
+    placeholder: string;
+    addReminder: string;
+    reminder: string;
+    reminderDateTime: string;
+    reminderDateTimePlaceholder: string;
+    reminderDateTimeError: string;
+    saving: string;
+    createReminder: string;
+    add: string;
+    history: string;
+    loading: string;
+    noComments: string;
+    remindAt: string;
+    syncedToAirtable: string;
+    deleteConfirm: string;
+  };
+  
+  // Property Tabs
+  propertyTabs: {
+    tasks: string;
+    summary: string;
+    propertyStatus: string;
+    renovationBudget: string;
+  };
+  
+  // Property Sidebar
+  propertySidebar: {
+    createdOn: string;
+    dataCompleted: string;
+    pending: string;
+    completeInitialChecklist: string;
+    completeFinalChecklist: string;
+    completeNewSettlementsInfo: string;
+    technicalConstructor: string;
+    siteManager: string;
+    reminders: string;
+    comments: string;
+    checklistInProgress: string;
+    continueChecklist: string;
+    noChecklistStarted: string;
+    openChecklist: string;
+    startChecklist: string;
+    propertyCreatedOn: string;
+    noPendingReminders: string;
+  };
+  
+  // Property Action Tab
+    propertyAction: {
+      preparationStatus: string;
+      nextRenoSteps: string;
+      renovator: string;
+      renovationDates: string;
+      workDates: string;
+      startDate: string;
+      estimatedEndDate: string;
+      estimatedVisitDate: string;
+      openInitialChecklist: string;
+      openFinalChecklist: string;
+      completeInitialChecklist: string;
+      completeFinalChecklist: string;
+      initialCheckDescription: string;
+      finalCheckDescription: string;
+    };
+  
+  // Property Page
+  propertyPage: {
+    property: string;
+    reportProblem: string;
+    propertyNotFound: string;
+    backToKanban: string;
+    loadingProperty: string;
+    renovationBudget: string;
+    comingSoon: string;
+  };
+  
+  // Property Status Tab
+  propertyStatusTab: {
+    loadingHistory: string;
+    noChecklistsYet: string;
+    completed: string;
+    inProgress: string;
+    created: string;
+    completedOn: string;
+    createdBy: string;
+    viewDetails: string;
+  };
+  
+  // Property Card
+    propertyCard: {
+      expired: string;
+      region: string;
+      signing: string;
+      estimatedVisit: string;
+      next: string;
+      today: string;
+      workInProgress: string;
+      cleaningFurnishing: string;
+      repairs: string;
+      completed: string;
+      ago: string;
+      days: string;
+      day: string;
+      hours: string;
+      hour: string;
+      lessThanHour: string;
+      siteManager: string;
+    };
+  
   // Checklist
   checklist: {
     title: string;
@@ -284,6 +454,7 @@ export const translations: Record<Language, Translations> = {
     nav: {
       home: "Inicio",
       properties: "Gestión de propiedades",
+      renoManagement: "Gestión de Reno",
       notifications: "Notificaciones",
       help: "Ayuda",
       logout: "Cerrar sesión",
@@ -328,6 +499,16 @@ export const translations: Record<Language, Translations> = {
       delete: "Eliminar propiedad",
       save: "Guardar cambios",
       submitReview: "Enviar a revisión",
+      fullAddress: "Dirección completa",
+      propertyType: "Tipo de propiedad",
+      renovationType: "Tipo de renovación",
+      gallery: "Galería de imágenes",
+      viewAll: "Ver todas",
+      noImagesAvailable: "No hay imágenes disponibles",
+      couldNotLoadImage: "No se pudo cargar la imagen",
+      photo: "foto",
+      photos: "fotos",
+      saveSuccess: "Los datos se han guardado correctamente",
       sections: {
         basicInfo: "Información de la propiedad",
         economicInfo: "Información económica",
@@ -352,10 +533,18 @@ export const translations: Record<Language, Translations> = {
       searchPlaceholder: "Buscar por ID, Calle o Precio",
       addProperty: "Añadir propiedad",
       filterProperties: "Filtrar propiedades",
+      filters: "Filtros",
+      filtersDescription: "Selecciona uno o más valores para filtrar las propiedades. Los filtros se combinan con OR (cualquiera de los seleccionados).",
+      renovatorName: "Renovator Name",
+      technicalConstructor: "Constructor Técnico",
+      areaCluster: "Area Cluster",
+      noValuesAvailable: "No hay valores disponibles",
+      clearAll: "Limpiar todos",
+      applyFilters: "Aplicar filtros",
       // Reno Construction Manager phases
       upcomingSettlements: "Nuevas escrituras",
       initialCheck: "Check inicial",
-      upcoming: "Próximas propiedades",
+      renoBudget: "Reno Budget",
       renoInProgress: "Obras en proceso",
       furnishingCleaning: "Limpieza y amoblamiento",
       finalCheck: "Check final",
@@ -941,6 +1130,141 @@ export const translations: Record<Language, Translations> = {
       checks: "Checks",
       visits: "Visitas",
     },
+    calendar: {
+      title: "Calendario de Visitas",
+      subtitle: "Checklist inicial, final y seguimiento de obra",
+      day: "Día",
+      week: "Semana",
+      today: "Hoy",
+      create: "Crear",
+      createVisit: "Crear Visita",
+      createReminder: "Crear Recordatorio",
+      visitType: "Tipo de Visita",
+      property: "Propiedad",
+      selectProperty: "Selecciona una propiedad",
+      dateTime: "Fecha y hora",
+      notes: "Notas (opcional)",
+      notesPlaceholder: "Agregar notas sobre la visita...",
+      dateTimePlaceholder: "DD/MM/YYYY HH:mm",
+      dateTimeError: "La fecha y hora deben ser futuras",
+      cancel: "Cancelar",
+      creating: "Creando...",
+      visitCreated: "Visita creada correctamente",
+      reminderCreated: "Recordatorio creado correctamente",
+      visitCreateError: "Error al crear la visita",
+      selectPropertyAndDate: "Debes seleccionar una propiedad y una fecha",
+      noPropertiesAssigned: "No hay propiedades asignadas a tu rol",
+      noPropertiesAvailable: "No hay propiedades disponibles para este tipo de visita",
+      address: "Dirección",
+      lastComment: "Último comentario",
+      close: "Cerrar",
+      goToTask: "Ir a la tarea",
+      noVisits: "Sin visitas",
+      loading: "Cargando...",
+      visitTypes: {
+        initialCheck: "Check Inicial",
+        finalCheck: "Check Final",
+        obraSeguimiento: "Seguimiento de Obra",
+        reminder: "Recordatorio",
+        visit: "Visita",
+      },
+    },
+    comments: {
+      placeholder: "Escribe un comentario... Usa @ para mencionar usuarios",
+      addReminder: "Agregar recordatorio",
+      reminder: "Recordatorio",
+      reminderDateTime: "Fecha y hora del recordatorio",
+      reminderDateTimePlaceholder: "DD/MM/YYYY HH:mm",
+      reminderDateTimeError: "La fecha y hora deben ser futuras",
+      saving: "Guardando...",
+      createReminder: "Crear Recordatorio",
+      add: "Agregar",
+      history: "Historial de Comentarios",
+      loading: "Cargando...",
+      noComments: "No hay comentarios aún",
+      remindAt: "Recordar",
+      syncedToAirtable: "Sincronizado con Airtable",
+      deleteConfirm: "¿Estás seguro de que quieres eliminar este comentario?",
+    },
+    propertyTabs: {
+      tasks: "Tareas",
+      summary: "Resumen",
+      propertyStatus: "Estado de la propiedad",
+      renovationBudget: "Presupuesto de reforma",
+    },
+    propertySidebar: {
+      createdOn: "Creada el",
+      dataCompleted: "Datos completados",
+      pending: "Pendiente",
+      completeInitialChecklist: "Completar checklist inicial",
+      completeFinalChecklist: "Completar checklist final",
+      completeNewSettlementsInfo: "Completar información de nuevas escrituras",
+      technicalConstructor: "Constructor Técnico",
+      siteManager: "Jefe de Obra",
+      reminders: "Recordatorios",
+      comments: "Comentarios",
+      checklistInProgress: "Checklist en progreso",
+      continueChecklist: "Continuar checklist",
+      noChecklistStarted: "No hay checklist iniciado aún",
+      openChecklist: "Abrir Checklist",
+      startChecklist: "Iniciar Checklist",
+      propertyCreatedOn: "Propiedad creada el",
+      noPendingReminders: "No hay recordatorios pendientes",
+    },
+    propertyAction: {
+      preparationStatus: "Estado de Preparación",
+      nextRenoSteps: "Próximos Pasos de Reforma",
+      renovator: "Reformador",
+      renovationDates: "Fechas de Reforma",
+      workDates: "Fechas de obra",
+      startDate: "Fecha de Inicio",
+      estimatedEndDate: "Fecha Estimada de Finalización",
+      estimatedVisitDate: "Fecha Estimada de Visita",
+      openInitialChecklist: "Abrir Checklist Inicial",
+      openFinalChecklist: "Abrir Checklist Final",
+      completeInitialChecklist: "Completa el checklist inicial para evaluar el estado de la propiedad antes de comenzar las obras.",
+      completeFinalChecklist: "Completa el checklist final para verificar que todas las obras se han realizado correctamente.",
+      initialCheckDescription: "Completa el checklist inicial para evaluar el estado de la propiedad antes de comenzar las obras.",
+      finalCheckDescription: "Completa el checklist final para verificar que todas las obras se han realizado correctamente.",
+    },
+    propertyPage: {
+      property: "Propiedad",
+      reportProblem: "Reportar Problema",
+      propertyNotFound: "Propiedad no encontrada",
+      backToKanban: "Volver al kanban",
+      loadingProperty: "Cargando propiedad...",
+      renovationBudget: "Presupuesto de reforma",
+      comingSoon: "Coming soon",
+    },
+    propertyStatusTab: {
+      loadingHistory: "Cargando historial...",
+      noChecklistsYet: "No hay checklists realizados aún",
+      completed: "Completado",
+      inProgress: "En progreso",
+      created: "Creado",
+      completedOn: "Completado",
+      createdBy: "Creado por",
+      viewDetails: "Ver detalles",
+    },
+    propertyCard: {
+      expired: "Vencida",
+      region: "Región",
+      signing: "Firma",
+      estimatedVisit: "Visita est.",
+      next: "Próxima",
+      today: "Hoy",
+      workInProgress: "Obra en proceso hace",
+      cleaningFurnishing: "Limpieza y amoblamiento hace",
+      repairs: "Reparaciones hace",
+      completed: "Finalizada hace",
+      ago: "Hace",
+      days: "días",
+      day: "día",
+      hours: "horas",
+      hour: "hora",
+      lessThanHour: "Hace menos de 1 hora",
+      siteManager: "Jefe de Obra",
+    },
   },
   en: {
     common: {
@@ -959,6 +1283,7 @@ export const translations: Record<Language, Translations> = {
     nav: {
       home: "Home",
       properties: "Property Management",
+      renoManagement: "Reno Management",
       notifications: "Notifications",
       help: "Help",
       logout: "Logout",
@@ -1003,6 +1328,16 @@ export const translations: Record<Language, Translations> = {
       delete: "Delete Property",
       save: "Save Changes",
       submitReview: "Submit for Review",
+      fullAddress: "Full Address",
+      propertyType: "Property Type",
+      renovationType: "Renovation Type",
+      gallery: "Image Gallery",
+      viewAll: "View All",
+      noImagesAvailable: "No images available",
+      couldNotLoadImage: "Could not load image",
+      photo: "photo",
+      photos: "photos",
+      saveSuccess: "Data saved successfully",
       sections: {
         basicInfo: "Property Information",
         economicInfo: "Economic Information",
@@ -1027,10 +1362,18 @@ export const translations: Record<Language, Translations> = {
       searchPlaceholder: "Search by ID, Street or Price",
       addProperty: "Add Property",
       filterProperties: "Filter Properties",
+      filters: "Filters",
+      filtersDescription: "Select one or more values to filter properties. Filters are combined with OR (any of the selected).",
+      renovatorName: "Renovator Name",
+      technicalConstructor: "Technical Constructor",
+      areaCluster: "Area Cluster",
+      noValuesAvailable: "No values available",
+      clearAll: "Clear All",
+      applyFilters: "Apply Filters",
       // Reno Construction Manager phases
       upcomingSettlements: "Upcoming Settlements",
       initialCheck: "Initial Check",
-      upcoming: "Upcoming",
+      renoBudget: "Reno Budget",
       renoInProgress: "Reno in Progress",
       furnishingCleaning: "Furnishing/Cleaning",
       finalCheck: "Final Check",
@@ -1614,6 +1957,141 @@ export const translations: Record<Language, Translations> = {
       noVisitsScheduled: "No visits scheduled",
       checks: "Checks",
       visits: "Visits",
+    },
+    calendar: {
+      title: "Visits Calendar",
+      subtitle: "Initial checklist, final checklist and work follow-up",
+      day: "Day",
+      week: "Week",
+      today: "Today",
+      create: "Create",
+      createVisit: "Create Visit",
+      createReminder: "Create Reminder",
+      visitType: "Visit Type",
+      property: "Property",
+      selectProperty: "Select a property",
+      dateTime: "Date and time",
+      notes: "Notes (optional)",
+      notesPlaceholder: "Add notes about the visit...",
+      dateTimePlaceholder: "DD/MM/YYYY HH:mm",
+      dateTimeError: "Date and time must be in the future",
+      cancel: "Cancel",
+      creating: "Creating...",
+      visitCreated: "Visit created successfully",
+      reminderCreated: "Reminder created successfully",
+      visitCreateError: "Error creating visit",
+      selectPropertyAndDate: "You must select a property and a date",
+      noPropertiesAssigned: "No properties assigned to your role",
+      noPropertiesAvailable: "No properties available for this type of visit",
+      address: "Address",
+      lastComment: "Last comment",
+      close: "Close",
+      goToTask: "Go to task",
+      noVisits: "No visits",
+      loading: "Loading...",
+      visitTypes: {
+        initialCheck: "Initial Check",
+        finalCheck: "Final Check",
+        obraSeguimiento: "Work Follow-up",
+        reminder: "Reminder",
+        visit: "Visit",
+      },
+    },
+    comments: {
+      placeholder: "Write a comment... Use @ to mention users",
+      addReminder: "Add reminder",
+      reminder: "Reminder",
+      reminderDateTime: "Reminder date and time",
+      reminderDateTimePlaceholder: "DD/MM/YYYY HH:mm",
+      reminderDateTimeError: "Date and time must be in the future",
+      saving: "Saving...",
+      createReminder: "Create Reminder",
+      add: "Add",
+      history: "Comments History",
+      loading: "Loading...",
+      noComments: "No comments yet",
+      remindAt: "Remind at",
+      syncedToAirtable: "Synced to Airtable",
+      deleteConfirm: "Are you sure you want to delete this comment?",
+    },
+    propertyTabs: {
+      tasks: "Tasks",
+      summary: "Summary",
+      propertyStatus: "Property Status",
+      renovationBudget: "Renovation Budget",
+    },
+    propertySidebar: {
+      createdOn: "Created on",
+      dataCompleted: "Data completed",
+      pending: "Pending",
+      completeInitialChecklist: "Complete initial checklist",
+      completeFinalChecklist: "Complete final checklist",
+      completeNewSettlementsInfo: "Complete new settlements information",
+      technicalConstructor: "Technical Constructor",
+      siteManager: "Site Manager",
+      reminders: "Reminders",
+      comments: "Comments",
+      checklistInProgress: "Checklist in progress",
+      continueChecklist: "Continue checklist",
+      noChecklistStarted: "No checklist started yet",
+      openChecklist: "Open Checklist",
+      startChecklist: "Start Checklist",
+      propertyCreatedOn: "Property created on",
+      noPendingReminders: "No pending reminders",
+    },
+    propertyAction: {
+      preparationStatus: "Preparation Status",
+      nextRenoSteps: "Next Renovation Steps",
+      renovator: "Renovator",
+      renovationDates: "Renovation Dates",
+      workDates: "Work Dates",
+      startDate: "Start Date",
+      estimatedEndDate: "Estimated End Date",
+      estimatedVisitDate: "Estimated Visit Date",
+      openInitialChecklist: "Open Initial Checklist",
+      openFinalChecklist: "Open Final Checklist",
+      completeInitialChecklist: "Complete the initial checklist to evaluate the property's status before starting the works.",
+      completeFinalChecklist: "Complete the final checklist to verify that all works have been completed correctly.",
+      initialCheckDescription: "Complete the initial checklist to evaluate the property's status before starting the works.",
+      finalCheckDescription: "Complete the final checklist to verify that all works have been completed correctly.",
+    },
+    propertyPage: {
+      property: "Property",
+      reportProblem: "Report Problem",
+      propertyNotFound: "Property not found",
+      backToKanban: "Back to kanban",
+      loadingProperty: "Loading property...",
+      renovationBudget: "Renovation Budget",
+      comingSoon: "Coming soon",
+    },
+    propertyStatusTab: {
+      loadingHistory: "Loading history...",
+      noChecklistsYet: "No checklists completed yet",
+      completed: "Completed",
+      inProgress: "In progress",
+      created: "Created",
+      completedOn: "Completed",
+      createdBy: "Created by",
+      viewDetails: "View details",
+    },
+    propertyCard: {
+      expired: "Expired",
+      region: "Region",
+      signing: "Signing",
+      estimatedVisit: "Est. visit",
+      next: "Next",
+      today: "Today",
+      workInProgress: "Work in progress",
+      cleaningFurnishing: "Cleaning & furnishing",
+      repairs: "Repairs",
+      completed: "Completed",
+      ago: "Ago",
+      days: "days",
+      day: "day",
+      hours: "hours",
+      hour: "hour",
+      lessThanHour: "Less than 1 hour ago",
+      siteManager: "Site Manager",
     },
   },
 };

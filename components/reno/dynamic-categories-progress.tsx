@@ -70,13 +70,14 @@ function extractCategoryOrderNumber(categoryName: string): number {
 }
 
 export function DynamicCategoriesProgress({ property }: DynamicCategoriesProgressProps) {
-  const { categories, loading, error, saveAllProgress, deleteCategory, refetch } = useDynamicCategories(property.id);
+  const { categories, loading, saveAllProgress, deleteCategory, refetch } = useDynamicCategories(property.id);
   const [localPercentages, setLocalPercentages] = useState<Record<string, number>>({});
   const [savedPercentages, setSavedPercentages] = useState<Record<string, number>>({}); // Valores guardados (mínimos permitidos)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [sendUpdateOpen, setSendUpdateOpen] = useState(false);
   const [editingInput, setEditingInput] = useState<Record<string, boolean>>({}); // Control de inputs manuales
   const [isExtracting, setIsExtracting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const justSavedRef = useRef<Record<string, number> | null>(null); // Track values we just saved
 
   // Show extract button only if: budget_pdf_url exists AND no categories created
@@ -276,6 +277,7 @@ export function DynamicCategoriesProgress({ property }: DynamicCategoriesProgres
     }
 
     setIsExtracting(true);
+    setError(null);
 
     try {
       // Preparar payload del webhook
@@ -296,8 +298,10 @@ export function DynamicCategoriesProgress({ property }: DynamicCategoriesProgres
       });
     } catch (err) {
       console.error('Error al extraer información del PDF:', err);
+      const errorMessage = err instanceof Error ? err.message : "Ha ocurrido un error inesperado.";
+      setError(errorMessage);
       toast.error("Error al iniciar la extracción", {
-        description: err instanceof Error ? err.message : "Ha ocurrido un error inesperado.",
+        description: errorMessage,
       });
     } finally {
       setIsExtracting(false);

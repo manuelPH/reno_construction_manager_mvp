@@ -277,6 +277,7 @@ export type Database = {
           keys_location?: string | null
           stage?: string | null
           next_reno_steps?: string | null
+          pics_urls?: string[] | null
         }
         Relationships: []
       }

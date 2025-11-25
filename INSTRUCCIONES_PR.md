@@ -198,3 +198,7 @@ Antes de crear el PR, verifica:
 
 💡 **Nota**: Una vez creado el PR, Angel podrá revisar los cambios y hacer merge cuando esté listo. Todas las migraciones deben ejecutarse en Supabase antes del merge.
 
+
+
+
+

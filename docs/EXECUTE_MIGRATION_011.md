@@ -71,3 +71,7 @@ npm run sync:reno-in-progress
 - Las URLs se extraen automáticamente desde Airtable usando el field ID `fldq1FLXBToYEY9W3`
 - El campo acepta tanto arrays de URLs como strings con URLs separadas por comas o saltos de línea
 
+
+
+
+

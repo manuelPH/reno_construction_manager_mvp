@@ -9,7 +9,7 @@ import { Property } from "@/lib/property-storage";
 import { useSupabaseKanbanProperties } from "@/hooks/useSupabaseKanbanProperties";
 import { calculateOverallProgress } from "@/lib/property-validation";
 import { useI18n } from "@/lib/i18n";
-import { renoKanbanColumns, RenoKanbanPhase } from "@/lib/reno-kanban-config";
+import { visibleRenoKanbanColumns, RenoKanbanPhase } from "@/lib/reno-kanban-config";
 import { sortPropertiesByExpired } from "@/lib/property-sorting";
 import { KanbanFilters } from "./reno-kanban-filters";
 
@@ -70,7 +70,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
       return {
       "upcoming-settlements": [],
       "initial-check": [],
-      "upcoming": [],
+      "reno-budget": [],
       "reno-in-progress": [],
       "furnishing-cleaning": [],
       "final-check": [],
@@ -84,7 +84,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     const sorted: Record<RenoKanbanPhase, Property[]> = {
       "upcoming-settlements": sortPropertiesByExpired(transformProperties["upcoming-settlements"] || []),
       "initial-check": sortPropertiesByExpired(transformProperties["initial-check"] || []),
-      "upcoming": sortPropertiesByExpired(transformProperties["upcoming"] || []),
+      "reno-budget": sortPropertiesByExpired(transformProperties["reno-budget"] || []),
       "reno-in-progress": sortPropertiesByExpired(transformProperties["reno-in-progress"] || []),
       "furnishing-cleaning": sortPropertiesByExpired(transformProperties["furnishing-cleaning"] || []),
       "final-check": sortPropertiesByExpired(transformProperties["final-check"] || []),
@@ -207,7 +207,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     const filtered: typeof allProperties = {
       "upcoming-settlements": allProperties["upcoming-settlements"].filter(matchesAll),
       "initial-check": allProperties["initial-check"].filter(matchesAll),
-      "upcoming": allProperties["upcoming"].filter(matchesAll),
+      "reno-budget": allProperties["reno-budget"].filter(matchesAll),
       "reno-in-progress": allProperties["reno-in-progress"].filter(matchesAll),
       "furnishing-cleaning": allProperties["furnishing-cleaning"].filter(matchesAll),
       "final-check": allProperties["final-check"].filter(matchesAll),
@@ -219,7 +219,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     const sorted: typeof filtered = {
       "upcoming-settlements": sortPropertiesByExpired(filtered["upcoming-settlements"]),
       "initial-check": sortPropertiesByExpired(filtered["initial-check"]),
-      "upcoming": sortPropertiesByExpired(filtered["upcoming"]),
+      "reno-budget": sortPropertiesByExpired(filtered["reno-budget"]),
       "reno-in-progress": sortPropertiesByExpired(filtered["reno-in-progress"]),
       "furnishing-cleaning": sortPropertiesByExpired(filtered["furnishing-cleaning"]),
       "final-check": sortPropertiesByExpired(filtered["final-check"]),
@@ -236,7 +236,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
       return null;
     }
     
-    for (const column of renoKanbanColumns) {
+    for (const column of visibleRenoKanbanColumns) {
       const properties = filteredProperties[column.key] || [];
       if (properties.length > 0) {
         return properties[0].id;
@@ -251,7 +251,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     if (!highlightedPropertyId) return;
 
     let targetColumnKey: RenoKanbanPhase | null = null;
-    for (const column of renoKanbanColumns) {
+    for (const column of visibleRenoKanbanColumns) {
       const properties = filteredProperties[column.key] || [];
       if (properties.some(p => p.id === highlightedPropertyId)) {
         targetColumnKey = column.key;
@@ -365,7 +365,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     >
       {/* Mobile: Vertical layout */}
       <div className="flex flex-col md:hidden gap-6 pb-20">
-        {renoKanbanColumns.map((column) => {
+        {visibleRenoKanbanColumns.map((column) => {
           const properties = filteredProperties[column.key] || [];
           const title = t.kanban[column.translationKey];
           return (
@@ -385,7 +385,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
 
       {/* Desktop: Horizontal layout */}
       <div className="hidden md:flex h-full gap-4 px-1" style={{ minWidth: "fit-content" }}>
-        {renoKanbanColumns.map((column) => {
+        {visibleRenoKanbanColumns.map((column) => {
           const properties = filteredProperties[column.key] || [];
           const title = t.kanban[column.translationKey];
           return (

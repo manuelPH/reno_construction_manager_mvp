@@ -348,3 +348,7 @@ Antes de usar en producción, ejecutar las siguientes migraciones en Supabase:
 - **Fin**: 2025-01-XX
 - **Branch**: `feature/updates-20251112` → `dev`
 
+
+
+
+

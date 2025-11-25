@@ -9,6 +9,7 @@
 
 import Airtable from 'airtable';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { mapSetUpStatusToKanbanPhase } from '@/lib/supabase/kanban-mapping';
 
 interface AirtableProperty {
   id: string; // Airtable record ID
@@ -102,12 +103,12 @@ async function fetchRelatedFields(
     const batchSize = 50;
     const result = new Map();
 
+    // Si estamos buscando el campo de pics URLs, obtener todos los campos para encontrar el nombre real
+    const shouldFetchAllFields = fieldsToFetch.includes('fldq1FLXBToYEY9W3');
+
     for (let i = 0; i < recordIds.length; i += batchSize) {
       const batch = recordIds.slice(i, i + batchSize);
       const formula = `OR(${batch.map(id => `RECORD_ID() = "${id}"`).join(', ')})`;
-      
-      // Si estamos buscando el campo de pics URLs, obtener todos los campos para encontrar el nombre real
-      const shouldFetchAllFields = fieldsToFetch.includes('fldq1FLXBToYEY9W3');
       
       const relatedRecords = await base(relatedTableName)
         .select({
@@ -123,8 +124,6 @@ async function fetchRelatedFields(
           const allFields = record.fields;
           let picsField = null;
           
-          // Buscar por field ID (necesitamos acceder a la metadata del campo)
-          // Como no podemos acceder directamente al field ID, buscamos por nombres comunes
           // El campo se llama 'pics_url' en Properties (field ID: fldq1FLXBToYEY9W3)
           const possibleNames = [
             'pics_url',  // Nombre real encontrado en Properties
@@ -152,47 +151,7 @@ async function fetchRelatedFields(
           for (const name of possibleNames) {
             if (allFields[name] !== undefined && allFields[name] !== null && allFields[name] !== '') {
               picsField = allFields[name];
-              // Log para debugging (solo el primer registro)
-              if (record.id === recordIds[0]) {
-                console.log(`[Airtable Sync] ✅ Found pics field in Properties with name: "${name}"`);
-                console.log(`[Airtable Sync] Field value type:`, typeof picsField, Array.isArray(picsField) ? 'array' : 'string');
-                console.log(`[Airtable Sync] Field value (first 200 chars):`, typeof picsField === 'string' ? picsField.substring(0, 200) : picsField);
-              }
               break;
-            }
-          }
-          
-          // Si no encontramos por nombre exacto, buscar por coincidencias parciales
-          if (picsField === null) {
-            const allFieldNames = Object.keys(allFields);
-            // Buscar campos que contengan 'pic' (puede ser 'pics_url', 'pics', etc.)
-            const partialMatches = allFieldNames.filter(k => {
-              const lower = k.toLowerCase();
-              // Buscar campos con 'pic' o 'photo' o 'image' (no necesariamente con 'url')
-              return lower.includes('pic') || 
-                     (lower.includes('photo') && (lower.includes('url') || lower.includes('link'))) ||
-                     (lower.includes('image') && (lower.includes('url') || lower.includes('link')));
-            });
-            
-            if (partialMatches.length > 0) {
-              // Log solo para el primer registro
-              if (record.id === recordIds[0]) {
-                console.log('[Airtable Sync] 🔍 Found potential matches (partial):', partialMatches);
-              }
-              // Intentar usar el primero que tenga un valor
-              for (const match of partialMatches) {
-                if (allFields[match] !== undefined && allFields[match] !== null) {
-                  picsField = allFields[match];
-                  if (record.id === recordIds[0]) {
-                    console.log(`[Airtable Sync] ✅ Using partial match: "${match}"`);
-                    console.log(`[Airtable Sync] Field value:`, typeof picsField === 'string' ? picsField.substring(0, 100) : picsField);
-                  }
-                  break;
-                }
-              }
-            } else if (record.id === recordIds[0]) {
-              console.log('[Airtable Sync] ⚠️ Pics field not found in Properties by name or partial match');
-              console.log('[Airtable Sync] All field names (first 50):', allFieldNames.slice(0, 50));
             }
           }
           
@@ -333,9 +292,7 @@ export async function fetchPropertiesFromAirtable(
           record.fields['Property UniqueID'] = propertyData['Property UniqueID'] || propertyData['Property Unique ID']; // También con el nombre exacto
           // Technical Constructor puede estar en Properties
           record.fields['Technical Constructor'] = propertyData['Technical Constructor'] || propertyData['Technical construction'] || null;
-          // Pics URLs - PRIORIDAD: usar el campo directo de Properties (no el relacionado de Transactions)
-          // El campo se llama 'pics_url' en Properties (field ID: fldq1FLXBToYEY9W3)
-          // El campo ya viene mapeado como 'fldq1FLXBToYEY9W3' o 'pics_urls_from_properties' desde fetchRelatedFields
+          // Pics URLs - El campo ya viene mapeado como 'fldq1FLXBToYEY9W3' o 'pics_urls_from_properties' desde fetchRelatedFields
           const picsUrlsFromProperties = propertyData['fldq1FLXBToYEY9W3'] || 
                                         propertyData['pics_urls_from_properties'] ||
                                         propertyData['pics_url'] ||  // Nombre real encontrado
@@ -353,46 +310,11 @@ export async function fetchPropertiesFromAirtable(
           
           // Log para el primer registro
           if (index === 0) {
-            const allPropertyFields = Object.keys(propertyData);
-            // Buscar campos que contengan 'pic' (sin importar si tienen 'url')
-            const picsRelatedFields = allPropertyFields.filter(k => {
-              const lower = k.toLowerCase();
-              return lower.includes('pic') || 
-                     lower.includes('photo') || 
-                     lower.includes('image') || 
-                     (lower.includes('url') && (lower.includes('pic') || lower.includes('photo') || lower.includes('image'))) ||
-                     lower.includes('media');
-            });
-            
-            // También buscar específicamente 'pics_url'
-            const picsUrlField = allPropertyFields.find(k => k.toLowerCase() === 'pics_url' || k === 'pics_url');
-            
             console.log('[Airtable Sync] Sample Properties data:', {
               'Area cluster': propertyData['Area cluster'],
               'Property UniqueID': propertyData['Property UniqueID'],
               'Technical Constructor': propertyData['Technical Constructor'],
-              'fldq1FLXBToYEY9W3': propertyData['fldq1FLXBToYEY9W3'],
-              'pics_urls_from_properties': propertyData['pics_urls_from_properties'],
-              'pics_url (direct)': propertyData['pics_url'],
-              'Fields related to pics/photos/images/urls': picsRelatedFields,
-              'pics_url field found': picsUrlField ? `✅ Found: ${picsUrlField}` : '❌ Not found',
-              'Total fields in Properties': allPropertyFields.length,
-              'First 20 field names': allPropertyFields.slice(0, 20),
             });
-            
-            // Si encontramos campos relacionados, mostrar sus valores
-            if (picsRelatedFields.length > 0) {
-              console.log('[Airtable Sync] Values of pics-related fields:');
-              picsRelatedFields.forEach(fieldName => {
-                const value = propertyData[fieldName];
-                console.log(`   ${fieldName}:`, typeof value === 'string' ? value.substring(0, 150) : value);
-              });
-            }
-            
-            // Mostrar específicamente el valor de pics_url si existe
-            if (propertyData['pics_url']) {
-              console.log('[Airtable Sync] ✅ pics_url field value:', typeof propertyData['pics_url'] === 'string' ? propertyData['pics_url'].substring(0, 200) : propertyData['pics_url']);
-            }
           }
         } else if (index === 0) {
           console.log(`[Airtable Sync] No data found for Properties ID: ${firstPropertyId}`);
@@ -453,10 +375,8 @@ export async function fetchPropertiesFromAirtable(
 
 /**
  * Mapea un registro de Airtable a formato Supabase
- * @param airtableProperty - Registro de Airtable a mapear
- * @param isFirstRecord - Si es el primer registro (para logging)
  */
-function mapAirtableToSupabase(airtableProperty: AirtableProperty, isFirstRecord: boolean = false): any {
+function mapAirtableToSupabase(airtableProperty: AirtableProperty): any {
   const fields = airtableProperty.fields;
   // Buscar el campo con diferentes variaciones del nombre
   const uniqueIdValue = 
@@ -547,40 +467,12 @@ function mapAirtableToSupabase(airtableProperty: AirtableProperty, isFirstRecord
       'Reno Start Date:',
       'Start Date'
     ]) || null,
-    // Tech Budget Attachment - URL del presupuesto técnico (fldVOO4zqx5HUzIjz)
-    // El campo en Airtable se llama "TECH - Budget Attachment (URLs)" y contiene la URL completa
-    budget_pdf_url: (() => {
-      // Buscar el campo por nombre (el nombre real en Airtable es "TECH - Budget Attachment (URLs)")
-      let budgetAttachment = fields['TECH - Budget Attachment (URLs)'] || 
-                            fields['Tech Budget Attachment (URLs)'] ||
-                            fields['Tech Budget Attachment'] || 
-                            fields['Tech Budget Attachment:'] ||
-                            fields['TECH - Budget Attachment'] ||
-                            fields['fldVOO4zqx5HUzIjz']; // Field ID como fallback
-      
-      if (!budgetAttachment) {
-        return null;
-      }
-      
-      // Si es un array de attachments (formato estándar de Airtable)
-      if (Array.isArray(budgetAttachment) && budgetAttachment.length > 0) {
-        const firstAttachment = budgetAttachment[0];
-        // Airtable attachments tienen estructura: { id, url, filename, size, type }
-        if (typeof firstAttachment === 'object' && firstAttachment.url) {
-          return firstAttachment.url;
-        }
-        // Si el array contiene strings (URLs directas)
-        if (typeof firstAttachment === 'string' && firstAttachment.startsWith('http')) {
-          return firstAttachment;
-        }
-      }
-      
-      // Si es una URL directa (string) - este es el caso más común con "TECH - Budget Attachment (URLs)"
-      if (typeof budgetAttachment === 'string' && budgetAttachment.startsWith('http')) {
-        return budgetAttachment;
-      }
-      
-      return null;
+    // Determinar fase basada en Set Up Status
+    // IMPORTANTE: Usar la función de mapeo para mantener consistencia
+    reno_phase: (() => {
+      const setUpStatus = getFieldValue('Set Up Status', ['Set Up Status', 'Set up status']);
+      const mappedPhase = mapSetUpStatusToKanbanPhase(setUpStatus);
+      return mappedPhase || null; // No usar default, dejar que el mapeo decida
     })(),
     // Pics URLs - URLs de las fotos de la propiedad (fldq1FLXBToYEY9W3)
     // PRIORIDAD: Usar el campo directo de Properties (no el relacionado de Transactions)
@@ -598,25 +490,6 @@ function mapAirtableToSupabase(airtableProperty: AirtableProperty, isFirstRecord
                      // PRIORIDAD 2: Campo relacionado de Transactions (fallback si no hay en Properties)
                      fields['Property pictures & videos (from properties)'] ||
                      fields['Property pictures & videos'];
-      
-      // Debug: Log para ver qué campos están disponibles (solo para el primer registro)
-      if (isFirstRecord) {
-        console.log('[Airtable Sync] 🔍 Checking pics_urls field...');
-        const fromProperties = fields['pics_urls_from_properties'] || fields['fldq1FLXBToYEY9W3'];
-        const fromTransactions = fields['Property pictures & videos (from properties)'];
-        
-        if (fromProperties) {
-          console.log('[Airtable Sync] ✅ Using pics_urls from Properties table (direct field)');
-          console.log('[Airtable Sync] Field value:', fromProperties);
-        } else if (fromTransactions) {
-          console.log('[Airtable Sync] ⚠️ Using pics_urls from Transactions table (related field - fallback)');
-          console.log('[Airtable Sync] Field value:', fromTransactions);
-        } else {
-          console.log('[Airtable Sync] ❌ No pics_urls field found in Properties or Transactions');
-          console.log('[Airtable Sync] Available fields with pic/photo/image:', Object.keys(fields).filter(k => k.toLowerCase().includes('pic') || k.toLowerCase().includes('photo') || k.toLowerCase().includes('image')));
-        }
-        console.log('[Airtable Sync] Sample field value type:', typeof picsField, Array.isArray(picsField) ? 'array' : 'not array');
-      }
       
       if (!picsField) {
         return [];
@@ -638,16 +511,6 @@ function mapAirtableToSupabase(airtableProperty: AirtableProperty, isFirstRecord
           })
           .filter((url): url is string => url !== null && url.length > 0);
         
-        // Debug log
-        if (isFirstRecord) {
-          console.log('[Airtable Sync] ✅ Found pics_urls (array):', urls.length, 'URLs');
-          if (urls.length > 0) {
-            console.log('[Airtable Sync] First few URLs:', urls.slice(0, 3));
-          } else {
-            console.log('[Airtable Sync] ⚠️ Array was empty or contained no valid URLs. Original value:', picsField);
-          }
-        }
-        
         return urls;
       }
       
@@ -660,47 +523,10 @@ function mapAirtableToSupabase(airtableProperty: AirtableProperty, isFirstRecord
           .map(url => url.trim())
           .filter(url => url.startsWith('http://') || url.startsWith('https://'));
         
-        if (isFirstRecord) {
-          if (urls.length > 0) {
-            console.log('[Airtable Sync] ✅ Found pics_urls (string with multiple URLs):', urls.length, 'URLs');
-            console.log('[Airtable Sync] First few URLs:', urls.slice(0, 3));
-          } else if (picsField.startsWith('http')) {
-            // Si es una URL única sin comas
-            console.log('[Airtable Sync] ✅ Found pics_urls (single URL):', picsField);
-            return [picsField];
-          } else {
-            console.log('[Airtable Sync] ⚠️ pics_urls string found but no valid URLs extracted:', picsField.substring(0, 100));
-          }
-        }
-        
         return urls.length > 0 ? urls : (picsField.startsWith('http') ? [picsField] : []);
       }
       
       return [];
-    })(),
-    // Determinar fase basada en Set Up Status
-    reno_phase: (() => {
-      const setUpStatus = getFieldValue('Set Up Status', ['Set Up Status', 'Set up status']);
-      if (setUpStatus === 'Initial Check' || setUpStatus === 'initial check') {
-        return 'initial-check';
-      }
-      if (setUpStatus === 'Pending to validate Budget (Client & renovator) & Reno to start' ||
-          setUpStatus === 'Pending to validate Budget') {
-        return 'upcoming-settlements';
-      }
-      if (setUpStatus === 'Reno in progress' || setUpStatus === 'Reno In Progress') {
-        return 'reno-in-progress';
-      }
-      if (setUpStatus === 'Cleaning' || setUpStatus === 'Furnishing' || 
-          setUpStatus === 'cleaning' || setUpStatus === 'furnishing' ||
-          setUpStatus === 'Cleaning & Furnishing' || setUpStatus === 'cleaning & furnishing') {
-        return 'furnishing-cleaning';
-      }
-      if (setUpStatus === 'Final Check' || setUpStatus === 'final check' || 
-          setUpStatus === 'Check Final' || setUpStatus === 'check final') {
-        return 'final-check';
-      }
-      return 'upcoming-settlements'; // Default
     })(),
     airtable_property_id: airtableProperty.id,
     updated_at: new Date().toISOString(),
@@ -710,14 +536,10 @@ function mapAirtableToSupabase(airtableProperty: AirtableProperty, isFirstRecord
 /**
  * Sincroniza propiedades desde Airtable a Supabase
  * Crea nuevas propiedades o actualiza existentes si han cambiado
- * @param tableId - ID de la tabla de Airtable
- * @param viewId - ID de la view de Airtable
- * @param isFirstPhase - Si es true, actualiza pics_urls. Si es false, solo inserta pics_urls si no existe
  */
 export async function syncPropertiesFromAirtable(
   tableId: string,
-  viewId: string,
-  isFirstPhase: boolean = false
+  viewId: string
 ): Promise<{
   created: number;
   updated: number;
@@ -813,8 +635,7 @@ export async function syncPropertiesFromAirtable(
           continue;
         }
 
-        const isFirstRecord = airtableProperties.indexOf(airtableProperty) === 0;
-        const supabaseData = mapAirtableToSupabase(airtableProperty, isFirstRecord);
+        const supabaseData = mapAirtableToSupabase(airtableProperty);
         const exists = existingPropertyIds.has(uniqueId);
 
         if (exists) {
@@ -849,6 +670,7 @@ export async function syncPropertiesFromAirtable(
           const newPicsUrls = supabaseData.pics_urls || [];
           const hasPicsUrls = Array.isArray(currentPicsUrls) && currentPicsUrls.length > 0;
           const picsUrlsChanged = JSON.stringify(currentPicsUrls) !== JSON.stringify(newPicsUrls);
+          const isFirstPhase = currentData?.reno_phase === 'upcoming-settlements' || supabaseData.reno_phase === 'upcoming-settlements';
           
           // Si NO es la primera fase y ya tiene pics_urls, no actualizar pics_urls
           // Si NO es la primera fase y NO tiene pics_urls, insertar los nuevos
@@ -857,19 +679,9 @@ export async function syncPropertiesFromAirtable(
           if (isFirstPhase) {
             // Primera fase: actualizar si cambió
             shouldUpdatePicsUrls = picsUrlsChanged;
-            if (isFirstRecord && picsUrlsChanged) {
-              console.log('[Airtable Sync] 📸 First phase: Will update pics_urls');
-            }
           } else {
             // Otras fases: solo insertar si no existe
             shouldUpdatePicsUrls = !hasPicsUrls && newPicsUrls.length > 0;
-            if (isFirstRecord) {
-              if (hasPicsUrls) {
-                console.log('[Airtable Sync] 📸 Other phase: Property already has pics_urls, will NOT update');
-              } else if (newPicsUrls.length > 0) {
-                console.log('[Airtable Sync] 📸 Other phase: Property has no pics_urls, will INSERT');
-              }
-            }
           }
           
           // Preparar datos para actualizar (excluir pics_urls si no se debe actualizar)
@@ -903,8 +715,7 @@ export async function syncPropertiesFromAirtable(
                   'Hubspot ID': supabaseData['Hubspot ID'],
                   renovation_type: supabaseData.renovation_type,
                   property_unique_id: supabaseData.property_unique_id,
-                  pics_urls: supabaseData.pics_urls,
-                  pics_urls_count: Array.isArray(supabaseData.pics_urls) ? supabaseData.pics_urls.length : 0,
+                  pics_urls: shouldUpdatePicsUrls ? `Will ${isFirstPhase ? 'update' : 'insert'}` : 'Will NOT update',
                 });
               }
 
