@@ -7,13 +7,28 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  // Global error boundary - no puede usar context providers
+  // Renderizar HTML básico sin dependencias de contexto
   return (
     <html>
       <body>
         <div style={{ padding: '20px', fontFamily: 'sans-serif' }}>
           <h1>Something went wrong!</h1>
-          <p>{error.message}</p>
-          <button onClick={reset}>Try again</button>
+          <p>{error?.message || 'An unexpected error occurred'}</p>
+          <button 
+            onClick={reset}
+            style={{
+              padding: '10px 20px',
+              backgroundColor: '#0070f3',
+              color: 'white',
+              border: 'none',
+              borderRadius: '5px',
+              cursor: 'pointer',
+              marginTop: '10px'
+            }}
+          >
+            Try again
+          </button>
         </div>
       </body>
     </html>
