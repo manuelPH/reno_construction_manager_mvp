@@ -456,36 +456,47 @@ export function VisitsCalendar({
           
           {/* Navegación */}
           <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              className="px-3 py-1 text-xs font-medium h-auto"
+            <button
               onClick={goToPreviousPeriod}
+              className={cn(
+                "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                "px-3 py-1 text-xs font-medium h-auto"
+              )}
             >
               <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="px-3 py-1 text-xs font-medium h-auto"
+            </button>
+            <button
               onClick={goToToday}
+              className={cn(
+                "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                "px-3 py-1 text-xs font-medium h-auto"
+              )}
             >
               {t.calendar.today}
-            </Button>
-            <Button
-              variant="outline"
-              className="px-3 py-1 text-xs font-medium h-auto"
+            </button>
+            <button
               onClick={goToNextPeriod}
+              className={cn(
+                "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                "px-3 py-1 text-xs font-medium h-auto"
+              )}
             >
               <ChevronRight className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
 
           {/* Botón crear */}
           <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="px-3 py-1 text-xs font-medium h-auto">
-                <Plus className="h-4 w-4 mr-2" />
+              <button
+                className={cn(
+                  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+                  "px-3 py-1 text-xs font-medium h-auto"
+                )}
+              >
+                <Plus className="h-4 w-4" />
                 {t.calendar.create}
-              </Button>
+              </button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
