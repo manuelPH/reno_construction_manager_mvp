@@ -68,7 +68,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
       return {
       "upcoming-settlements": [],
       "initial-check": [],
-      "upcoming": [],
+      "reno-budget": [],
       "reno-in-progress": [],
       "furnishing-cleaning": [],
       "final-check": [],
@@ -82,7 +82,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
     const sorted: Record<RenoKanbanPhase, Property[]> = {
       "upcoming-settlements": sortPropertiesByExpired(transformProperties["upcoming-settlements"] || []),
       "initial-check": sortPropertiesByExpired(transformProperties["initial-check"] || []),
-      "upcoming": sortPropertiesByExpired(transformProperties["upcoming"] || []),
+      "reno-budget": sortPropertiesByExpired(transformProperties["reno-budget"] || []),
       "reno-in-progress": sortPropertiesByExpired(transformProperties["reno-in-progress"] || []),
       "furnishing-cleaning": sortPropertiesByExpired(transformProperties["furnishing-cleaning"] || []),
       "final-check": sortPropertiesByExpired(transformProperties["final-check"] || []),
@@ -126,7 +126,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
     const filtered: typeof allProperties = {
       "upcoming-settlements": allProperties["upcoming-settlements"].filter(matchesQuery),
       "initial-check": allProperties["initial-check"].filter(matchesQuery),
-      "upcoming": allProperties["upcoming"].filter(matchesQuery),
+      "reno-budget": allProperties["reno-budget"].filter(matchesQuery),
       "reno-in-progress": allProperties["reno-in-progress"].filter(matchesQuery),
       "furnishing-cleaning": allProperties["furnishing-cleaning"].filter(matchesQuery),
       "final-check": allProperties["final-check"].filter(matchesQuery),
@@ -138,7 +138,7 @@ export function RenoKanbanBoard({ searchQuery }: RenoKanbanBoardProps) {
     const sorted: typeof filtered = {
       "upcoming-settlements": sortPropertiesByExpired(filtered["upcoming-settlements"]),
       "initial-check": sortPropertiesByExpired(filtered["initial-check"]),
-      "upcoming": sortPropertiesByExpired(filtered["upcoming"]),
+      "reno-budget": sortPropertiesByExpired(filtered["reno-budget"]),
       "reno-in-progress": sortPropertiesByExpired(filtered["reno-in-progress"]),
       "furnishing-cleaning": sortPropertiesByExpired(filtered["furnishing-cleaning"]),
       "final-check": sortPropertiesByExpired(filtered["final-check"]),

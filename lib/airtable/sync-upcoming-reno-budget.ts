@@ -14,8 +14,8 @@ const AIRTABLE_VIEW_ID_UPCOMING_RENO_BUDGET = 'viwKS3iOiyX5iu5zP';
 /**
  * Sincroniza propiedades de Upcoming (Reno Budget) desde Airtable
  * Esta función sincroniza propiedades con Set Up Status == "Pending to validate Budget (Client & renovator) & Reno to start"
- * Fuerza reno_phase a 'upcoming' para todas las propiedades de esta view
- * También limpia propiedades que ya no están en esta view pero estaban en fase 'upcoming'
+ * Fuerza reno_phase a 'reno-budget' para todas las propiedades de esta view
+ * También limpia propiedades que ya no están en esta view pero estaban en fase 'reno-budget'
  */
 export async function syncUpcomingRenoBudgetFromAirtable(): Promise<{
   created: number;
@@ -44,13 +44,13 @@ export async function syncUpcomingRenoBudgetFromAirtable(): Promise<{
       .filter(Boolean) as string[];
 
     if (propertyIds.length > 0) {
-      console.log(`[Upcoming Reno Budget Sync] Forcing reno_phase to 'upcoming' for ${propertyIds.length} properties...`);
-      
-      // Actualizar todas las propiedades sincronizadas a fase 'upcoming'
+      console.log(`[Upcoming Reno Budget Sync] Forcing reno_phase to 'reno-budget' for ${propertyIds.length} properties...`);
+
+      // Actualizar todas las propiedades sincronizadas a fase 'reno-budget'
       const { error: updateError } = await supabase
         .from('properties')
         .update({ 
-          reno_phase: 'upcoming',
+          reno_phase: 'reno-budget',
           updated_at: new Date().toISOString()
         })
         .in('id', propertyIds);
@@ -58,15 +58,15 @@ export async function syncUpcomingRenoBudgetFromAirtable(): Promise<{
       if (updateError) {
         console.error('[Upcoming Reno Budget Sync] Error updating reno_phase:', updateError);
       } else {
-        console.log(`[Upcoming Reno Budget Sync] ✅ Successfully set reno_phase to 'upcoming' for ${propertyIds.length} properties`);
+        console.log(`[Upcoming Reno Budget Sync] ✅ Successfully set reno_phase to 'reno-budget' for ${propertyIds.length} properties`);
       }
 
-      // Limpiar propiedades que ya no están en esta view pero estaban en fase 'upcoming'
-      // Obtener todas las propiedades que están en fase 'upcoming' pero no están en la lista sincronizada
+      // Limpiar propiedades que ya no están en esta view pero estaban en fase 'reno-budget'
+      // Obtener todas las propiedades que están en fase 'reno-budget' pero no están en la lista sincronizada
       const { data: allUpcomingProperties, error: fetchError } = await supabase
         .from('properties')
         .select('id, airtable_property_id')
-        .eq('reno_phase', 'upcoming');
+        .eq('reno_phase', 'reno-budget');
 
       if (fetchError) {
         console.error('[Upcoming Reno Budget Sync] Error fetching existing upcoming properties:', fetchError);
@@ -81,13 +81,13 @@ export async function syncUpcomingRenoBudgetFromAirtable(): Promise<{
           syncedProperties?.map(p => p.airtable_property_id).filter(Boolean) || []
         );
 
-        // Encontrar propiedades que están en 'upcoming' pero no están en la view sincronizada
+        // Encontrar propiedades que están en 'reno-budget' pero no están en la view sincronizada
         const propertiesToRemove = allUpcomingProperties?.filter(
           p => p.airtable_property_id && !syncedAirtableIds.has(p.airtable_property_id)
         ) || [];
 
         if (propertiesToRemove.length > 0) {
-          console.log(`[Upcoming Reno Budget Sync] Found ${propertiesToRemove.length} properties to remove from 'upcoming' phase (no longer in view)`);
+          console.log(`[Upcoming Reno Budget Sync] Found ${propertiesToRemove.length} properties to remove from 'reno-budget' phase (no longer in view)`);
           // No las eliminamos, solo las movemos a otra fase o las dejamos como están
           // Por ahora solo logueamos para debugging
           console.log('[Upcoming Reno Budget Sync] Properties to review:', propertiesToRemove.map(p => p.id));

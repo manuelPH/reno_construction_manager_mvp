@@ -20,13 +20,13 @@ export function mapSetUpStatusToKanbanPhase(setUpStatus: string | null): RenoKan
     'check inicial': 'initial-check',
     'initial check': 'initial-check',
     
-    // Upcoming - Waiting for reno budget (diferente de upcoming-settlements)
+    // Reno Budget - Waiting for reno budget (diferente de upcoming-settlements)
     // Estas son propiedades esperando presupuesto de renovación
-    'pending to validate budget (client & renovator) & reno to start': 'upcoming',
-    'pending to validate budget': 'upcoming',
-    'pending to validate budget & reno to start': 'upcoming',
-    'reno to start': 'upcoming',
-    'proximas propiedades': 'upcoming',
+    'pending to validate budget (client & renovator) & reno to start': 'reno-budget',
+    'pending to validate budget': 'reno-budget',
+    'pending to validate budget & reno to start': 'reno-budget',
+    'reno to start': 'reno-budget',
+    'proximas propiedades': 'reno-budget',
     
     // Obras en proceso → reno-in-progress
     'reno in progress': 'reno-in-progress',
@@ -65,7 +65,7 @@ export function getMappedKanbanPhases(): RenoKanbanPhase[] {
   return [
     'upcoming-settlements',
     'initial-check',
-    'upcoming',
+    'reno-budget',
     'reno-in-progress',
     'furnishing-cleaning',
     'final-check',

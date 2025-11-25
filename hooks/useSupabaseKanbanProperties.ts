@@ -32,7 +32,7 @@ function convertSupabasePropertyToKanbanProperty(
     const validPhases: RenoKanbanPhase[] = [
       'upcoming-settlements',
       'initial-check',
-      'upcoming',
+      'reno-budget',
       'reno-in-progress',
       'furnishing-cleaning',
       'final-check',
@@ -329,7 +329,7 @@ export function useSupabaseKanbanProperties() {
     const grouped: Record<RenoKanbanPhase, Property[]> = {
       'upcoming-settlements': [],
       'initial-check': [],
-      'upcoming': [],
+      'reno-budget': [],
       'reno-in-progress': [],
       'furnishing-cleaning': [],
       'final-check': [],
