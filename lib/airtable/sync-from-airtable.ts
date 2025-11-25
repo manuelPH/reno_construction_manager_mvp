@@ -405,6 +405,37 @@ function mapAirtableToSupabase(airtableProperty: AirtableProperty): any {
       'Reno Start Date:',
       'Start Date'
     ]) || null,
+    // Tech Budget Attachment - URL del presupuesto técnico (fldVOO4zqx5HUzIjz)
+    budget_pdf_url: (() => {
+      // Buscar el campo por nombre o por field ID directamente
+      let budgetAttachment = fields['Tech Budget Attachment'] || 
+                            fields['Tech Budget Attachment:'] ||
+                            fields['fldVOO4zqx5HUzIjz']; // Field ID como fallback
+      
+      if (!budgetAttachment) {
+        return null;
+      }
+      
+      // Si es un array de attachments (formato estándar de Airtable)
+      if (Array.isArray(budgetAttachment) && budgetAttachment.length > 0) {
+        const firstAttachment = budgetAttachment[0];
+        // Airtable attachments tienen estructura: { id, url, filename, size, type }
+        if (typeof firstAttachment === 'object' && firstAttachment.url) {
+          return firstAttachment.url;
+        }
+        // Si el array contiene strings (URLs directas)
+        if (typeof firstAttachment === 'string' && firstAttachment.startsWith('http')) {
+          return firstAttachment;
+        }
+      }
+      
+      // Si es una URL directa (string)
+      if (typeof budgetAttachment === 'string' && budgetAttachment.startsWith('http')) {
+        return budgetAttachment;
+      }
+      
+      return null;
+    })(),
     // Determinar fase basada en Set Up Status
     reno_phase: (() => {
       const setUpStatus = getFieldValue('Set Up Status', ['Set Up Status', 'Set up status']);
@@ -414,6 +445,18 @@ function mapAirtableToSupabase(airtableProperty: AirtableProperty): any {
       if (setUpStatus === 'Pending to validate Budget (Client & renovator) & Reno to start' ||
           setUpStatus === 'Pending to validate Budget') {
         return 'upcoming-settlements';
+      }
+      if (setUpStatus === 'Reno in progress' || setUpStatus === 'Reno In Progress') {
+        return 'reno-in-progress';
+      }
+      if (setUpStatus === 'Cleaning' || setUpStatus === 'Furnishing' || 
+          setUpStatus === 'cleaning' || setUpStatus === 'furnishing' ||
+          setUpStatus === 'Cleaning & Furnishing' || setUpStatus === 'cleaning & furnishing') {
+        return 'furnishing-cleaning';
+      }
+      if (setUpStatus === 'Final Check' || setUpStatus === 'final check' || 
+          setUpStatus === 'Check Final' || setUpStatus === 'check final') {
+        return 'final-check';
       }
       return 'upcoming-settlements'; // Default
     })(),

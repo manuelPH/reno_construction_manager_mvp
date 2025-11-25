@@ -20,28 +20,57 @@ interface DynamicCategoriesProgressProps {
 }
 
 // Format activities text to add line breaks for lists
+/**
+ * Formatea el texto de actividades dividiendo solo por números de actividad (ej: "8.1", "8.2")
+ * El resto del texto se mantiene junto sin saltos de línea innecesarios
+ */
 function formatActivitiesText(text: string): string {
   if (!text) return '';
   
-  // Pattern to detect list items: numbers followed by dot, dash, or parentheses
-  // Examples: "2.1", "2.2", "-", "•", etc.
-  let formatted = text;
+  // Primero, eliminar todos los saltos de línea existentes y normalizar espacios
+  let formatted = text
+    .replace(/\n/g, ' ')
+    .replace(/\r/g, ' ')
+    .replace(/\t/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
   
-  // Add line break before list items (numbered like "2.1", "2.2", etc.)
-  // Match patterns like "2.1", "2.2", etc. that appear after text
-  formatted = formatted.replace(/([^\n])(\n?)(\d+\.\d+\s)/g, (match, before, existingBreak, listItem) => {
-    // If there's already a break, keep it; otherwise add one
-    return existingBreak ? match : `${before}\n${listItem}`;
-  });
+  // Dividir solo por patrones de números de actividad seguidos de guión
+  // Patrón: número.número seguido de espacios opcionales y guión (— o -)
+  // Ejemplos: "8.1 —", "8.2 —", "1.1 — UD"
+  // Buscar el patrón que aparece después de un espacio o al inicio del texto
+  formatted = formatted.replace(/(^|\s)(\d+\.\d+\s*[—\-])/g, '\n$2');
   
-  // Ensure double line breaks between major sections (e.g., "2.1" followed by "2.2")
-  formatted = formatted.replace(/(\d+\.\d+[^\n]*)\n(\d+\.\d+)/g, '$1\n\n$2');
+  // Limpiar y formatear cada línea
+  const lines = formatted
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0);
   
-  return formatted;
+  return lines.join('\n');
+}
+
+/**
+ * Extrae el número de orden de una categoría desde su nombre
+ * Ejemplos: "8.1 — UD — SUSTITUCIÓN..." -> 8.1, "1. Fontanería" -> 1
+ * Retorna un número para ordenar (ej: 8.1 -> 8.1, 1 -> 1)
+ */
+function extractCategoryOrderNumber(categoryName: string): number {
+  if (!categoryName) return 9999; // Sin número, va al final
+  
+  // Buscar patrón: número al inicio, opcionalmente seguido de punto y otro número
+  const match = categoryName.match(/^(\d+)(?:\.(\d+))?/);
+  if (match) {
+    const major = parseInt(match[1], 10);
+    const minor = match[2] ? parseInt(match[2], 10) : 0;
+    return major + (minor / 100); // Ej: 8.1 -> 8.01, 8.2 -> 8.02
+  }
+  
+  return 9999; // Sin número, va al final
 }
 
 export function DynamicCategoriesProgress({ property }: DynamicCategoriesProgressProps) {
-  const { categories, loading, saveAllProgress, deleteCategory, refetch } = useDynamicCategories(property.id);
+  const { categories, loading, error, saveAllProgress, deleteCategory, refetch } = useDynamicCategories(property.id);
   const [localPercentages, setLocalPercentages] = useState<Record<string, number>>({});
   const [savedPercentages, setSavedPercentages] = useState<Record<string, number>>({}); // Valores guardados (mínimos permitidos)
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -108,15 +137,24 @@ export function DynamicCategoriesProgress({ property }: DynamicCategoriesProgres
     });
   }, [categories]);
 
+  // Sort categories by their order number (extracted from category_name)
+  const sortedCategories = useMemo(() => {
+    return [...categories].sort((a, b) => {
+      const orderA = extractCategoryOrderNumber(a.category_name);
+      const orderB = extractCategoryOrderNumber(b.category_name);
+      return orderA - orderB;
+    });
+  }, [categories]);
+
   // Calculate global progress (average of all categories)
   const globalProgress = useMemo(() => {
-    if (categories.length === 0) return 0;
-    const total = categories.reduce((sum, cat) => {
+    if (sortedCategories.length === 0) return 0;
+    const total = sortedCategories.reduce((sum, cat) => {
       const percentage = localPercentages[cat.id] ?? cat.percentage ?? 0;
       return sum + percentage;
     }, 0);
-    return Math.round(total / categories.length);
-  }, [categories, localPercentages]);
+    return Math.round(total / sortedCategories.length);
+  }, [sortedCategories, localPercentages]);
 
   // Get minimum allowed value for a category (last saved value or 0)
   const getMinAllowedValue = useCallback((categoryId: string): number => {
@@ -288,6 +326,22 @@ export function DynamicCategoriesProgress({ property }: DynamicCategoriesProgres
     );
   }
 
+  // Show error state if there's an error
+  if (error) {
+    return (
+      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border border-destructive/50 p-6 shadow-sm">
+        <p className="text-destructive">Error al cargar categorías: {error}</p>
+        <Button
+          onClick={() => refetch()}
+          variant="outline"
+          className="mt-4"
+        >
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm space-y-6">
@@ -363,11 +417,24 @@ export function DynamicCategoriesProgress({ property }: DynamicCategoriesProgres
                   </Button>
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">No hay categorías definidas</p>
+                <div className="p-4 border rounded-lg bg-muted/50 space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    No hay categorías definidas para esta propiedad.
+                  </p>
+                  {property.budget_pdf_url ? (
+                    <p className="text-xs text-muted-foreground">
+                      Tienes un presupuesto PDF disponible. Haz clic en "Extraer Información PDF" para crear las categorías automáticamente.
+                    </p>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">
+                      Para crear categorías, necesitas tener un presupuesto PDF configurado en la propiedad (campo budget_pdf_url).
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           ) : (
-            categories.map((category) => {
+            sortedCategories.map((category) => {
               const percentage = localPercentages[category.id] ?? category.percentage ?? 0;
               const savedValue = savedPercentages[category.id] ?? category.percentage ?? 0;
               const minAllowedValue = getMinAllowedValue(category.id);
