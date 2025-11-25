@@ -40,6 +40,7 @@ export default function RenoPropertyDetailPage() {
   const propertyId = params.id && typeof params.id === "string" ? params.id : null;
   const { property: supabaseProperty, loading: supabaseLoading, updateProperty: updateSupabaseProperty, refetch } = useSupabaseProperty(propertyId);
   const { categories: dynamicCategories, loading: categoriesLoading } = useDynamicCategories(propertyId);
+  const hasCheckedInitialTab = useRef(false); // Track if we've already checked and set the initial tab
   
   // Convert Supabase property to Property format
   const property: Property | null = supabaseProperty ? convertSupabasePropertyToProperty(supabaseProperty) : null;
@@ -60,17 +61,26 @@ export default function RenoPropertyDetailPage() {
 
   // Auto-switch to summary tab for reno-budget and furnishing-cleaning phases without tasks
   useEffect(() => {
-    if (isLoading || categoriesLoading || !propertyId) return; // Wait for data to load
+    // Only check once when data is loaded
+    if (hasCheckedInitialTab.current || isLoading || categoriesLoading || !propertyId) return;
     
     const phase = getPropertyRenoPhase();
     const hasNoTasks = dynamicCategories.length === 0;
     
     // If property is in reno-budget or furnishing-cleaning and has no tasks, switch to summary
-    // Only switch if currently on "tareas" tab (initial state)
-    if ((phase === "reno-budget" || phase === "furnishing-cleaning") && hasNoTasks && activeTab === "tareas") {
+    if ((phase === "reno-budget" || phase === "furnishing-cleaning") && hasNoTasks) {
       setActiveTab("resumen");
+      hasCheckedInitialTab.current = true;
+    } else {
+      // Mark as checked even if we don't switch, to avoid re-checking
+      hasCheckedInitialTab.current = true;
     }
-  }, [isLoading, categoriesLoading, propertyId, dynamicCategories.length, activeTab, getPropertyRenoPhase]);
+  }, [isLoading, categoriesLoading, propertyId, dynamicCategories.length, getPropertyRenoPhase]);
+  
+  // Reset the check flag when propertyId changes (navigating to a different property)
+  useEffect(() => {
+    hasCheckedInitialTab.current = false;
+  }, [propertyId]);
 
   // Debounce timer refs
   const dateDebounceRef = useRef<NodeJS.Timeout | null>(null);
