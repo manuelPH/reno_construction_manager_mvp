@@ -46,15 +46,14 @@ export function FaviconSwitcher() {
         existingLinks.forEach((link) => {
           if (!link.href.includes(iconPath)) {
             // Verificar que el link todavía está en el DOM antes de eliminarlo
-            if (link.parentNode) {
-              try {
+            try {
+              // Verificar que el elemento todavía está conectado al DOM
+              if (link.isConnected && link.parentNode) {
                 link.remove();
-              } catch (e) {
-                // Si falla, intentar con removeChild de forma segura
-                if (link.parentNode && link.parentNode.contains(link)) {
-                  link.parentNode.removeChild(link);
-                }
               }
+            } catch (e) {
+              // Silenciar errores durante desmontaje - el elemento ya puede haber sido removido por React
+              // No intentar removeChild ya que puede causar errores si el parentNode es null
             }
           }
         });
@@ -93,7 +92,7 @@ export function FaviconSwitcher() {
     // También eliminar y recrear el favicon.ico si existe
     try {
       const faviconIco = document.querySelector("link[rel='icon'][type='image/x-icon']") as HTMLLinkElement;
-      if (faviconIco && faviconIco.parentNode) {
+      if (faviconIco && faviconIco.isConnected && faviconIco.parentNode) {
         faviconIco.remove();
       }
     } catch (error) {
