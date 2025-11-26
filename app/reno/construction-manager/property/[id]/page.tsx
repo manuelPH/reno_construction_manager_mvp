@@ -99,7 +99,7 @@ export default function RenoPropertyDetailPage() {
       const currentPhase = getPropertyRenoPhase();
       
       // Get previous date to detect if it's a new date
-      const previousDate = supabaseProperty['Estimated Visit Date'] || property?.estimatedVisitDate;
+      const previousDate = (supabaseProperty as any)['Estimated Visit Date'] || property?.estimatedVisitDate;
       const isNewDate = localEstimatedVisitDate && localEstimatedVisitDate !== previousDate;
       
       const supabaseUpdates: PropertyUpdate & Record<string, any> = {
