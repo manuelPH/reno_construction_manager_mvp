@@ -56,8 +56,10 @@ export async function syncUpcomingSettlementsFromAirtable(): Promise<{
         console.error('[Upcoming Settlements Sync] Error fetching properties:', fetchPropsError);
       } else {
         // Separar propiedades con y sin fecha
-        const propertiesWithoutDate = propertiesWithDates?.filter(p => !p['Estimated Visit Date']) || [];
-        const propertiesWithDate = propertiesWithDates?.filter(p => p['Estimated Visit Date']) || [];
+        type PropertyWithDate = { id: string; 'Estimated Visit Date': string | null; 'Set Up Status': string | null };
+        const typedProperties = (propertiesWithDates || []) as PropertyWithDate[];
+        const propertiesWithoutDate = typedProperties.filter(p => !p['Estimated Visit Date']);
+        const propertiesWithDate = typedProperties.filter(p => p['Estimated Visit Date']);
 
         // Solo actualizar propiedades SIN fecha a 'upcoming-settlements'
         if (propertiesWithoutDate.length > 0) {
