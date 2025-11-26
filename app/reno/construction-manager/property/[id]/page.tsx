@@ -102,6 +102,16 @@ export default function RenoPropertyDetailPage() {
       const previousDate = (supabaseProperty as any)['Estimated Visit Date'] || property?.estimatedVisitDate;
       const isNewDate = localEstimatedVisitDate && localEstimatedVisitDate !== previousDate;
       
+      console.log('[saveToSupabase] 🔍 Debug info:', {
+        propertyId,
+        currentPhase,
+        previousDate,
+        localEstimatedVisitDate,
+        isNewDate,
+        transitionToInitialCheck,
+        hasAirtableId: !!(supabaseProperty?.airtable_property_id || (supabaseProperty as any)['Unique ID From Engagements']),
+      });
+      
       const supabaseUpdates: PropertyUpdate & Record<string, any> = {
         'Estimated Visit Date': localEstimatedVisitDate || null,
         // Setup Status Notes ahora se maneja a través de comentarios
@@ -115,52 +125,65 @@ export default function RenoPropertyDetailPage() {
         (transitionToInitialCheck && currentPhase === 'upcoming-settlements' && localEstimatedVisitDate) ||
         (currentPhase === 'upcoming-settlements' && isNewDate && localEstimatedVisitDate);
       
+      console.log('[saveToSupabase] 🎯 shouldAutoAdvance:', shouldAutoAdvance);
+      
       if (shouldAutoAdvance) {
         // Update "Set Up Status" to move to initial-check phase
         supabaseUpdates['Set Up Status'] = 'initial check';
+        console.log('[saveToSupabase] ✅ Will advance to initial-check phase');
       }
       
       const success = await updateSupabaseProperty(supabaseUpdates);
       
       if (success) {
-        // If transitioning to initial-check, update Airtable
-        if (shouldAutoAdvance) {
+        // Always update Airtable if we have a date and Airtable ID
+        const tableName = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_NAME || 'Properties';
+        const airtablePropertyId = supabaseProperty?.airtable_property_id || (supabaseProperty as any)?.['Unique ID From Engagements'];
+        
+        console.log('[saveToSupabase] 📡 Airtable update check:', {
+          shouldAutoAdvance,
+          currentPhase,
+          hasAirtableId: !!airtablePropertyId,
+          hasDate: !!localEstimatedVisitDate,
+        });
+        
+        if (airtablePropertyId && localEstimatedVisitDate) {
           try {
-            const tableName = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_NAME || 'Properties';
-            const airtablePropertyId = supabaseProperty.airtable_property_id || supabaseProperty['Unique ID From Engagements'];
+            const recordId = await findRecordByPropertyId(tableName, airtablePropertyId);
+            console.log('[saveToSupabase] 🔍 Found Airtable record:', { recordId, airtablePropertyId });
             
-            if (airtablePropertyId && localEstimatedVisitDate) {
-              const recordId = await findRecordByPropertyId(tableName, airtablePropertyId);
-              if (recordId) {
-                // Update both Set Up Status and Estimated Visit Date in Airtable
-                await updateAirtableWithRetry(tableName, recordId, {
-                  'Set Up Status': 'Initial Check', // Update phase in Airtable
-                  'fldIhqPOAFL52MMBn': localEstimatedVisitDate, // Estimated visit date field ID
-                });
-                console.log(`✅ Updated Airtable: Set Up Status → Initial Check, Estimated Visit Date → ${localEstimatedVisitDate}`);
+            if (recordId) {
+              const airtableFields: Record<string, any> = {
+                'fldIhqPOAFL52MMBn': localEstimatedVisitDate, // Estimated visit date field ID
+              };
+              
+              // If transitioning to initial-check, also update Set Up Status
+              if (shouldAutoAdvance) {
+                airtableFields['Set Up Status'] = 'Initial Check';
+                console.log('[saveToSupabase] 📝 Will update Airtable with phase change');
               }
+              
+              const airtableSuccess = await updateAirtableWithRetry(tableName, recordId, airtableFields);
+              console.log('[saveToSupabase] ✅ Airtable update result:', {
+                success: airtableSuccess,
+                fields: airtableFields,
+              });
+              
+              if (!airtableSuccess) {
+                console.error('[saveToSupabase] ❌ Failed to update Airtable');
+              }
+            } else {
+              console.warn('[saveToSupabase] ⚠️ Airtable record not found for property:', airtablePropertyId);
             }
           } catch (airtableError) {
-            console.error('Error updating Airtable during phase transition:', airtableError);
+            console.error('[saveToSupabase] ❌ Error updating Airtable:', airtableError);
             // Don't fail the whole operation if Airtable update fails
           }
-        } else if (currentPhase === 'upcoming-settlements' && localEstimatedVisitDate) {
-          // If still in upcoming-settlements but date was updated, update Airtable date only
-          try {
-            const tableName = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_NAME || 'Properties';
-            const airtablePropertyId = supabaseProperty.airtable_property_id || supabaseProperty['Unique ID From Engagements'];
-            
-            if (airtablePropertyId) {
-              const recordId = await findRecordByPropertyId(tableName, airtablePropertyId);
-              if (recordId) {
-                await updateAirtableWithRetry(tableName, recordId, {
-                  'fldIhqPOAFL52MMBn': localEstimatedVisitDate, // Estimated visit date field ID
-                });
-              }
-            }
-          } catch (airtableError) {
-            console.error('Error updating Airtable date:', airtableError);
-          }
+        } else {
+          console.warn('[saveToSupabase] ⚠️ Missing requirements for Airtable update:', {
+            hasAirtableId: !!airtablePropertyId,
+            hasDate: !!localEstimatedVisitDate,
+          });
         }
         
         setHasUnsavedChanges(false);
