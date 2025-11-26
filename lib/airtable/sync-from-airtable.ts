@@ -641,7 +641,7 @@ export async function syncPropertiesFromAirtable(
         
         if (!uniqueId) {
           // Log los campos disponibles para debugging (solo el primero)
-          if (isFirstRecord) {
+          if (airtableProperties.indexOf(airtableProperty) === 0) {
             console.log('[Airtable Sync] Available fields in first record:', Object.keys(airtableProperty.fields));
             console.log('[Airtable Sync] Sample field values:', {
               'Area Cluster': airtableProperty.fields['Area Cluster'],
