@@ -29,9 +29,19 @@ async function checkInitialCheckDates() {
       return;
     }
     
-    console.log(`📊 Found ${properties.length} properties in initial-check phase:\n`);
+    type PropertyWithDate = { 
+      id: string; 
+      address: string | null; 
+      'Estimated Visit Date': string | null; 
+      'Set Up Status': string | null; 
+      reno_phase: string | null;
+    };
     
-    properties.forEach((p, index) => {
+    const typedProperties = properties as unknown as PropertyWithDate[];
+    
+    console.log(`📊 Found ${typedProperties.length} properties in initial-check phase:\n`);
+    
+    typedProperties.forEach((p, index) => {
       console.log(`${index + 1}. ${p.id}`);
       console.log(`   Address: ${p.address || 'N/A'}`);
       console.log(`   Estimated Visit Date: ${p['Estimated Visit Date'] || '❌ NO DATE'}`);
@@ -39,8 +49,8 @@ async function checkInitialCheckDates() {
       console.log('');
     });
     
-    const withDates = properties.filter(p => p['Estimated Visit Date']);
-    const withoutDates = properties.filter(p => !p['Estimated Visit Date']);
+    const withDates = typedProperties.filter(p => p['Estimated Visit Date']);
+    const withoutDates = typedProperties.filter(p => !p['Estimated Visit Date']);
     
     console.log('\n📈 Summary:');
     console.log(`   Properties with dates: ${withDates.length}`);
