@@ -35,6 +35,7 @@ type PropertyUpdate = Database['public']['Tables']['properties']['Update'];
 export default function RenoPropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const supabase = createClient();
   const { t } = useI18n();
   const [reportProblemOpen, setReportProblemOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tareas"); // Tab por defecto: Tareas
