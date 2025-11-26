@@ -1110,6 +1110,8 @@ export const translations: Record<Language, Translations> = {
       recentPropertiesDescription: "Obras activas agrupadas por renovator",
       activeWorksByRenovator: "Obras Activas",
       activeWorksByRenovatorDescription: "Obras activas agrupadas por renovator",
+      viewMore: "Ver más",
+      fullRanking: "Ranking Completo",
       portfolio: "Portfolio",
       portfolioDescription: "Distribución de propiedades por fase",
       totalPortfolioValue: "Valor total del portfolio",
