@@ -25,6 +25,7 @@
     "test:sync-airtable": "tsx scripts/test-airtable-sync.ts",
     "sync:initial-check": "tsx scripts/sync-initial-check.ts",
     "sync:upcoming-settlements": "tsx scripts/sync-upcoming-settlements.ts",
+    "migrate:upcoming-to-initial-check": "tsx scripts/migrate-upcoming-to-initial-check.ts",
     "sync:upcoming-reno-budget": "tsx scripts/sync-upcoming-reno-budget.ts",
     "sync:furnishing-cleaning": "tsx scripts/sync-furnishing-cleaning.ts",
     "sync:final-check": "tsx scripts/sync-final-check.ts",
