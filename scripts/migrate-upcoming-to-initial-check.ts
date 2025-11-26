@@ -101,16 +101,7 @@ async function migrateUpcomingToInitialCheck() {
           } else {
             visitDate.setHours(9, 0, 0, 0); // Set to 9 AM
         
-        const { data: existingVisits } = await supabase
-          .from('property_visits')
-          .select('id')
-          .eq('property_id', propertyId)
-          .eq('visit_type', 'initial-check')
-          .gte('visit_date', new Date(visitDate.getTime() - 24 * 60 * 60 * 1000).toISOString())
-          .lte('visit_date', new Date(visitDate.getTime() + 24 * 60 * 60 * 1000).toISOString())
-          .limit(1);
-        
-            // 2b. Crear visita si no existe
+            // 2b. Verificar si ya existe una visita para esta fecha
             const { data: existingVisits } = await supabase
               .from('property_visits')
               .select('id')
