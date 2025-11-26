@@ -101,15 +101,24 @@ export default function RenoPropertyDetailPage() {
       // Get current phase before updating
       const currentPhase = getPropertyRenoPhase();
       
+      // Get previous date to detect if it's a new date
+      const previousDate = supabaseProperty['Estimated Visit Date'] || property?.estimatedVisitDate;
+      const isNewDate = localEstimatedVisitDate && localEstimatedVisitDate !== previousDate;
+      
       const supabaseUpdates: PropertyUpdate & Record<string, any> = {
         'Estimated Visit Date': localEstimatedVisitDate || null,
         // Setup Status Notes ahora se maneja a través de comentarios
         updated_at: new Date().toISOString(),
       };
       
-      // If transitioning to initial-check (via "Enviar" button)
-      const phaseChanged = transitionToInitialCheck && currentPhase === 'upcoming-settlements' && localEstimatedVisitDate;
-      if (phaseChanged) {
+      // Auto-advance to initial-check if:
+      // 1. Explicitly requested via "Enviar" button (transitionToInitialCheck)
+      // 2. OR: Property is in upcoming-settlements AND a new date is being saved
+      const shouldAutoAdvance = 
+        (transitionToInitialCheck && currentPhase === 'upcoming-settlements' && localEstimatedVisitDate) ||
+        (currentPhase === 'upcoming-settlements' && isNewDate && localEstimatedVisitDate);
+      
+      if (shouldAutoAdvance) {
         // Update "Set Up Status" to move to initial-check phase
         supabaseUpdates['Set Up Status'] = 'initial check';
       }
@@ -118,17 +127,33 @@ export default function RenoPropertyDetailPage() {
       
       if (success) {
         // If transitioning to initial-check, update Airtable
-        if (phaseChanged) {
+        if (shouldAutoAdvance) {
           try {
-            // 1. Sync comments to Airtable (replaces SetUpnotes)
-            // Los comentarios se sincronizan automáticamente cuando se agregan
-            // Aquí podríamos forzar una sincronización si es necesario
-            
-            // 2. Update Estimated Visit Date in Airtable (field ID: fldIhqPOAFL52MMBn)
             const tableName = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_NAME || 'Properties';
             const airtablePropertyId = supabaseProperty.airtable_property_id || supabaseProperty['Unique ID From Engagements'];
             
             if (airtablePropertyId && localEstimatedVisitDate) {
+              const recordId = await findRecordByPropertyId(tableName, airtablePropertyId);
+              if (recordId) {
+                // Update both Set Up Status and Estimated Visit Date in Airtable
+                await updateAirtableWithRetry(tableName, recordId, {
+                  'Set Up Status': 'Initial Check', // Update phase in Airtable
+                  'fldIhqPOAFL52MMBn': localEstimatedVisitDate, // Estimated visit date field ID
+                });
+                console.log(`✅ Updated Airtable: Set Up Status → Initial Check, Estimated Visit Date → ${localEstimatedVisitDate}`);
+              }
+            }
+          } catch (airtableError) {
+            console.error('Error updating Airtable during phase transition:', airtableError);
+            // Don't fail the whole operation if Airtable update fails
+          }
+        } else if (currentPhase === 'upcoming-settlements' && localEstimatedVisitDate) {
+          // If still in upcoming-settlements but date was updated, update Airtable date only
+          try {
+            const tableName = process.env.NEXT_PUBLIC_AIRTABLE_TABLE_NAME || 'Properties';
+            const airtablePropertyId = supabaseProperty.airtable_property_id || supabaseProperty['Unique ID From Engagements'];
+            
+            if (airtablePropertyId) {
               const recordId = await findRecordByPropertyId(tableName, airtablePropertyId);
               if (recordId) {
                 await updateAirtableWithRetry(tableName, recordId, {
@@ -137,15 +162,14 @@ export default function RenoPropertyDetailPage() {
               }
             }
           } catch (airtableError) {
-            console.error('Error updating Airtable during phase transition:', airtableError);
-            // Don't fail the whole operation if Airtable update fails
+            console.error('Error updating Airtable date:', airtableError);
           }
         }
         
         setHasUnsavedChanges(false);
         
         if (showToast) {
-          if (phaseChanged) {
+          if (shouldAutoAdvance) {
             toast.success("Cambios guardados. La propiedad ha pasado a Check Inicial", {
               description: "La propiedad se ha movido automáticamente a la fase de Check Inicial.",
             });
@@ -158,7 +182,7 @@ export default function RenoPropertyDetailPage() {
         await refetch();
         
         // If phase changed, redirect to initial-check page (which will show checklist)
-        if (phaseChanged) {
+        if (shouldAutoAdvance) {
           // Small delay to let the toast show
           setTimeout(() => {
             router.push(`/reno/construction-manager/property/${propertyId}/checklist`);
@@ -179,7 +203,7 @@ export default function RenoPropertyDetailPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [propertyId, supabaseProperty, localEstimatedVisitDate, updateSupabaseProperty, refetch, getPropertyRenoPhase, router]);
+  }, [propertyId, supabaseProperty, localEstimatedVisitDate, updateSupabaseProperty, refetch, getPropertyRenoPhase, router, property]);
 
 
   // Handle date change
@@ -187,19 +211,19 @@ export default function RenoPropertyDetailPage() {
     setLocalEstimatedVisitDate(date);
     setHasUnsavedChanges(true);
     
-    // Only auto-save if NOT in upcoming-settlements phase
     const currentPhase = getPropertyRenoPhase();
-    if (currentPhase !== 'upcoming-settlements') {
-      // Clear existing debounce timer
-      if (dateDebounceRef.current) {
-        clearTimeout(dateDebounceRef.current);
-      }
-      
-      // Auto-save after 2 seconds of inactivity (silent, no toast)
-      dateDebounceRef.current = setTimeout(async () => {
-        await saveToSupabase(false);
-      }, 2000);
+    
+    // Clear existing debounce timer
+    if (dateDebounceRef.current) {
+      clearTimeout(dateDebounceRef.current);
     }
+    
+    // Auto-save after 2 seconds of inactivity
+    // For upcoming-settlements: will auto-advance to initial-check if date is new
+    // For other phases: just saves the date silently
+    dateDebounceRef.current = setTimeout(async () => {
+      await saveToSupabase(false);
+    }, 2000);
   }, [saveToSupabase, getPropertyRenoPhase]);
 
   // Manual save handler
