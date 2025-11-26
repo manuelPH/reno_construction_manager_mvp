@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Property } from "@/lib/property-storage";
-import { RenoKanbanPhase, renoKanbanColumns } from "@/lib/reno-kanban-config";
+import { RenoKanbanPhase, visibleRenoKanbanColumns } from "@/lib/reno-kanban-config";
 import { useI18n } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { useSupabaseKanbanProperties } from "@/hooks/useSupabaseKanbanProperties";
@@ -85,7 +85,7 @@ export function RenoHomePortfolio({ properties, propertiesByPhase: propsProperti
         <div className="space-y-4">
           {/* Chart */}
           <div className="flex items-end justify-between gap-2 h-[220px]">
-            {renoKanbanColumns.map((column) => {
+            {visibleRenoKanbanColumns.map((column) => {
               const count = stageCounts[column.stage];
               const height = getBarHeight(count);
 
