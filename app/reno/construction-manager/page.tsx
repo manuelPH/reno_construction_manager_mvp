@@ -203,7 +203,7 @@ export default function RenoConstructionManagerHomePage() {
 
               {/* Recent Properties and Portfolio Row */}
               <div className="grid gap-6 md:grid-cols-2">
-                <RenoHomeRecentProperties properties={filteredProperties} />
+                <RenoHomeRecentProperties properties={filteredProperties} propertiesByPhase={propertiesByPhase} />
                 <RenoHomePortfolio properties={filteredProperties} propertiesByPhase={propertiesByPhase} />
               </div>
             </div>
