@@ -74,17 +74,17 @@ export function RenoHomePortfolio({ properties, propertiesByPhase: propsProperti
   };
 
   return (
-    <Card className="bg-card dark:bg-[var(--prophero-gray-900)]">
-      <CardHeader>
+    <Card className="bg-card dark:bg-[var(--prophero-gray-900)] h-full flex flex-col">
+      <CardHeader className="flex-shrink-0">
         <CardTitle className="text-lg font-semibold">{t.dashboard.portfolio}</CardTitle>
         <p className="text-sm text-muted-foreground mt-1">
           {t.dashboard.portfolioDescription}
         </p>
       </CardHeader>
-      <CardContent className="pt-6">
-        <div className="space-y-4">
+      <CardContent className="pt-6 flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col justify-end">
           {/* Chart */}
-          <div className="flex items-end justify-between gap-2 h-[220px] relative">
+          <div className="flex items-end justify-between gap-3 h-[200px] relative pb-2">
             {visibleRenoKanbanColumns.map((column) => {
               const count = stageCounts[column.stage];
               const height = getBarHeight(count);
@@ -92,22 +92,26 @@ export function RenoHomePortfolio({ properties, propertiesByPhase: propsProperti
               return (
                 <div
                   key={column.stage}
-                  className="flex-1 flex flex-col items-center group cursor-pointer"
+                  className="flex-1 flex flex-col items-center group cursor-pointer h-full"
                   onClick={() => handleBarClick(column.stage)}
                 >
-                  <div className="relative w-full flex items-end justify-center">
+                  <div className="relative w-full flex items-end justify-center flex-1 min-h-0 pb-1">
                     <div
-                      className="w-full bg-[var(--prophero-blue-500)] dark:bg-[var(--prophero-blue-600)] rounded-t transition-all hover:opacity-80"
-                      style={{ height: `${height}px`, minHeight: count > 0 ? "4px" : "0" }}
+                      className="w-full rounded-t-lg transition-all duration-300 hover:scale-[1.02] hover:shadow-lg relative overflow-hidden group-hover:opacity-90"
+                      style={{ 
+                        height: `${height}px`, 
+                        minHeight: count > 0 ? "6px" : "0",
+                        backgroundColor: count > 0 ? "var(--prophero-blue-400)" : "transparent"
+                      }}
                       title={`${getStageLabel(column.stage)}: ${count}`}
                     />
                     {count > 0 && (
-                      <span className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs font-medium text-foreground bg-card dark:bg-[var(--prophero-gray-900)] border border-border rounded px-2 py-0.5 shadow-sm opacity-0 group-hover:opacity-100 transition-opacity z-50 whitespace-nowrap pointer-events-none">
+                      <span className="absolute -top-8 left-1/2 -translate-x-1/2 text-xs font-semibold text-foreground bg-card dark:bg-[var(--prophero-gray-900)] border border-border rounded-md px-2.5 py-1 shadow-md opacity-0 group-hover:opacity-100 transition-all duration-200 z-50 whitespace-nowrap pointer-events-none">
                         {count}
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 text-center leading-tight h-8 flex items-start justify-center overflow-hidden">
+                  <p className="text-xs text-muted-foreground mt-3 text-center leading-tight h-10 flex items-start justify-center overflow-hidden px-1">
                     {getStageLabel(column.stage)}
                   </p>
                 </div>

@@ -164,15 +164,15 @@ export function RenoHomeRecentProperties({ properties, propertiesByPhase }: Reno
 
   return (
     <>
-      <Card className="bg-card dark:bg-[var(--prophero-gray-900)]">
-        <CardHeader>
+      <Card className="bg-card dark:bg-[var(--prophero-gray-900)] h-full flex flex-col">
+        <CardHeader className="flex-shrink-0">
           <CardTitle className="text-lg font-semibold">{t.dashboard.activeWorksByRenovator}</CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
             {t.dashboard.activeWorksByRenovatorDescription}
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
+        <CardContent className="flex-1 flex flex-col">
+          <div className="space-y-2 flex-1">
             {top5Ranking.length === 0 ? (
               <p className="text-sm text-muted-foreground text-center py-8">
                 {t.messages.notFound}
