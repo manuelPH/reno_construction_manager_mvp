@@ -1940,6 +1940,8 @@ export const translations: Record<Language, Translations> = {
       recentPropertiesDescription: "Active works grouped by renovator",
       activeWorksByRenovator: "Active Works",
       activeWorksByRenovatorDescription: "Active works grouped by renovator",
+      viewMore: "View more",
+      fullRanking: "Full Ranking",
       portfolio: "Portfolio",
       portfolioDescription: "Distribution of properties by phase",
       totalPortfolioValue: "Total portfolio value",
