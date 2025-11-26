@@ -101,7 +101,12 @@ export function RenoHomeRecentProperties({ properties, propertiesByPhase }: Reno
     }
   };
 
-  const renderRankingItem = (item: { position: number; renovatorName: string; count: number }) => (
+  const handleRenovatorClickInWidget = (renovatorName: string) => {
+    setSelectedRenovator(renovatorName);
+    setIsModalOpen(true);
+  };
+
+  const renderRankingItem = (item: { position: number; renovatorName: string; count: number }, showChevron: boolean = true) => (
     <div
       key={item.renovatorName}
       onClick={() => handleRenovatorClick(item.renovatorName)}
@@ -131,7 +136,7 @@ export function RenoHomeRecentProperties({ properties, propertiesByPhase }: Reno
         <span className="text-xs text-muted-foreground">
           {item.count === 1 ? (language === 'es' ? 'obra' : 'work') : (language === 'es' ? 'obras' : 'works')}
         </span>
-        <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />
+        {showChevron && <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />}
       </div>
     </div>
   );
@@ -174,12 +179,48 @@ export function RenoHomeRecentProperties({ properties, propertiesByPhase }: Reno
               </p>
             ) : (
               <>
-                {top5Ranking.map(renderRankingItem)}
+                {top5Ranking.map((item) => (
+                  <div
+                    key={item.renovatorName}
+                    onClick={() => handleRenovatorClickInWidget(item.renovatorName)}
+                    className="flex items-center justify-between p-3 rounded-lg border border-border hover:bg-[var(--prophero-gray-50)] dark:hover:bg-[var(--prophero-gray-800)] transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      {/* Ranking position */}
+                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] flex-shrink-0">
+                        {getRankIcon(item.position) || (
+                          <span className="text-xs font-semibold text-muted-foreground">
+                            {item.position}
+                          </span>
+                        )}
+                      </div>
+                      
+                      {/* Renovator name */}
+                      <p className="text-sm font-medium text-foreground truncate flex-1">
+                        {item.renovatorName}
+                      </p>
+                    </div>
+                    
+                    {/* Count */}
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <span className="text-lg font-bold text-foreground">
+                        {item.count}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.count === 1 ? (language === 'es' ? 'obra' : 'work') : (language === 'es' ? 'obras' : 'works')}
+                      </span>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />
+                    </div>
+                  </div>
+                ))}
                 {fullRanking.length > 5 && (
                   <Button
                     variant="outline"
                     className="w-full mt-2"
-                    onClick={() => setIsModalOpen(true)}
+                    onClick={() => {
+                      setSelectedRenovator(null);
+                      setIsModalOpen(true);
+                    }}
                   >
                     {t.dashboard.viewMore}
                     <ChevronRight className="h-4 w-4 ml-2" />
