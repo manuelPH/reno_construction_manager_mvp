@@ -188,6 +188,47 @@ export default function RenoPropertyDetailPage() {
           });
         }
         
+        // Create visit in calendar if date is set (for upcoming-settlements or initial-check)
+        if (localEstimatedVisitDate && (currentPhase === 'upcoming-settlements' || shouldAutoAdvance)) {
+          try {
+            // Check if visit already exists for this property and date
+            const visitDate = new Date(localEstimatedVisitDate);
+            visitDate.setHours(9, 0, 0, 0); // Set to 9 AM by default
+            
+            const { data: existingVisits } = await supabase
+              .from("property_visits")
+              .select("id")
+              .eq("property_id", propertyId)
+              .eq("visit_type", "initial-check")
+              .gte("visit_date", new Date(visitDate.getTime() - 24 * 60 * 60 * 1000).toISOString())
+              .lte("visit_date", new Date(visitDate.getTime() + 24 * 60 * 60 * 1000).toISOString())
+              .limit(1);
+            
+            if (!existingVisits || existingVisits.length === 0) {
+              // Create new visit
+              const { error: visitError } = await supabase
+                .from("property_visits")
+                .insert({
+                  property_id: propertyId,
+                  visit_date: visitDate.toISOString(),
+                  visit_type: "initial-check",
+                  notes: null,
+                });
+              
+              if (visitError) {
+                console.error('[saveToSupabase] ❌ Error creating visit:', visitError);
+              } else {
+                console.log('[saveToSupabase] ✅ Created initial-check visit for date:', visitDate.toISOString());
+              }
+            } else {
+              console.log('[saveToSupabase] ℹ️ Visit already exists for this date, skipping creation');
+            }
+          } catch (visitError) {
+            console.error('[saveToSupabase] ❌ Error creating visit:', visitError);
+            // Don't fail the whole operation if visit creation fails
+          }
+        }
+        
         setHasUnsavedChanges(false);
         
         if (showToast) {
