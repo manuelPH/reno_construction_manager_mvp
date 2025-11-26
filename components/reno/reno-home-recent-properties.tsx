@@ -106,7 +106,7 @@ export function RenoHomeRecentProperties({ properties, propertiesByPhase }: Reno
     setIsModalOpen(true);
   };
 
-  const renderRankingItem = (item: { position: number; renovatorName: string; count: number }, showChevron: boolean = true) => (
+  const renderRankingItem = (item: { position: number; renovatorName: string; count: number }) => (
     <div
       key={item.renovatorName}
       onClick={() => handleRenovatorClick(item.renovatorName)}
@@ -136,7 +136,7 @@ export function RenoHomeRecentProperties({ properties, propertiesByPhase }: Reno
         <span className="text-xs text-muted-foreground">
           {item.count === 1 ? (language === 'es' ? 'obra' : 'work') : (language === 'es' ? 'obras' : 'works')}
         </span>
-        {showChevron && <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />}
+        <ChevronRight className="h-4 w-4 text-muted-foreground ml-2" />
       </div>
     </div>
   );
