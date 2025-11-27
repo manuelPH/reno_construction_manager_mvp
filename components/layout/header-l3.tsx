@@ -25,7 +25,7 @@ export function HeaderL3({
   className,
 }: HeaderL3Props) {
   return (
-    <header className={cn("border-b bg-card dark:bg-[var(--prophero-gray-900)] px-4 md:px-6 py-6", className)}>
+    <header className={cn("border-b bg-card px-4 md:px-6 py-6", className)}>
       <div>
         <h2 className="text-xl font-semibold text-foreground">
           {title}

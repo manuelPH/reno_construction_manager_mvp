@@ -363,8 +363,8 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
         scrollbarWidth: isHovered ? "thin" : "none",
       }}
     >
-      {/* Mobile: Vertical layout */}
-      <div className="flex flex-col md:hidden gap-6 pb-20">
+      {/* Mobile: Clean vertical layout */}
+      <div className="flex flex-col md:hidden gap-1 pb-20 px-1">
         {visibleRenoKanbanColumns.map((column) => {
           const properties = filteredProperties[column.key] || [];
           const title = t.kanban[column.translationKey];

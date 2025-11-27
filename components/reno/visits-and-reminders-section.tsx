@@ -361,7 +361,7 @@ export function VisitsAndRemindersSection({
   };
 
   return (
-    <Card className="bg-card dark:bg-[var(--prophero-gray-900)]">
+    <Card className="bg-card">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle className="text-lg font-semibold">
@@ -512,7 +512,7 @@ export function VisitsAndRemindersSection({
                 key={visit.id}
                 className={cn(
                   "w-full flex items-start gap-3 p-3 rounded-lg border transition-colors",
-                  "hover:bg-[var(--prophero-gray-50)] dark:hover:bg-[var(--prophero-gray-800)]",
+                  "hover:bg-[var(--prophero-gray-50)] dark:hover:bg-[#1a1a1a]",
                   visit.visit_type === "reminder" &&
                     "bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-900)]/20 border-[var(--prophero-blue-200)] dark:border-[var(--prophero-blue-800)]"
                 )}

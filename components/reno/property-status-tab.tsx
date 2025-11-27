@@ -92,7 +92,7 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
 
   if (loading) {
     return (
-      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+      <div className="bg-card rounded-lg border p-6 shadow-sm">
         <p className="text-muted-foreground">{t.propertyStatusTab.loadingHistory}</p>
       </div>
     );
@@ -100,7 +100,7 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
 
   if (checklists.length === 0) {
     return (
-      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+      <div className="bg-card rounded-lg border p-6 shadow-sm">
         <p className="text-muted-foreground">{t.propertyStatusTab.noChecklistsYet}</p>
       </div>
     );
@@ -130,7 +130,7 @@ export function PropertyStatusTab({ propertyId }: PropertyStatusTabProps) {
         return (
           <div
             key={checklist.id}
-            className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm"
+            className="bg-card rounded-lg border p-6 shadow-sm"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">

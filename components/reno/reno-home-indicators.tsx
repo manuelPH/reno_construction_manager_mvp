@@ -37,15 +37,15 @@ export function RenoHomeIndicators({
     description: string;
     icon: typeof Building2;
   }) => (
-    <Card className="bg-card dark:bg-[var(--prophero-gray-900)]">
+    <Card className="bg-card">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <div className="flex items-center gap-2">
-          <Icon className="h-4 w-4 text-muted-foreground" />
-          <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <div className="flex items-center gap-2 min-w-0">
+          <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+          <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground truncate">{title}</CardTitle>
         </div>
         {delta && (
           <div className={cn(
-            "flex items-center gap-1 text-xs font-medium",
+            "flex items-center gap-1 text-xs font-medium flex-shrink-0",
             delta.isPositive ? "text-[var(--prophero-success)]" : "text-[var(--prophero-danger)]"
           )}>
             {delta.isPositive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
@@ -54,14 +54,14 @@ export function RenoHomeIndicators({
         )}
       </CardHeader>
       <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
-        <p className="text-xs text-muted-foreground mt-1">{description}</p>
+        <div className="text-xl md:text-2xl font-bold text-foreground">{value}</div>
+        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{description}</p>
       </CardContent>
     </Card>
   );
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-3 md:gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
       <IndicatorCard
         title={t.dashboard.activeWorks}
         value={obrasActivas}

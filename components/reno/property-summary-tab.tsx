@@ -88,13 +88,13 @@ export function PropertySummaryTab({
   return (
     <div className="space-y-6">
       {/* Image Gallery - Grid con imagen principal */}
-      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-        <h3 className="text-lg font-semibold mb-4">{t.property.gallery || "Galería de imágenes"}</h3>
+      <div className="bg-card rounded-lg border p-4 md:p-6 shadow-sm">
+        <h3 className="text-base md:text-lg font-semibold mb-3 md:mb-4">{t.property.gallery || "Galería de imágenes"}</h3>
         {hasPics ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
             {/* Imagen principal (izquierda) - ocupa 2 columnas */}
             <div 
-              className="md:col-span-2 aspect-video relative rounded-lg overflow-hidden bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] cursor-pointer group"
+              className="md:col-span-2 aspect-video relative rounded-lg overflow-hidden bg-[var(--prophero-gray-100)] dark:bg-[#1a1a1a] cursor-pointer group"
               onClick={() => openModal(currentImageIndex)}
             >
               {imageErrors.has(currentImageIndex) ? (
@@ -129,7 +129,7 @@ export function PropertySummaryTab({
               {picsUrls.length > 1 && (
                 <div
                   className={cn(
-                    "aspect-video relative rounded-lg overflow-hidden bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] cursor-pointer group border-2 transition-all",
+                    "aspect-video relative rounded-lg overflow-hidden bg-[var(--prophero-gray-100)] dark:bg-[#1a1a1a] cursor-pointer group border-2 transition-all",
                     currentImageIndex === 1
                       ? "border-[var(--prophero-blue-500)] ring-2 ring-[var(--prophero-blue-500)]"
                       : "border-transparent hover:border-[var(--prophero-gray-300)] dark:hover:border-[var(--prophero-gray-600)]"
@@ -140,7 +140,7 @@ export function PropertySummaryTab({
                   }}
                 >
                   {imageErrors.has(1) ? (
-                    <div className="w-full h-full flex items-center justify-center bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)]">
+                    <div className="w-full h-full flex items-center justify-center bg-[var(--prophero-gray-100)] dark:bg-[#1a1a1a]">
                       <svg className="h-8 w-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -163,7 +163,7 @@ export function PropertySummaryTab({
               
               {/* Botón "Ver todas" (mismo tamaño que la miniatura) */}
               <button
-                className="aspect-video relative rounded-lg overflow-hidden bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-700)] border-2 border-dashed border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-blue-500)] transition-all flex flex-col items-center justify-center group"
+                className="aspect-video relative rounded-lg overflow-hidden bg-[var(--prophero-gray-200)] dark:bg-[#262626] border-2 border-dashed border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-blue-500)] transition-all flex flex-col items-center justify-center group"
                 onClick={() => {
                   // Abrir modal desde la imagen actual
                   openModal(currentImageIndex);
@@ -182,7 +182,7 @@ export function PropertySummaryTab({
             </div>
           </div>
         ) : (
-          <div className="aspect-video bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] rounded-lg flex items-center justify-center">
+          <div className="aspect-video bg-[var(--prophero-gray-100)] dark:bg-[#1a1a1a] rounded-lg flex items-center justify-center">
             <div className="text-center">
               <Home className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
               <p className="text-sm font-medium text-muted-foreground">{t.property.gallery || "Galería de imágenes"}</p>
@@ -272,7 +272,7 @@ export function PropertySummaryTab({
       </Dialog>
 
       {/* Amenities Grid */}
-      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+      <div className="bg-card rounded-lg border p-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Amenities</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {usableArea && (
@@ -351,7 +351,7 @@ export function PropertySummaryTab({
       </div>
 
       {/* Property Information */}
-      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+      <div className="bg-card rounded-lg border p-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Información de la propiedad</h3>
         <div className="space-y-4">
           {propertyType && (
@@ -383,7 +383,7 @@ export function PropertySummaryTab({
 
       {/* Economic Information */}
       {(salePrice || annualIBI || communityFees) && (
-        <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+        <div className="bg-card rounded-lg border p-6 shadow-sm">
           <h3 className="text-lg font-semibold mb-4">Información económica</h3>
           <div className="space-y-4">
             {salePrice && (
@@ -418,7 +418,7 @@ export function PropertySummaryTab({
       )}
 
       {/* Legal and Community Status */}
-      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+      <div className="bg-card rounded-lg border p-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Estado legal y de la comunidad</h3>
         <div className="space-y-3">
           {/* Estos campos vendrían de Supabase/Airtable */}
@@ -446,7 +446,7 @@ export function PropertySummaryTab({
       </div>
 
       {/* Documentation */}
-      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+      <div className="bg-card rounded-lg border p-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Documentación</h3>
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">Los documentos se cargarán desde la checklist</p>
@@ -455,9 +455,9 @@ export function PropertySummaryTab({
       </div>
 
       {/* Location Map */}
-      <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+      <div className="bg-card rounded-lg border p-6 shadow-sm">
         <h3 className="text-lg font-semibold mb-4">Ubicación del inmueble</h3>
-        <div className="aspect-video bg-[var(--prophero-gray-100)] dark:bg-[var(--prophero-gray-800)] rounded-lg flex items-center justify-center">
+        <div className="aspect-video bg-[var(--prophero-gray-100)] dark:bg-[#1a1a1a] rounded-lg flex items-center justify-center">
           <div className="text-center">
             <Map className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
             <p className="text-sm font-medium text-muted-foreground">{property.fullAddress}</p>

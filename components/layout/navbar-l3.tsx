@@ -42,7 +42,7 @@ export function NavbarL3({
   statusText,
 }: NavbarL3Props) {
   return (
-    <nav className="border-b bg-card dark:bg-[var(--prophero-gray-900)] px-4 md:px-6 py-4">
+    <nav className="border-b bg-card px-4 md:px-6 py-4">
       <div className="flex items-center justify-between gap-4">
         {/* Zona A: Botón de Retroceso */}
         <div className="flex items-center gap-3 flex-1 min-w-0">

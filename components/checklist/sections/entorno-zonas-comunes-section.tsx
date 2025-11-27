@@ -54,7 +54,7 @@ export const EntornoZonasComunesSection = forwardRef<HTMLDivElement, EntornoZona
     }, [section.questions, defaultQuestions, onUpdate]);
 
     return (
-      <div ref={ref} className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm space-y-6">
+      <div ref={ref} className="bg-card dark:bg-card rounded-lg border p-6 shadow-sm space-y-6">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold text-foreground leading-tight">
             {t.checklist.sections.entornoZonasComunes.title}

@@ -74,17 +74,17 @@ export function RenoHomePortfolio({ properties, propertiesByPhase: propsProperti
   };
 
   return (
-    <Card className="bg-card dark:bg-[var(--prophero-gray-900)]">
+    <Card className="bg-card">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">{t.dashboard.portfolio}</CardTitle>
-        <p className="text-sm text-muted-foreground mt-1">
+        <CardTitle className="text-base md:text-lg font-semibold">{t.dashboard.portfolio}</CardTitle>
+        <p className="text-xs md:text-sm text-muted-foreground mt-1">
           {t.dashboard.portfolioDescription}
         </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {/* Chart */}
-          <div className="flex items-end justify-between gap-2 h-[220px]">
+          <div className="flex items-end justify-between gap-1 md:gap-2 h-[180px] md:h-[220px] overflow-x-auto">
             {visibleRenoKanbanColumns.map((column) => {
               const count = stageCounts[column.stage];
               const height = getBarHeight(count);
@@ -107,7 +107,7 @@ export function RenoHomePortfolio({ properties, propertiesByPhase: propsProperti
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-muted-foreground mt-2 text-center leading-tight h-8 flex items-start justify-center overflow-hidden">
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-2 text-center leading-tight h-8 md:h-10 flex items-start justify-center overflow-hidden break-words">
                     {getStageLabel(column.stage)}
                   </p>
                 </div>

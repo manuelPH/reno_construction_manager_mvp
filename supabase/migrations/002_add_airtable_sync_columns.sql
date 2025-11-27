@@ -22,3 +22,6 @@ COMMENT ON COLUMN properties.property_unique_id IS 'Property Unique ID from Airt
 
 
 
+
+
+

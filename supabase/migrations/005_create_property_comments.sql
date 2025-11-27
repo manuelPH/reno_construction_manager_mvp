@@ -52,3 +52,6 @@ COMMENT ON COLUMN property_comments.airtable_sync_date IS 'Fecha en que se sincr
 
 
 
+
+
+

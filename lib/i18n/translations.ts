@@ -114,8 +114,10 @@ export interface Translations {
     filters: string;
     filtersDescription: string;
     renovatorName: string;
+    searchRenovator: string;
     technicalConstructor: string;
     areaCluster: string;
+    searchAreaCluster: string;
     noValuesAvailable: string;
     clearAll: string;
     applyFilters: string;
@@ -339,6 +341,7 @@ export interface Translations {
     summary: string;
     propertyStatus: string;
     renovationBudget: string;
+    comments: string;
   };
   
   // Property Sidebar
@@ -463,6 +466,56 @@ export interface Translations {
       exteriores: any;
     };
   };
+  
+  // Help Modal
+  help: {
+    title: string;
+    description: string;
+    selectErrorType: string;
+    propertyError: string;
+    propertyErrorDescription: string;
+    generalError: string;
+    generalErrorDescription: string;
+    selectProperty: string;
+    selectPropertyRequired: string;
+    describeProblem: string;
+    describeProblemRequired: string;
+    propertyPlaceholder: string;
+    propertyErrorPlaceholder: string;
+    generalErrorPlaceholder: string;
+    back: string;
+    cancel: string;
+    send: string;
+    sending: string;
+    messageSent: string;
+    messageSentDescription: string;
+    errorSending: string;
+    pleaseWriteMessage: string;
+    pleaseSelectProperty: string;
+    notAuthenticated: string;
+    errorSavingConversation: string;
+    couldNotCreateConversation: string;
+    unknownUser: string;
+  };
+  
+  // Notifications
+  notifications: {
+    title: string;
+    description: string;
+    loadingConversations: string;
+    noConversations: string;
+    noConversationsDescription: string;
+    propertyError: string;
+    generalError: string;
+    new: string;
+    property: string;
+    yourMessage: string;
+    teamResponse: string;
+    waitingForResponse: string;
+    conversationDetails: string;
+    propertyLabel: string;
+    close: string;
+  };
 }
 
 export const translations: Record<Language, Translations> = {
@@ -565,8 +618,10 @@ export const translations: Record<Language, Translations> = {
       filters: "Filtros",
       filtersDescription: "Selecciona uno o más valores para filtrar las propiedades. Los filtros se combinan con OR (cualquiera de los seleccionados).",
       renovatorName: "Renovator Name",
-      technicalConstructor: "Constructor Técnico",
+      searchRenovator: "Buscar renovador...",
+      technicalConstructor: "Jefe de Obra",
       areaCluster: "Area Cluster",
+      searchAreaCluster: "Buscar área...",
       noValuesAvailable: "No hay valores disponibles",
       clearAll: "Limpiar todos",
       applyFilters: "Aplicar filtros",
@@ -1239,6 +1294,7 @@ export const translations: Record<Language, Translations> = {
       summary: "Resumen",
       propertyStatus: "Estado de la propiedad",
       renovationBudget: "Presupuesto de reforma",
+      comments: "Comentarios y Recordatorios",
     },
     propertySidebar: {
       createdOn: "Creada el",
@@ -1247,8 +1303,8 @@ export const translations: Record<Language, Translations> = {
       completeInitialChecklist: "Completar checklist inicial",
       completeFinalChecklist: "Completar checklist final",
       completeNewSettlementsInfo: "Completar información de upcoming reno",
-      technicalConstructor: "Constructor Técnico",
-      siteManager: "Jefe de Obra",
+      technicalConstructor: "Jefe de Obra",
+      siteManager: "Responsable",
       reminders: "Recordatorios",
       comments: "Comentarios",
       checklistInProgress: "Checklist en progreso",
@@ -1274,6 +1330,52 @@ export const translations: Record<Language, Translations> = {
       completeFinalChecklist: "Completa el checklist final para verificar que todas las obras se han realizado correctamente.",
       initialCheckDescription: "Completa el checklist inicial para evaluar el estado de la propiedad antes de comenzar las obras.",
       finalCheckDescription: "Completa el checklist final para verificar que todas las obras se han realizado correctamente.",
+    },
+    help: {
+      title: "Ayuda",
+      description: "¿Sobre qué necesitas ayuda?",
+      selectErrorType: "¿Sobre qué necesitas ayuda?",
+      propertyError: "Error relacionado con una propiedad",
+      propertyErrorDescription: "Problemas específicos de una propiedad del kanban",
+      generalError: "Error general de la aplicación",
+      generalErrorDescription: "Problemas generales con la aplicación o funcionalidades",
+      selectProperty: "Selecciona la propiedad y describe el problema.",
+      selectPropertyRequired: "Propiedad",
+      describeProblem: "Describe el problema",
+      describeProblemRequired: "Describe el problema",
+      propertyPlaceholder: "Buscar propiedad por dirección o ID...",
+      propertyErrorPlaceholder: "Cuéntanos qué problema has encontrado con esta propiedad...",
+      generalErrorPlaceholder: "Cuéntanos tu problema...",
+      back: "Atrás",
+      cancel: "Cancelar",
+      send: "Enviar",
+      sending: "Enviando...",
+      messageSent: "Mensaje enviado",
+      messageSentDescription: "Tu mensaje ha sido enviado correctamente. Te responderemos pronto.",
+      errorSending: "Error al enviar",
+      pleaseWriteMessage: "Por favor, escribe tu mensaje",
+      pleaseSelectProperty: "Por favor, selecciona una propiedad",
+      notAuthenticated: "No estás autenticado. Por favor, inicia sesión.",
+      errorSavingConversation: "Error al guardar la conversación. Por favor, intenta de nuevo.",
+      couldNotCreateConversation: "No se pudo crear la conversación.",
+      unknownUser: "Usuario desconocido",
+    },
+    notifications: {
+      title: "Notificaciones",
+      description: "Tus conversaciones de ayuda con el equipo de soporte",
+      loadingConversations: "Cargando conversaciones...",
+      noConversations: "No hay conversaciones",
+      noConversationsDescription: "Cuando envíes un mensaje de ayuda, aparecerá aquí junto con la respuesta del equipo.",
+      propertyError: "Error relacionado con propiedad",
+      generalError: "Error general de la aplicación",
+      new: "Nuevo",
+      property: "Propiedad",
+      yourMessage: "Tu mensaje:",
+      teamResponse: "Respuesta del equipo:",
+      waitingForResponse: "Esperando respuesta del equipo...",
+      conversationDetails: "Detalles de la Conversación",
+      propertyLabel: "Propiedad:",
+      close: "Cerrar",
     },
     propertyPage: {
       property: "Propiedad",
@@ -1421,8 +1523,10 @@ export const translations: Record<Language, Translations> = {
       filters: "Filters",
       filtersDescription: "Select one or more values to filter properties. Filters are combined with OR (any of the selected).",
       renovatorName: "Renovator Name",
-      technicalConstructor: "Technical Constructor",
+      searchRenovator: "Search renovator...",
+      technicalConstructor: "Site Manager",
       areaCluster: "Area Cluster",
+      searchAreaCluster: "Search area...",
       noValuesAvailable: "No values available",
       clearAll: "Clear All",
       applyFilters: "Apply Filters",
@@ -2094,6 +2198,7 @@ export const translations: Record<Language, Translations> = {
       summary: "Summary",
       propertyStatus: "Property Status",
       renovationBudget: "Renovation Budget",
+      comments: "Comments & Reminders",
     },
     propertySidebar: {
       createdOn: "Created on",
@@ -2102,8 +2207,8 @@ export const translations: Record<Language, Translations> = {
       completeInitialChecklist: "Complete initial checklist",
       completeFinalChecklist: "Complete final checklist",
       completeNewSettlementsInfo: "Complete new settlements information",
-      technicalConstructor: "Technical Constructor",
-      siteManager: "Site Manager",
+      technicalConstructor: "Site Manager",
+      siteManager: "Responsible Owner",
       reminders: "Reminders",
       comments: "Comments",
       checklistInProgress: "Checklist in progress",
@@ -2175,6 +2280,52 @@ export const translations: Record<Language, Translations> = {
     partner: {
       management: "Property Selling",
       navProperties: "Property Selling",
+    },
+    help: {
+      title: "Help",
+      description: "What do you need help with?",
+      selectErrorType: "What do you need help with?",
+      propertyError: "Error related to a property",
+      propertyErrorDescription: "Specific issues with a property from the kanban",
+      generalError: "General application error",
+      generalErrorDescription: "General problems with the application or features",
+      selectProperty: "Select the property and describe the problem.",
+      selectPropertyRequired: "Property",
+      describeProblem: "Describe the problem",
+      describeProblemRequired: "Describe the problem",
+      propertyPlaceholder: "Search property by address or ID...",
+      propertyErrorPlaceholder: "Tell us what problem you found with this property...",
+      generalErrorPlaceholder: "Tell us your problem...",
+      back: "Back",
+      cancel: "Cancel",
+      send: "Send",
+      sending: "Sending...",
+      messageSent: "Message sent",
+      messageSentDescription: "Your message has been sent successfully. We will respond soon.",
+      errorSending: "Error sending",
+      pleaseWriteMessage: "Please write your message",
+      pleaseSelectProperty: "Please select a property",
+      notAuthenticated: "You are not authenticated. Please log in.",
+      errorSavingConversation: "Error saving conversation. Please try again.",
+      couldNotCreateConversation: "Could not create conversation.",
+      unknownUser: "Unknown user",
+    },
+    notifications: {
+      title: "Notifications",
+      description: "Your help conversations with the support team",
+      loadingConversations: "Loading conversations...",
+      noConversations: "No conversations",
+      noConversationsDescription: "When you send a help message, it will appear here along with the team's response.",
+      propertyError: "Error related to property",
+      generalError: "General application error",
+      new: "New",
+      property: "Property",
+      yourMessage: "Your message:",
+      teamResponse: "Team response:",
+      waitingForResponse: "Waiting for team response...",
+      conversationDetails: "Conversation Details",
+      propertyLabel: "Property:",
+      close: "Close",
     },
   },
 };

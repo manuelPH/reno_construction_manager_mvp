@@ -481,7 +481,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
       const currentUploadZone = currentBano.uploadZone || { id: "fotos-video", photos: [], videos: [] };
 
       return (
-        <div ref={ref} className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+        <div ref={ref} className="bg-card dark:bg-card rounded-lg border p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
           <div className="space-y-2">
             <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
               {t.checklist.sections.banos.title}
@@ -686,7 +686,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
                                             "flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg border-2 transition-colors w-full",
                                             isSelected
                                               ? "border-[var(--prophero-blue-500)] dark:border-[var(--prophero-blue-400)] bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)]"
-                                              : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)] bg-white dark:bg-[var(--prophero-gray-900)]"
+                                              : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)] bg-white dark:bg-card"
                                           )}
                                         >
                                           <option.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -787,7 +787,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
                                       "flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg border-2 transition-colors w-full",
                                       isSelected
                                         ? "border-[var(--prophero-blue-500)] dark:border-[var(--prophero-blue-400)] bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)]"
-                                        : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)] bg-white dark:bg-[var(--prophero-gray-900)]"
+                                        : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)] bg-white dark:bg-card"
                                     )}
                                   >
                                     <option.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -947,7 +947,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
       const hasNextBano = banoIndex < dynamicCount - 1;
       
       return (
-        <div ref={ref} className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+        <div ref={ref} className="bg-card dark:bg-card rounded-lg border p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
           <div className="space-y-2">
             <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
               {t.checklist.sections.banos.bathroom} {banoIndex + 1}
@@ -1117,7 +1117,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
                                             "flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg border-2 transition-colors w-full",
                                             isSelected
                                               ? "border-[var(--prophero-blue-500)] dark:border-[var(--prophero-blue-400)] bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)]"
-                                              : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)] bg-white dark:bg-[var(--prophero-gray-900)]"
+                                              : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)] bg-white dark:bg-card"
                                           )}
                                         >
                                           <option.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -1218,7 +1218,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
                                       "flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-2 rounded-lg border-2 transition-colors w-full",
                                       isSelected
                                         ? "border-[var(--prophero-blue-500)] dark:border-[var(--prophero-blue-400)] bg-[var(--prophero-blue-50)] dark:bg-[var(--prophero-blue-950)]"
-                                        : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)] bg-white dark:bg-[var(--prophero-gray-900)]"
+                                        : "border-[var(--prophero-gray-300)] dark:border-[var(--prophero-gray-600)] hover:border-[var(--prophero-gray-400)] dark:hover:border-[var(--prophero-gray-500)] bg-white dark:bg-card"
                                     )}
                                   >
                                     <option.icon className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -1395,7 +1395,7 @@ export const BanosSection = forwardRef<HTMLDivElement, BanosSectionProps>(
 
     // Main section: Show counter and list of bathrooms (when dynamicCount > 1)
     return (
-      <div ref={ref} className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+      <div ref={ref} className="bg-card dark:bg-card rounded-lg border p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
         <div className="space-y-2">
           <h1 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
             {t.checklist.sections.banos.title}

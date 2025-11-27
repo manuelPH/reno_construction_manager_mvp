@@ -52,3 +52,6 @@ COMMENT ON COLUMN property_dynamic_categories.percentage IS 'Porcentaje de progr
 
 
 
+
+
+

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useCallback, useState, useRef } from "react";
-import { ArrowLeft, MapPin, AlertTriangle } from "lucide-react";
+import { ArrowLeft, MapPin, AlertTriangle, Info, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,6 +13,7 @@ import { PropertySummaryTab } from "@/components/reno/property-summary-tab";
 import { PropertyStatusTab } from "@/components/reno/property-status-tab";
 import { PropertyActionTab } from "@/components/reno/property-action-tab";
 import { PropertyCommentsSection } from "@/components/reno/property-comments-section";
+import { PropertyRemindersSection } from "@/components/reno/property-reminders-section";
 import { PropertyStatusSidebar } from "@/components/reno/property-status-sidebar";
 import { RenoHomeLoader } from "@/components/reno/reno-home-loader";
 import { Property } from "@/lib/property-storage";
@@ -38,6 +39,7 @@ export default function RenoPropertyDetailPage() {
   const supabase = createClient();
   const { t, language } = useI18n();
   const [reportProblemOpen, setReportProblemOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tareas"); // Tab por defecto: Tareas
   const propertyId = params.id && typeof params.id === "string" ? params.id : null;
   const { property: supabaseProperty, loading: supabaseLoading, updateProperty: updateSupabaseProperty, refetch } = useSupabaseProperty(propertyId);
@@ -278,9 +280,10 @@ export default function RenoPropertyDetailPage() {
     return items;
   };
 
-  // Define tabs
+  // Define tabs - Comments tab is second for better mobile UX
   const tabs = [
     { id: "tareas", label: t.propertyTabs.tasks },
+    { id: "comentarios", label: t.propertyTabs.comments || "Comentarios" },
     { id: "resumen", label: t.propertyTabs.summary },
     { id: "estado-propiedad", label: t.propertyTabs.propertyStatus },
     { id: "presupuesto-reforma", label: t.propertyTabs.renovationBudget },
@@ -293,7 +296,7 @@ export default function RenoPropertyDetailPage() {
       // Early return if property is null
       if (!property) {
         return (
-          <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+          <div className="bg-card rounded-lg border p-6 shadow-sm">
             <p className="text-muted-foreground">{t.propertyPage.loadingProperty}</p>
           </div>
         );
@@ -315,7 +318,7 @@ export default function RenoPropertyDetailPage() {
               
               {/* Date section for initial-check (with or without date) */}
               {showDateSection && (
-                <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+                <div className="bg-card rounded-lg border p-6 shadow-sm">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
@@ -380,7 +383,7 @@ export default function RenoPropertyDetailPage() {
               )}
               
               {/* Checklist CTA Card */}
-              <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border-2 border-primary/20 p-8 shadow-lg">
+              <div className="bg-card rounded-lg border-2 border-primary/20 p-8 shadow-lg">
                 <div className="text-center space-y-4">
                   <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
                     <svg
@@ -427,18 +430,18 @@ export default function RenoPropertyDetailPage() {
           const hasEstimatedDate = localEstimatedVisitDate;
           
           return (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {/* Editable Fields for Upcoming Reno */}
-              <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
-                <div className="space-y-6">
+              <div className="bg-card rounded-lg border p-4 md:p-6 shadow-sm">
+                <div className="space-y-4 md:space-y-6">
                   {/* Estimated Visit Date */}
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
+                  <div className="space-y-3 md:space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                      <div className="min-w-0 flex-1">
                         <Label className="text-sm font-semibold">
                           {t.upcomingSettlements.estimatedVisitDate}
                         </Label>
-                        <p className="text-xs text-muted-foreground mt-1">
+                        <p className="text-xs text-muted-foreground mt-1 break-words">
                           {isEditingDate || !hasEstimatedDate
                             ? t.upcomingSettlements.estimatedVisitDateDescription
                             : `${t.propertyPage.currentDate}: ${localEstimatedVisitDate ? new Date(localEstimatedVisitDate).toLocaleDateString(language === "es" ? "es-ES" : "en-US") : ""}`
@@ -450,6 +453,7 @@ export default function RenoPropertyDetailPage() {
                           variant="outline"
                           size="sm"
                           onClick={() => setIsEditingDate(true)}
+                          className="flex-shrink-0 w-full sm:w-auto"
                         >
                           {t.propertyPage.modifyDate || "Modificar fecha"}
                         </Button>
@@ -457,7 +461,7 @@ export default function RenoPropertyDetailPage() {
                     </div>
                     
                     {(!hasEstimatedDate || isEditingDate) && (
-                      <div className="space-y-4 pt-4 border-t">
+                      <div className="space-y-3 md:space-y-4 pt-3 md:pt-4 border-t">
                         <FutureDatePicker
                           value={localEstimatedVisitDate}
                           onChange={handleDateChange}
@@ -465,7 +469,7 @@ export default function RenoPropertyDetailPage() {
                           errorMessage={t.upcomingSettlements.dateMustBeFuture}
                         />
                         {isEditingDate && (
-                          <div className="flex items-center justify-end gap-2">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
                             <Button
                               variant="outline"
                               size="sm"
@@ -474,6 +478,7 @@ export default function RenoPropertyDetailPage() {
                                 setLocalEstimatedVisitDate(property?.estimatedVisitDate);
                                 setHasUnsavedChanges(false);
                               }}
+                              className="w-full sm:w-auto"
                             >
                               {t.calendar.cancel || "Cancelar"}
                             </Button>
@@ -484,6 +489,7 @@ export default function RenoPropertyDetailPage() {
                                 setIsEditingDate(false);
                               }}
                               disabled={isSaving || !hasUnsavedChanges}
+                              className="w-full sm:w-auto"
                             >
                               {isSaving ? t.propertyPage.saving || "Guardando..." : t.propertyPage.save || "Guardar"}
                             </Button>
@@ -497,14 +503,14 @@ export default function RenoPropertyDetailPage() {
 
                   {/* Action Buttons */}
                   {(!hasEstimatedDate || !isEditingDate) && (
-                    <div className="flex items-center justify-end pt-4 border-t">
-                      <div className="flex gap-2">
+                    <div className="flex items-center justify-end pt-3 md:pt-4 border-t">
+                      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         {hasEstimatedDate && (
                           <Button
                             onClick={handleManualSave}
                             disabled={isSaving || !hasUnsavedChanges}
                             variant="outline"
-                            className="min-w-[120px]"
+                            className="w-full sm:min-w-[120px]"
                           >
                             {isSaving ? (
                               <>
@@ -525,7 +531,7 @@ export default function RenoPropertyDetailPage() {
                             await saveToSupabase(true, true);
                           }}
                           disabled={isSaving || !localEstimatedVisitDate}
-                          className="min-w-[200px]"
+                          className="w-full sm:min-w-[200px]"
                         >
                           {isSaving ? (
                             <>
@@ -565,8 +571,32 @@ export default function RenoPropertyDetailPage() {
         return propertyId ? <PropertyStatusTab propertyId={propertyId} /> : null;
       case "presupuesto-reforma":
         return (
-          <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+          <div className="bg-card rounded-lg border p-6 shadow-sm">
             <p className="text-muted-foreground">{t.propertyPage.renovationBudget} - {t.propertyPage.comingSoon}</p>
+          </div>
+        );
+      case "comentarios":
+        return (
+          <div className="space-y-6">
+            {/* Comments Section */}
+            {propertyId && (
+              <div className="bg-card rounded-lg border p-4 md:p-6 shadow-sm">
+                <h2 className="text-lg font-semibold mb-4">{t.propertySidebar.comments}</h2>
+                <PropertyCommentsSection 
+                  propertyId={propertyId} 
+                  property={property} 
+                  supabaseProperty={supabaseProperty} 
+                />
+              </div>
+            )}
+            
+            {/* Reminders Section */}
+            {propertyId && (
+              <div className="bg-card rounded-lg border p-4 md:p-6 shadow-sm">
+                <h2 className="text-lg font-semibold mb-4">{t.propertySidebar.reminders}</h2>
+                <PropertyRemindersSection propertyId={propertyId} showAll={true} />
+              </div>
+            )}
           </div>
         );
       default:
@@ -618,6 +648,7 @@ export default function RenoPropertyDetailPage() {
               icon: <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-500" />,
             },
           ]}
+          onOpenSidebar={() => setIsSidebarOpen(true)}
         />
 
         {/* Header L2: Título extenso de la entidad */}
@@ -646,22 +677,57 @@ export default function RenoPropertyDetailPage() {
         {/* Content with Sidebar */}
         <div className="flex flex-1 overflow-hidden">
           {/* Main Content */}
-          <div className="flex-1 overflow-y-auto p-6 bg-[var(--prophero-gray-50)] dark:bg-[var(--prophero-gray-950)]">
+          <div className="flex-1 overflow-y-auto p-3 md:p-4 lg:p-6 bg-[var(--prophero-gray-50)] dark:bg-[#000000]">
             <div className="max-w-4xl mx-auto">
               {renderTabContent()}
             </div>
           </div>
 
-          {/* Right Sidebar - Status */}
-          <PropertyStatusSidebar
-            property={property}
-            supabaseProperty={supabaseProperty}
-            propertyId={propertyId}
-            progress={progress}
-            pendingItems={getPendingItems()}
-          />
+          {/* Right Sidebar - Status - Hidden on mobile */}
+          <div className="hidden lg:block">
+            <PropertyStatusSidebar
+              property={property}
+              supabaseProperty={supabaseProperty}
+              propertyId={propertyId}
+              progress={progress}
+              pendingItems={getPendingItems()}
+            />
+          </div>
         </div>
       </div>
+
+      {/* Mobile Sidebar Drawer */}
+      {isSidebarOpen && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          />
+          {/* Drawer from right */}
+          <div className="fixed right-0 top-0 h-full w-[85vw] max-w-sm bg-card dark:bg-[var(--prophero-gray-900)] border-l z-50 lg:hidden shadow-xl overflow-y-auto">
+            <div className="sticky top-0 bg-card dark:bg-[var(--prophero-gray-900)] border-b p-4 flex items-center justify-between z-10">
+              <h2 className="text-lg font-semibold">{t.propertyPage.property}</h2>
+              <button
+                onClick={() => setIsSidebarOpen(false)}
+                className="p-2 rounded-md hover:bg-accent transition-colors"
+                aria-label="Close sidebar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-4">
+              <PropertyStatusSidebar
+                property={property}
+                supabaseProperty={supabaseProperty}
+                propertyId={propertyId}
+                progress={progress}
+                pendingItems={getPendingItems()}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Report Problem Modal */}
       {property && (

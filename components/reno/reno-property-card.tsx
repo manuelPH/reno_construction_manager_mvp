@@ -84,7 +84,7 @@ export function RenoPropertyCard({
     <div 
       data-property-id={property.id}
       className={cn(
-        "rounded-lg border-2 border-border bg-card dark:bg-[var(--prophero-gray-900)] p-4 shadow-sm w-full",
+        "rounded-lg border-2 border-border bg-card p-4 shadow-sm w-full",
         "transition-shadow duration-500 ease-out",
         disabled 
           ? "cursor-not-allowed opacity-60" 
@@ -97,12 +97,12 @@ export function RenoPropertyCard({
       onClick={disabled ? undefined : onClick}
     >
       {/* ID and Expired tag aligned at top */}
-      <div className="flex items-center justify-between mb-2">
-        <div className="text-xs font-semibold text-muted-foreground">
+      <div className="flex items-center justify-between mb-2 gap-2 min-w-0">
+        <div className="text-xs font-semibold text-muted-foreground truncate min-w-0">
           ID {property.uniqueIdFromEngagements || property.id}
         </div>
         {isExpired && (
-          <span className="rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 flex-shrink-0">
+          <span className="rounded-full bg-red-100 dark:bg-red-900/30 px-2 py-1 text-xs font-medium text-red-700 dark:text-red-400 flex-shrink-0 whitespace-nowrap">
             {t.propertyCard.expired}
           </span>
         )}
@@ -206,12 +206,12 @@ export function RenoPropertyCard({
         <div className="space-y-2">
           {showRenoDetails && property.renovador && (
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-700)]">
-                <span className="text-xs font-semibold text-foreground">
+              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--prophero-gray-200)] dark:bg-[#262626] overflow-hidden">
+                <span className="text-xs font-semibold text-foreground leading-none">
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">{property.renovador || t.propertyCard.siteManager}</span>
+              <span className="text-xs text-muted-foreground truncate min-w-0">{property.renovador || t.propertyCard.siteManager}</span>
             </div>
           )}
           {showRenoDetails && property.proximaActualizacion && (
@@ -231,12 +231,12 @@ export function RenoPropertyCard({
         <div className="space-y-2">
           {showRenoDetails && property.renovador && (
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-700)]">
-                <span className="text-xs font-semibold text-foreground">
+              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--prophero-gray-200)] dark:bg-[#262626] overflow-hidden">
+                <span className="text-xs font-semibold text-foreground leading-none">
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">{property.renovador || t.propertyCard.siteManager}</span>
+              <span className="text-xs text-muted-foreground truncate min-w-0">{property.renovador || t.propertyCard.siteManager}</span>
             </div>
           )}
           {showRenoDetails && property.proximaActualizacion && (
@@ -256,12 +256,12 @@ export function RenoPropertyCard({
         <div className="space-y-2">
           {showRenoDetails && property.renovador && (
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-700)]">
-                <span className="text-xs font-semibold text-foreground">
+              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--prophero-gray-200)] dark:bg-[#262626] overflow-hidden">
+                <span className="text-xs font-semibold text-foreground leading-none">
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">{property.renovador || t.propertyCard.siteManager}</span>
+              <span className="text-xs text-muted-foreground truncate min-w-0">{property.renovador || t.propertyCard.siteManager}</span>
             </div>
           )}
           <div className="text-xs text-muted-foreground">
@@ -274,12 +274,12 @@ export function RenoPropertyCard({
         <div className="space-y-2">
           {showRenoDetails && property.renovador && (
             <div className="flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-700)]">
-                <span className="text-xs font-semibold text-foreground">
+              <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--prophero-gray-200)] dark:bg-[#262626] overflow-hidden">
+                <span className="text-xs font-semibold text-foreground leading-none">
                   {property.renovador.length > 2 ? property.renovador.substring(0, 2).toUpperCase() : property.renovador.toUpperCase()}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">{property.renovador || t.propertyCard.siteManager}</span>
+              <span className="text-xs text-muted-foreground truncate min-w-0">{property.renovador || t.propertyCard.siteManager}</span>
             </div>
           )}
           <div className="text-xs text-muted-foreground">{timeInPhase}</div>

@@ -110,8 +110,8 @@ export function PropertyStatusSidebar({
   };
 
   return (
-    <div className="w-80 border-l bg-card dark:bg-[var(--prophero-gray-900)] flex flex-col overflow-hidden">
-      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+    <div className="w-full lg:w-80 border-l-0 lg:border-l bg-card dark:bg-[var(--prophero-gray-900)] flex flex-col overflow-hidden">
+      <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-4 md:space-y-6">
         {/* Status Section */}
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -130,7 +130,7 @@ export function PropertyStatusSidebar({
                 <span className="text-xs text-muted-foreground">{t.propertySidebar.dataCompleted}</span>
                 <span className="text-xs font-medium">{progress}%</span>
               </div>
-              <div className="w-full h-2 bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-800)] rounded-full overflow-hidden">
+              <div className="w-full h-2 bg-[var(--prophero-gray-200)] dark:bg-[#1a1a1a] rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all duration-300"
                   style={{ width: `${progress}%` }}
@@ -222,7 +222,7 @@ export function PropertyStatusSidebar({
                     <div className="text-xs text-muted-foreground mb-2">
                       {t.propertySidebar.checklistInProgress}
                     </div>
-                    <div className="w-full h-2 bg-[var(--prophero-gray-200)] dark:bg-[var(--prophero-gray-800)] rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-[var(--prophero-gray-200)] dark:bg-[#1a1a1a] rounded-full overflow-hidden">
                       <div
                         className="h-full bg-green-500 transition-all duration-300"
                         style={{ width: `${checklistProgress}%` }}

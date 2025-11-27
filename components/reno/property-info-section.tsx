@@ -31,7 +31,7 @@ export function PropertyInfoSection({ property, phase, onStartChecklist }: Prope
   const isFinalCheck = phase === "final-check";
 
   return (
-    <div className="bg-card dark:bg-[var(--prophero-gray-900)] rounded-lg border p-6 shadow-sm">
+    <div className="bg-card rounded-lg border p-6 shadow-sm">
       <h2 className="text-lg font-semibold mb-4">
         {isInitialCheck 
           ? t.initialCheck.propertyInformation 
