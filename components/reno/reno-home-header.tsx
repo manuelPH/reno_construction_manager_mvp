@@ -18,7 +18,7 @@ export function RenoHomeHeader({ searchQuery, setSearchQuery }: RenoHomeHeaderPr
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <h1 className="text-xl md:text-2xl font-semibold">{t.nav.home}</h1>
         
-        <div className="flex items-center gap-3 w-full md:w-auto md:max-w-md">
+        <div className="hidden flex items-center gap-3 w-full md:w-auto md:max-w-md">
           <div className="relative flex-1 md:flex-initial">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input

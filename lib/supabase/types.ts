@@ -81,6 +81,7 @@ export type Database = {
           notes: string | null
           quantity: number | null
           updated_at: string
+          video_urls: string[] | null
           zone_id: string
         }
         Insert: {
@@ -93,6 +94,7 @@ export type Database = {
           notes?: string | null
           quantity?: number | null
           updated_at?: string
+          video_urls?: string[] | null
           zone_id: string
         }
         Update: {
@@ -105,6 +107,7 @@ export type Database = {
           notes?: string | null
           quantity?: number | null
           updated_at?: string
+          video_urls?: string[] | null
           zone_id?: string
         }
         Relationships: [

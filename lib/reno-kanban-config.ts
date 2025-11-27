@@ -9,7 +9,8 @@ export type RenoKanbanPhase =
   | "furnishing-cleaning"
   | "final-check"
   | "reno-fixes"
-  | "done";
+  | "done"
+  | "orphaned"; // Fase para propiedades que no están en ninguna vista de Airtable (no visible)
 
 export interface RenoKanbanColumn {
   key: RenoKanbanPhase;
@@ -39,7 +40,7 @@ export const renoKanbanColumns: RenoKanbanColumn[] = [
 
 // Visible columns (excluding hidden phases)
 export const visibleRenoKanbanColumns: RenoKanbanColumn[] = renoKanbanColumns.filter(
-  (column) => column.key !== "reno-fixes" && column.key !== "done"
+  (column) => column.key !== "reno-fixes" && column.key !== "done" && column.key !== "orphaned"
 );
 
 

@@ -152,9 +152,11 @@ export function useSupabaseKanbanProperties() {
         setError(null);
 
         // Build query based on user role
+        // Exclude orphaned properties (not visible in kanban)
         let query = supabase
           .from('properties')
-          .select('*');
+          .select('*')
+          .neq('reno_phase', 'orphaned');
 
         // Filter by role:
         // - Admin: see all properties
