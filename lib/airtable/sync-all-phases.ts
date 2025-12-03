@@ -5,6 +5,7 @@
 
 import { syncUpcomingSettlementsFromAirtable } from './sync-upcoming-settlements';
 import { syncUpcomingRenoBudgetFromAirtable } from './sync-upcoming-reno-budget';
+import { syncUpcomingFromAirtable } from './sync-upcoming';
 import { syncInitialCheckFromAirtable } from './sync-initial-check';
 import { syncRenoInProgressFromAirtable } from './sync-reno-in-progress';
 import { syncFurnishingCleaningFromAirtable } from './sync-furnishing-cleaning';
@@ -67,8 +68,33 @@ export async function syncAllPhasesFromAirtable(): Promise<AllPhasesSyncResult> 
       totalErrors++;
     }
 
-    // 2. Sync Upcoming Reno Budget
-    console.log('📋 Phase 2: Upcoming Reno Budget');
+    // 2. Sync Upcoming (Pending to validate budget)
+    console.log('📋 Phase 2: Upcoming (Pending to validate budget)');
+    console.log('='.repeat(60));
+    try {
+      const upcomingResult = await syncUpcomingFromAirtable();
+      results.push({
+        phase: 'upcoming',
+        ...upcomingResult,
+      });
+      totalCreated += upcomingResult.created;
+      totalUpdated += upcomingResult.updated;
+      totalErrors += upcomingResult.errors;
+      console.log(`✅ Upcoming: ${upcomingResult.created} created, ${upcomingResult.updated} updated, ${upcomingResult.errors} errors\n`);
+    } catch (error: any) {
+      console.error('❌ Error syncing Upcoming:', error);
+      results.push({
+        phase: 'upcoming',
+        created: 0,
+        updated: 0,
+        errors: 1,
+        details: [`Error: ${error.message}`],
+      });
+      totalErrors++;
+    }
+
+    // 3. Sync Upcoming Reno Budget
+    console.log('📋 Phase 3: Upcoming Reno Budget');
     console.log('='.repeat(60));
     try {
       const renoBudgetResult = await syncUpcomingRenoBudgetFromAirtable();
@@ -92,8 +118,8 @@ export async function syncAllPhasesFromAirtable(): Promise<AllPhasesSyncResult> 
       totalErrors++;
     }
 
-    // 3. Sync Initial Check
-    console.log('📋 Phase 3: Initial Check');
+    // 4. Sync Initial Check
+    console.log('📋 Phase 4: Initial Check');
     console.log('='.repeat(60));
     try {
       const initialCheckResult = await syncInitialCheckFromAirtable();
@@ -117,8 +143,8 @@ export async function syncAllPhasesFromAirtable(): Promise<AllPhasesSyncResult> 
       totalErrors++;
     }
 
-    // 4. Sync Reno In Progress
-    console.log('📋 Phase 4: Reno In Progress');
+    // 5. Sync Reno In Progress
+    console.log('📋 Phase 5: Reno In Progress');
     console.log('='.repeat(60));
     try {
       const renoInProgressResult = await syncRenoInProgressFromAirtable();
@@ -142,8 +168,8 @@ export async function syncAllPhasesFromAirtable(): Promise<AllPhasesSyncResult> 
       totalErrors++;
     }
 
-    // 5. Sync Furnishing & Cleaning
-    console.log('📋 Phase 4: Furnishing & Cleaning');
+    // 6. Sync Furnishing & Cleaning
+    console.log('📋 Phase 6: Furnishing & Cleaning');
     console.log('='.repeat(60));
     try {
       const furnishingResult = await syncFurnishingCleaningFromAirtable();
@@ -167,8 +193,8 @@ export async function syncAllPhasesFromAirtable(): Promise<AllPhasesSyncResult> 
       totalErrors++;
     }
 
-    // 6. Sync Final Check
-    console.log('📋 Phase 6: Final Check');
+    // 7. Sync Final Check
+    console.log('📋 Phase 7: Final Check');
     console.log('='.repeat(60));
     try {
       const finalCheckResult = await syncFinalCheckFromAirtable();
@@ -192,8 +218,8 @@ export async function syncAllPhasesFromAirtable(): Promise<AllPhasesSyncResult> 
       totalErrors++;
     }
 
-    // 7. Limpiar propiedades que ya no están en ninguna view
-    console.log('📋 Phase 7: Cleaning up properties not in any view');
+    // 8. Limpiar propiedades que ya no están en ninguna view
+    console.log('📋 Phase 8: Cleaning up properties not in any view');
     console.log('='.repeat(60));
     try {
       await cleanupPropertiesNotInViews(results);
@@ -273,7 +299,7 @@ async function cleanupPropertiesNotInViews(syncResults: SyncResult[]): Promise<v
     console.log(`📋 Found ${syncedAirtableIds.size} unique Airtable IDs synchronized in this run`);
 
     // Obtener todas las propiedades que tienen airtable_property_id y están en fases sincronizadas
-    const syncedPhases = ['upcoming-settlements', 'reno-budget', 'initial-check', 'reno-in-progress', 'furnishing-cleaning', 'final-check'];
+    const syncedPhases = ['upcoming-settlements', 'upcoming', 'reno-budget', 'initial-check', 'reno-in-progress', 'furnishing-cleaning', 'final-check'];
     const { data: allProperties, error: fetchError } = await supabase
       .from('properties')
       .select('id, airtable_property_id, reno_phase, "Set Up Status"')

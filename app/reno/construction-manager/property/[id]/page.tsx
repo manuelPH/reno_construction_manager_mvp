@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useCallback, useState, useRef } from "react";
 import { ArrowLeft, MapPin, AlertTriangle, Info, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -36,8 +36,12 @@ type PropertyUpdate = Database['public']['Tables']['properties']['Update'];
 export default function RenoPropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const { t, language } = useI18n();
+  
+  // Get viewMode from query params (kanban or list)
+  const viewMode = searchParams.get('viewMode') || 'kanban';
   const [reportProblemOpen, setReportProblemOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tareas"); // Tab por defecto: Tareas
@@ -622,7 +626,7 @@ export default function RenoPropertyDetailPage() {
             {t.propertyPage.propertyNotFound}
           </p>
           <button 
-            onClick={() => router.push("/reno/construction-manager/kanban")} 
+            onClick={() => router.push(`/reno/construction-manager/kanban${viewMode === 'list' ? '?viewMode=list' : ''}`)} 
             className="px-4 py-2 rounded-md border border-input bg-background hover:bg-accent"
           >
             {t.propertyPage.backToKanban}
@@ -638,7 +642,7 @@ export default function RenoPropertyDetailPage() {
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Navbar L2: Botón atrás + Acciones críticas */}
         <NavbarL2
-          onBack={() => router.push("/reno/construction-manager/kanban")}
+          onBack={() => router.push(`/reno/construction-manager/kanban${viewMode === 'list' ? '?viewMode=list' : ''}`)}
           classNameTitle={t.propertyPage.property}
           actions={[
             {

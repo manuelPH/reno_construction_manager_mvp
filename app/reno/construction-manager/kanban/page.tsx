@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { RenoSidebar } from "@/components/reno/reno-sidebar";
 import { NavbarL1 } from "@/components/layout/navbar-l1";
 import { RenoKanbanBoard } from "@/components/reno/reno-kanban-board";
@@ -13,9 +14,18 @@ import { cn } from "@/lib/utils";
 type ViewMode = "kanban" | "list";
 
 export default function RenoConstructionManagerKanbanPage() {
+  const searchParams = useSearchParams();
   const [searchQuery, setSearchQuery] = useState("");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("kanban");
+  
+  // Restore viewMode from query params when navigating back
+  useEffect(() => {
+    const viewModeParam = searchParams.get('viewMode');
+    if (viewModeParam === 'list' || viewModeParam === 'kanban') {
+      setViewMode(viewModeParam);
+    }
+  }, [searchParams]);
   const [filters, setFilters] = useState<KanbanFilters>({
     renovatorNames: [],
     technicalConstructors: [],

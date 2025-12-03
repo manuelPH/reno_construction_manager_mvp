@@ -14,7 +14,19 @@ import { sortPropertiesByExpired, isPropertyExpired } from "@/lib/property-sorti
 import { KanbanFilters } from "./reno-kanban-filters";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Calendar, User, Wrench, Clock } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { MapPin, Calendar, User, Wrench, Clock, ChevronDown, ChevronUp, ArrowUpDown, Columns, Settings } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { createClient } from "@/lib/supabase/client";
+import { useSupabaseAuth } from "@/hooks/useSupabaseAuth";
 
 type ViewMode = "kanban" | "list";
 
@@ -27,10 +39,50 @@ interface RenoKanbanBoardProps {
 
 // Dummy data and helper functions removed - now using Supabase
 
+type SortColumn = "id" | "address" | "region" | "renovador" | "renoType" | "estimatedVisit" | "proximaActualizacion" | "progress" | "status";
+type SortDirection = "asc" | "desc" | null;
+
+interface ColumnConfig {
+  key: SortColumn;
+  label: string;
+  defaultVisible: boolean;
+}
+
+// Column configuration
+const COLUMN_CONFIG: ColumnConfig[] = [
+  { key: "id", label: "ID", defaultVisible: true },
+  { key: "address", label: "Dirección", defaultVisible: true },
+  { key: "region", label: "Región", defaultVisible: true },
+  { key: "renovador", label: "Renovador", defaultVisible: true },
+  { key: "renoType", label: "Tipo Reno", defaultVisible: true },
+  { key: "estimatedVisit", label: "Est. Visit", defaultVisible: true },
+  { key: "proximaActualizacion", label: "Próxima Actualización", defaultVisible: true },
+  { key: "progress", label: "Progreso", defaultVisible: true },
+  { key: "status", label: "Estado", defaultVisible: true },
+];
+
 export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onViewModeChange }: RenoKanbanBoardProps) {
   const { t, language } = useI18n();
+  const { user } = useSupabaseAuth();
+  const supabase = createClient();
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [collapsedPhases, setCollapsedPhases] = useState<Set<RenoKanbanPhase>>(new Set());
+  const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
+  const [sortDirection, setSortDirection] = useState<SortDirection>(null);
+  const [selectedPhaseFilter, setSelectedPhaseFilter] = useState<RenoKanbanPhase | "all">("all");
+  
+  // Column visibility state per phase - Map<phase, Set<columns>>
+  const [visibleColumnsByPhase, setVisibleColumnsByPhase] = useState<Map<RenoKanbanPhase, Set<SortColumn>>>(() => {
+    const defaultColumns = new Set(COLUMN_CONFIG.filter(col => col.defaultVisible).map(col => col.key));
+    const map = new Map<RenoKanbanPhase, Set<SortColumn>>();
+    visibleRenoKanbanColumns.forEach(col => {
+      map.set(col.key, new Set(defaultColumns));
+    });
+    return map;
+  });
+  const [isLoadingColumns, setIsLoadingColumns] = useState(true);
+  
   const router = useRouter();
   
   // Refs for columns to enable scrolling
@@ -57,8 +109,9 @@ export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onV
   const handleCardClick = (property: Property) => {
     // For construction manager, navigate to view-only page
     // Later, this will open the task execution screen
+    // Pass viewMode as query param to remember the current view
     startTransition(() => {
-      router.push(`/reno/construction-manager/property/${property.id}`);
+      router.push(`/reno/construction-manager/property/${property.id}?viewMode=${viewMode}`);
     });
   };
 
@@ -372,6 +425,152 @@ export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onV
     return grouped;
   }, [filteredProperties]);
 
+  // Toggle phase collapse
+  const togglePhaseCollapse = useCallback((phase: RenoKanbanPhase) => {
+    setCollapsedPhases(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(phase)) {
+        newSet.delete(phase);
+      } else {
+        newSet.add(phase);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Sort function
+  const sortProperties = useCallback((
+    properties: Array<Property & { currentPhase?: RenoKanbanPhase }>,
+    column: SortColumn,
+    direction: "asc" | "desc"
+  ) => {
+    return [...properties].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (column) {
+        case "id":
+          aValue = (a.uniqueIdFromEngagements || a.id).toLowerCase();
+          bValue = (b.uniqueIdFromEngagements || b.id).toLowerCase();
+          break;
+        case "address":
+          aValue = a.fullAddress.toLowerCase();
+          bValue = b.fullAddress.toLowerCase();
+          break;
+        case "region":
+          aValue = (a.region || "").toLowerCase();
+          bValue = (b.region || "").toLowerCase();
+          break;
+        case "renovador":
+          aValue = (a.renovador || "").toLowerCase();
+          bValue = (b.renovador || "").toLowerCase();
+          break;
+        case "renoType":
+          aValue = (a.renoType || "").toLowerCase();
+          bValue = (b.renoType || "").toLowerCase();
+          break;
+        case "estimatedVisit":
+          aValue = (a as any).estimatedVisitDate ? new Date((a as any).estimatedVisitDate).getTime() : 0;
+          bValue = (b as any).estimatedVisitDate ? new Date((b as any).estimatedVisitDate).getTime() : 0;
+          break;
+        case "proximaActualizacion":
+          aValue = a.proximaActualizacion ? new Date(a.proximaActualizacion).getTime() : 0;
+          bValue = b.proximaActualizacion ? new Date(b.proximaActualizacion).getTime() : 0;
+          break;
+        case "progress":
+          aValue = calculateOverallProgress(a.data) ?? -1;
+          bValue = calculateOverallProgress(b.data) ?? -1;
+          break;
+        case "status":
+          const aExpired = isPropertyExpired(a);
+          const bExpired = isPropertyExpired(b);
+          aValue = aExpired ? 1 : 0;
+          bValue = bExpired ? 1 : 0;
+          break;
+        default:
+          return 0;
+      }
+
+      if (aValue < bValue) return direction === "asc" ? -1 : 1;
+      if (aValue > bValue) return direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, []);
+
+  // Handle column sort
+  const handleSort = useCallback((column: SortColumn) => {
+    if (sortColumn === column) {
+      if (sortDirection === "asc") {
+        setSortDirection("desc");
+      } else if (sortDirection === "desc") {
+        setSortColumn(null);
+        setSortDirection(null);
+      } else {
+        setSortDirection("asc");
+      }
+    } else {
+      setSortColumn(column);
+      setSortDirection("asc");
+    }
+  }, [sortColumn, sortDirection]);
+
+  // Handle column visibility toggle per phase
+  const toggleColumnVisibility = useCallback(async (phase: RenoKanbanPhase, columnKey: SortColumn) => {
+    setVisibleColumnsByPhase(prev => {
+      const newMap = new Map(prev);
+      const phaseColumns = new Set(newMap.get(phase) || []);
+      
+      if (phaseColumns.has(columnKey)) {
+        phaseColumns.delete(columnKey);
+      } else {
+        phaseColumns.add(columnKey);
+      }
+      
+      newMap.set(phase, phaseColumns);
+      
+      // Save to Supabase
+      if (user?.id) {
+        supabase
+          .from('user_column_preferences')
+          .upsert({
+            user_id: user.id,
+            view_type: 'reno_kanban_list',
+            phase: phase,
+            visible_columns: Array.from(phaseColumns),
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'user_id,view_type,phase',
+          })
+          .then(({ error }) => {
+            if (error) {
+              console.warn('[RenoKanbanBoard] Error saving column preferences:', error);
+            }
+          });
+      }
+      
+      return newMap;
+    });
+  }, [user?.id, supabase]);
+
+  // Get visible columns for a specific phase
+  const getVisibleColumnsForPhase = useCallback((phase: RenoKanbanPhase): Set<SortColumn> => {
+    return visibleColumnsByPhase.get(phase) || new Set(COLUMN_CONFIG.filter(col => col.defaultVisible).map(col => col.key));
+  }, [visibleColumnsByPhase]);
+
+  // Calculate total count for "All" (must be before early returns)
+  const totalCount = useMemo(() => {
+    if (!propertiesByPhaseForList) return 0;
+    return Object.values(propertiesByPhaseForList).flat().length;
+  }, [propertiesByPhaseForList]);
+
+  // Filter phases based on selected filter (must be before early returns)
+  const filteredPhases = useMemo(() => {
+    if (selectedPhaseFilter === "all") {
+      return visibleRenoKanbanColumns;
+    }
+    return visibleRenoKanbanColumns.filter(col => col.key === selectedPhaseFilter);
+  }, [selectedPhaseFilter]);
+
   // Show error message if Supabase fails
   if (supabaseError) {
     return (
@@ -409,163 +608,362 @@ export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onV
       );
     }
 
-    return (
-      <div className="space-y-6 pb-4 overflow-y-auto h-full">
-        {visibleRenoKanbanColumns.map((column) => {
-          const properties = propertiesByPhaseForList[column.key] || [];
-          const phaseLabel = t.kanban[column.translationKey];
+    // Helper to render sort icon
+    const renderSortIcon = (column: SortColumn) => {
+      if (sortColumn !== column) {
+        return <ArrowUpDown className="h-3 w-3 text-muted-foreground opacity-50" />;
+      }
+      if (sortDirection === "asc") {
+        return <ChevronUp className="h-3 w-3 text-[var(--prophero-blue-500)]" />;
+      }
+      if (sortDirection === "desc") {
+        return <ChevronDown className="h-3 w-3 text-[var(--prophero-blue-500)]" />;
+      }
+      return <ArrowUpDown className="h-3 w-3 text-muted-foreground opacity-50" />;
+    };
 
-          if (properties.length === 0) return null;
+
+    return (
+      <div className="flex flex-col h-full">
+        {/* Sticky Phase Filter */}
+        <div className="sticky top-0 z-10 bg-background border-b border-border pb-3 mb-4 pt-2">
+          <div className="flex flex-wrap gap-2 overflow-x-auto">
+            {/* All Button */}
+            <button
+              onClick={() => setSelectedPhaseFilter("all")}
+              className={cn(
+                "px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0",
+                selectedPhaseFilter === "all"
+                  ? "bg-[var(--prophero-blue-500)] text-white"
+                  : "bg-card dark:bg-[var(--prophero-gray-900)] border border-border text-foreground hover:bg-accent"
+              )}
+            >
+              All ({totalCount})
+            </button>
+            
+            {/* Phase Buttons */}
+            {visibleRenoKanbanColumns.map((column) => {
+              const count = (propertiesByPhaseForList[column.key] || []).length;
+              const phaseLabel = t.kanban[column.translationKey];
+              const isSelected = selectedPhaseFilter === column.key;
+              
+              return (
+                <button
+                  key={column.key}
+                  onClick={() => setSelectedPhaseFilter(column.key)}
+                  className={cn(
+                    "px-4 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap flex-shrink-0",
+                    isSelected
+                      ? "bg-[var(--prophero-blue-500)] text-white"
+                      : "bg-card dark:bg-[var(--prophero-gray-900)] border border-border text-foreground hover:bg-accent"
+                  )}
+                >
+                  {phaseLabel} ({count})
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Properties List */}
+        <div className="space-y-6 pb-4 overflow-y-auto flex-1">
+          {filteredPhases.map((column) => {
+            let properties = propertiesByPhaseForList[column.key] || [];
+            const phaseLabel = t.kanban[column.translationKey];
+            const isCollapsed = collapsedPhases.has(column.key);
+
+            if (properties.length === 0) return null;
+
+          // Apply sorting if active
+          if (sortColumn && sortDirection) {
+            properties = sortProperties(properties, sortColumn, sortDirection);
+          }
 
           return (
             <div key={column.key} className="bg-card rounded-lg border border-border overflow-hidden">
-              {/* Phase Header */}
+              {/* Phase Header - Collapsible */}
               <div className="bg-accent dark:bg-[var(--prophero-gray-800)] px-4 py-3 border-b border-border">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-foreground text-lg">{phaseLabel}</h3>
-                  <Badge variant="secondary" className="text-sm">
-                    {properties.length}
-                  </Badge>
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    onClick={() => togglePhaseCollapse(column.key)}
+                    className="flex items-center gap-2 hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors rounded px-2 py-1 -ml-2 flex-1 min-w-0"
+                  >
+                    {isCollapsed ? (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform rotate-[-90deg] flex-shrink-0" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform flex-shrink-0" />
+                    )}
+                    <h3 className="font-semibold text-foreground text-lg truncate">{phaseLabel}</h3>
+                    <Badge variant="secondary" className="text-sm flex-shrink-0">
+                      {properties.length}
+                    </Badge>
+                  </button>
+                  
+                  {/* Column Visibility Toggle */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0 flex-shrink-0"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <Columns className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56">
+                      <DropdownMenuLabel>Columnas visibles</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      {COLUMN_CONFIG.map((colConfig) => (
+                        <DropdownMenuCheckboxItem
+                          key={colConfig.key}
+                          checked={getVisibleColumnsForPhase(column.key).has(colConfig.key)}
+                          onCheckedChange={() => toggleColumnVisibility(column.key, colConfig.key)}
+                        >
+                          {colConfig.label}
+                        </DropdownMenuCheckboxItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
               </div>
 
-              {/* Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-accent dark:bg-[var(--prophero-gray-800)] border-b border-border">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        ID
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Dirección
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Región
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Renovador
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Tipo Reno
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Est. Visit
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Próxima Actualización
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Progreso
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                        Estado
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-border">
-                    {properties.map((property) => {
-                      const expired = isPropertyExpired(property);
-                      return (
-                        <tr
-                          key={property.id}
-                          onClick={() => handleCardClick(property)}
-                          className={cn(
-                            "cursor-pointer hover:bg-accent dark:hover:bg-[var(--prophero-gray-800)] transition-colors",
-                            expired && "bg-red-50 dark:bg-red-950/10"
-                          )}
-                        >
-                          <td className="px-4 py-3 whitespace-nowrap">
+              {/* Table - Collapsible */}
+              {!isCollapsed && (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-accent dark:bg-[var(--prophero-gray-800)] border-b border-border">
+                      <tr>
+                        {getVisibleColumnsForPhase(column.key).has("id") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("id")}
+                          >
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-foreground">
-                                {property.uniqueIdFromEngagements || property.id}
-                              </span>
-                              {expired && (
-                                <Badge variant="destructive" className="text-xs">
-                                  {t.propertyCard.expired}
-                                </Badge>
-                              )}
+                              ID
+                              {renderSortIcon("id")}
                             </div>
-                          </td>
-                          <td className="px-4 py-3">
-                            <div className="flex items-start gap-2 max-w-xs">
-                              <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                              <span className="text-sm text-foreground break-words">
-                                {property.fullAddress}
-                              </span>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("address") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("address")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Dirección
+                              {renderSortIcon("address")}
                             </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span className="text-sm text-muted-foreground">
-                              {property.region || "N/A"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center gap-1">
-                              <User className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm text-foreground">
-                                {property.renovador || "N/A"}
-                              </span>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("region") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("region")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Región
+                              {renderSortIcon("region")}
                             </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            {property.renoType ? (
-                              <Badge variant="secondary" className="text-xs">
-                                {property.renoType}
-                              </Badge>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">N/A</span>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("renovador") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("renovador")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Renovador
+                              {renderSortIcon("renovador")}
+                            </div>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("renoType") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("renoType")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Tipo Reno
+                              {renderSortIcon("renoType")}
+                            </div>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("estimatedVisit") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("estimatedVisit")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Est. Visit
+                              {renderSortIcon("estimatedVisit")}
+                            </div>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("proximaActualizacion") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("proximaActualizacion")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Próxima Actualización
+                              {renderSortIcon("proximaActualizacion")}
+                            </div>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("progress") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("progress")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Progreso
+                              {renderSortIcon("progress")}
+                            </div>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("status") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("status")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Estado
+                              {renderSortIcon("status")}
+                            </div>
+                          </th>
+                        )}
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border">
+                      {properties.map((property) => {
+                        const expired = isPropertyExpired(property);
+                        return (
+                          <tr
+                            key={property.id}
+                            onClick={() => handleCardClick(property)}
+                            className={cn(
+                              "cursor-pointer hover:bg-accent dark:hover:bg-[var(--prophero-gray-800)] transition-colors",
+                              expired && "border-l-4 border-l-red-100 dark:border-l-red-900/30 bg-red-50 dark:bg-red-950/10"
                             )}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm text-foreground">
-                                {(property as any).estimatedVisitDate 
-                                  ? formatDate((property as any).estimatedVisitDate)
-                                  : "N/A"}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3 text-muted-foreground" />
-                              <span className="text-sm text-foreground">
-                                {property.proximaActualizacion 
-                                  ? formatDate(property.proximaActualizacion)
-                                  : "N/A"}
-                              </span>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            {(property as any).progress !== undefined ? (
-                              <div className="text-sm font-semibold text-foreground">
-                                {Math.round((property as any).progress)}%
-                              </div>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">N/A</span>
+                          >
+                            {getVisibleColumnsForPhase(column.key).has("id") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium text-foreground">
+                                    {property.uniqueIdFromEngagements || property.id}
+                                  </span>
+                                  {expired && (
+                                    <Badge className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-0">
+                                      {t.propertyCard.expired}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </td>
                             )}
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            {expired ? (
-                              <Badge variant="destructive" className="text-xs">
-                                {t.propertyCard.expired}
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-xs">
-                                {t.propertyCard.workInProgress || "Active"}
-                              </Badge>
+                            {getVisibleColumnsForPhase(column.key).has("address") && (
+                              <td className="px-4 py-3">
+                                <div className="flex items-start gap-2 max-w-xs">
+                                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                                  <span className="text-sm text-foreground break-words">
+                                    {property.fullAddress}
+                                  </span>
+                                </div>
+                              </td>
                             )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+                            {getVisibleColumnsForPhase(column.key).has("region") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className="text-sm text-muted-foreground">
+                                  {property.region || "N/A"}
+                                </span>
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("renovador") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center gap-1">
+                                  <User className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-sm text-foreground">
+                                    {property.renovador || "N/A"}
+                                  </span>
+                                </div>
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("renoType") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                {property.renoType ? (
+                                  <Badge variant="secondary" className="text-xs">
+                                    {property.renoType}
+                                  </Badge>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">N/A</span>
+                                )}
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("estimatedVisit") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center gap-1">
+                                  <Calendar className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-sm text-foreground">
+                                    {(property as any).estimatedVisitDate 
+                                      ? formatDate((property as any).estimatedVisitDate)
+                                      : "N/A"}
+                                  </span>
+                                </div>
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("proximaActualizacion") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <div className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3 text-muted-foreground" />
+                                  <span className="text-sm text-foreground">
+                                    {property.proximaActualizacion 
+                                      ? formatDate(property.proximaActualizacion)
+                                      : "N/A"}
+                                  </span>
+                                </div>
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("progress") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                {(() => {
+                                  const progress = calculateOverallProgress(property.data);
+                                  return progress !== undefined ? (
+                                    <div className="flex items-center gap-2 min-w-[100px]">
+                                      <span className="text-sm font-semibold text-foreground w-10">
+                                        {Math.round(progress)}%
+                                      </span>
+                                      <Progress value={progress} className="flex-1 h-2" />
+                                    </div>
+                                  ) : (
+                                    <span className="text-sm text-muted-foreground">N/A</span>
+                                  );
+                                })()}
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("status") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                {expired ? (
+                                  <Badge className="text-xs bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-0">
+                                    {t.propertyCard.expired}
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-xs">
+                                    {t.propertyCard.workInProgress || "Active"}
+                                  </Badge>
+                                )}
+                              </td>
+                            )}
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </div>
           );
         })}
+        </div>
       </div>
     );
   };
