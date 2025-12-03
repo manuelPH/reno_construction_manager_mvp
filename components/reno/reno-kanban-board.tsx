@@ -39,7 +39,7 @@ interface RenoKanbanBoardProps {
 
 // Dummy data and helper functions removed - now using Supabase
 
-type SortColumn = "id" | "address" | "region" | "renovador" | "renoType" | "estimatedVisit" | "proximaActualizacion" | "progress" | "status";
+type SortColumn = "id" | "address" | "region" | "renovador" | "renoType" | "estimatedVisit" | "proximaActualizacion" | "progress" | "status" | "daysToVisit" | "daysToStartRenoSinceRSD" | "renoDuration" | "daysToPropertyReady";
 type SortDirection = "asc" | "desc" | null;
 
 interface ColumnConfig {
@@ -57,6 +57,10 @@ const COLUMN_CONFIG: ColumnConfig[] = [
   { key: "renoType", label: "Tipo Reno", defaultVisible: true },
   { key: "estimatedVisit", label: "Est. Visit", defaultVisible: true },
   { key: "proximaActualizacion", label: "Próxima Actualización", defaultVisible: true },
+  { key: "daysToVisit", label: "Días para visitar", defaultVisible: false },
+  { key: "daysToStartRenoSinceRSD", label: "Días para empezar la reno desde la firma", defaultVisible: false },
+  { key: "renoDuration", label: "Duración de la obra", defaultVisible: false },
+  { key: "daysToPropertyReady", label: "Días para propiedad lista", defaultVisible: false },
   { key: "progress", label: "Progreso", defaultVisible: true },
   { key: "status", label: "Estado", defaultVisible: true },
 ];
@@ -589,6 +593,22 @@ export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onV
           aValue = a.proximaActualizacion ? new Date(a.proximaActualizacion).getTime() : 0;
           bValue = b.proximaActualizacion ? new Date(b.proximaActualizacion).getTime() : 0;
           break;
+        case "daysToVisit":
+          aValue = a.daysToVisit ?? -1;
+          bValue = b.daysToVisit ?? -1;
+          break;
+        case "daysToStartRenoSinceRSD":
+          aValue = a.daysToStartRenoSinceRSD ?? -1;
+          bValue = b.daysToStartRenoSinceRSD ?? -1;
+          break;
+        case "renoDuration":
+          aValue = a.renoDuration ?? -1;
+          bValue = b.renoDuration ?? -1;
+          break;
+        case "daysToPropertyReady":
+          aValue = a.daysToPropertyReady ?? -1;
+          bValue = b.daysToPropertyReady ?? -1;
+          break;
         case "progress":
           aValue = calculateOverallProgress(a.data) ?? -1;
           bValue = calculateOverallProgress(b.data) ?? -1;
@@ -978,6 +998,50 @@ export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onV
                             </div>
                           </th>
                         )}
+                        {getVisibleColumnsForPhase(column.key).has("daysToVisit") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("daysToVisit")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Días para visitar
+                              {renderSortIcon("daysToVisit")}
+                            </div>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("daysToStartRenoSinceRSD") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("daysToStartRenoSinceRSD")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Días para empezar la reno desde la firma
+                              {renderSortIcon("daysToStartRenoSinceRSD")}
+                            </div>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("renoDuration") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("renoDuration")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Duración de la obra
+                              {renderSortIcon("renoDuration")}
+                            </div>
+                          </th>
+                        )}
+                        {getVisibleColumnsForPhase(column.key).has("daysToPropertyReady") && (
+                          <th 
+                            className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
+                            onClick={() => handleSort("daysToPropertyReady")}
+                          >
+                            <div className="flex items-center gap-2">
+                              Días para propiedad lista
+                              {renderSortIcon("daysToPropertyReady")}
+                            </div>
+                          </th>
+                        )}
                         {getVisibleColumnsForPhase(column.key).has("progress") && (
                           <th 
                             className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider cursor-pointer hover:bg-[var(--prophero-gray-100)] dark:hover:bg-[var(--prophero-gray-700)] transition-colors"
@@ -1096,6 +1160,42 @@ export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onV
                                       : "N/A"}
                                   </span>
                                 </div>
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("daysToVisit") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className="text-sm text-foreground">
+                                  {property.daysToVisit !== null && property.daysToVisit !== undefined 
+                                    ? `${property.daysToVisit} días`
+                                    : "N/A"}
+                                </span>
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("daysToStartRenoSinceRSD") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className="text-sm text-foreground">
+                                  {property.daysToStartRenoSinceRSD !== null && property.daysToStartRenoSinceRSD !== undefined 
+                                    ? `${property.daysToStartRenoSinceRSD} días`
+                                    : "N/A"}
+                                </span>
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("renoDuration") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className="text-sm text-foreground">
+                                  {property.renoDuration !== null && property.renoDuration !== undefined 
+                                    ? `${property.renoDuration} días`
+                                    : "N/A"}
+                                </span>
+                              </td>
+                            )}
+                            {getVisibleColumnsForPhase(column.key).has("daysToPropertyReady") && (
+                              <td className="px-4 py-3 whitespace-nowrap">
+                                <span className="text-sm text-foreground">
+                                  {property.daysToPropertyReady !== null && property.daysToPropertyReady !== undefined 
+                                    ? `${property.daysToPropertyReady} días`
+                                    : "N/A"}
+                                </span>
                               </td>
                             )}
                             {getVisibleColumnsForPhase(column.key).has("progress") && (
