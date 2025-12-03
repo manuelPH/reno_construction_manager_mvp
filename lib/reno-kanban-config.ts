@@ -52,7 +52,7 @@ export const renoKanbanColumns: RenoKanbanColumn[] = [
 
 // Visible columns (excluding hidden phases)
 export const visibleRenoKanbanColumns: RenoKanbanColumn[] = renoKanbanColumns.filter(
-  (column) => column.key !== "reno-fixes" && column.key !== "done" && column.key !== "orphaned" && column.key !== "reno-budget" // Hide legacy reno-budget
+  (column) => column.key !== "reno-fixes" && column.key !== "done" && column.key !== "orphaned" && column.key !== "reno-budget" && column.key !== "upcoming" // Hide legacy reno-budget and upcoming
 );
 
 

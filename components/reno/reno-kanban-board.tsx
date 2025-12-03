@@ -15,7 +15,7 @@ import { KanbanFilters } from "./reno-kanban-filters";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { MapPin, Calendar, User, Wrench, Clock, ChevronDown, ChevronUp, ArrowUpDown, Columns, Settings } from "lucide-react";
+import { MapPin, Calendar, User, Wrench, Clock, ChevronDown, ChevronUp, ArrowUpDown, Columns, Settings, AlertTriangle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -868,16 +868,47 @@ export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onV
         {/* Properties List */}
         <div className="space-y-6 pb-4 overflow-y-auto flex-1">
           {filteredPhases.map((column) => {
-            let properties = propertiesByPhaseForList[column.key] || [];
+            // Use filteredProperties directly to maintain kanban sorting logic
+            let properties = filteredProperties[column.key] || [];
             const phaseLabel = t.kanban[column.translationKey];
             const isCollapsed = collapsedPhases.has(column.key);
 
             if (properties.length === 0) return null;
 
-          // Apply sorting if active
+          // Apply manual sorting if active (this will override kanban sorting)
           if (sortColumn && sortDirection) {
             properties = sortProperties(properties, sortColumn, sortDirection);
           }
+
+          // Helper function to check if property should be marked in red (same logic as cards)
+          const shouldMarkRed = (prop: Property, phase: RenoKanbanPhase): boolean => {
+            // Check duration limit for reno-in-progress
+            if (phase === "reno-in-progress" && prop.renoDuration && prop.renoType) {
+              const renoTypeLower = prop.renoType.toLowerCase();
+              const duration = prop.renoDuration;
+              if (renoTypeLower.includes('light') && duration > 30) return true;
+              if (renoTypeLower.includes('medium') && duration > 60) return true;
+              if (renoTypeLower.includes('major') && duration > 120) return true;
+            }
+            
+            // Check Days to Start Reno limit for budget phases
+            const budgetPhases = ["reno-budget-renovator", "reno-budget-client", "reno-budget-start"];
+            if (budgetPhases.includes(phase) && prop.daysToStartRenoSinceRSD && prop.daysToStartRenoSinceRSD > 25) {
+              return true;
+            }
+            
+            // Check Days to Visit limit for initial-check and upcoming-settlements
+            if ((phase === "initial-check" || phase === "upcoming-settlements") && prop.daysToVisit && prop.daysToVisit > 5) {
+              return true;
+            }
+            
+            // Check Days to Property Ready limit for furnishing-cleaning
+            if (phase === "furnishing-cleaning" && prop.daysToPropertyReady && prop.daysToPropertyReady > 25) {
+              return true;
+            }
+            
+            return false;
+          };
 
           return (
             <div key={column.key} className="bg-card rounded-lg border border-border overflow-hidden">
@@ -1038,17 +1069,31 @@ export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onV
                     <tbody className="divide-y divide-border">
                       {properties.map((property) => {
                         const expired = isPropertyExpired(property);
+                        const isRed = shouldMarkRed(property, column.key);
                         return (
                           <tr
                             key={property.id}
                             onClick={() => handleCardClick(property)}
                             className={cn(
-                              "cursor-pointer hover:bg-accent dark:hover:bg-[var(--prophero-gray-800)] transition-colors",
-                              expired && "border-l-4 border-l-red-100 dark:border-l-red-900/30 bg-red-50 dark:bg-red-950/10"
+                              "cursor-pointer hover:bg-accent dark:hover:bg-[var(--prophero-gray-800)] transition-colors relative",
+                              expired && "bg-red-50 dark:bg-red-950/10"
                             )}
                           >
+                            {/* Alert icon in top right corner */}
+                            {isRed && (
+                              <div className="absolute top-2 right-2 z-10 pointer-events-none">
+                                <AlertTriangle className="h-5 w-5 text-red-500" />
+                              </div>
+                            )}
                             {getVisibleColumnsForPhase(column.key).has("id") && (
-                              <td className="px-4 py-3 whitespace-nowrap">
+                              <td 
+                                className={cn(
+                                  "px-4 py-3 whitespace-nowrap relative",
+                                  // Apply red border using pseudo-element on first cell
+                                  isRed && "before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[4px] before:bg-red-500 before:z-0",
+                                  expired && !isRed && "before:content-[''] before:absolute before:left-0 before:top-0 before:bottom-0 before:w-[4px] before:bg-red-100 before:dark:bg-red-900/30 before:z-0"
+                                )}
+                              >
                                 <div className="flex items-center gap-2">
                                   <span className="text-sm font-medium text-foreground">
                                     {property.uniqueIdFromEngagements || property.id}

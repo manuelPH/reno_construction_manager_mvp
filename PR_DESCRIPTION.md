@@ -1,107 +1,185 @@
-# PR: Mejoras en Kanban - Campos de días y filtro de obras tardías
+# Pull Request: Mejoras en Kanban de Construction Manager
 
-## 📋 Resumen
+## Resumen
+Esta PR incluye mejoras significativas en el Kanban del Construction Manager, incluyendo la división de la fase `reno-budget` en tres fases específicas, nuevos campos de visualización, filtros avanzados, y la integración de la vista de lista desarrollada por Ángel.
 
-Esta PR incluye mejoras significativas en el sistema de Kanban para el gestor de construcción, añadiendo nuevos campos de días desde Airtable, mejoras visuales en las cards y un nuevo filtro para obras tardías.
+## Cambios Principales
 
-## 🎯 Cambios Principales
+### 1. División de la Fase "Reno Budget" en Tres Fases Específicas
 
-### 1. Nuevo campo `days_to_visit` desde Airtable
-- ✅ Añadido campo `days_to_visit` (numeric) en Supabase
-- ✅ Mapeo desde Airtable campo "Days to visit"
-- ✅ Incluido en scripts de sincronización (`sync-from-airtable.ts`, `sync-unified.ts`)
-- ✅ Script de actualización masiva: `scripts/update-days-to-visit.ts`
-- ✅ Migración SQL para cambiar tipo de columna de `date` a `numeric`: `supabase/migrations/009_change_days_to_visit_to_numeric.sql`
+**Problema resuelto**: La fase `reno-budget` era demasiado genérica y no permitía distinguir entre diferentes estados del proceso de presupuesto.
 
-### 2. Visualización de campos de Kanban Cards
+**Solución**: Se dividió en tres nuevas fases:
+- **Pendiente Presupuesto (Renovador)** (`reno-budget-renovator`): Para propiedades con `Set Up Status == "Pending to budget (from renovator)"` o `"Pending to validate budget (from renovator)"`
+- **Pendiente Presupuesto (Cliente)** (`reno-budget-client`): Para propiedades con `Set Up Status == "Pending to budget (from client)"` o `"Pending to validate budget (from client)"`
+- **Obra a Empezar** (`reno-budget-start`): Para propiedades con `Set Up Status == "Reno to start"`
 
-#### Fase "Upcoming Settlements" y "Check Inicial"
-- ✅ Muestra campo "Días para visitar" en las cards
-- ✅ Ordenamiento de mayor a menor por `days_to_visit`
-- ✅ Marcado en rojo (borde izquierdo + triángulo de alerta) cuando `days_to_visit > 5`
-- ✅ Cards rojas aparecen primero en la columna
-- ✅ Ocultado texto "hace X días" en estas fases
+**Archivos modificados**:
+- `lib/reno-kanban-config.ts`: Añadidas nuevas fases al tipo `RenoKanbanPhase`
+- `lib/supabase/kanban-mapping.ts`: Añadidos mapeos específicos para las nuevas fases
+- `lib/i18n/translations.ts`: Añadidas traducciones para las nuevas fases
+- `components/reno/reno-kanban-board.tsx`: Lógica de ordenamiento y filtrado para las nuevas fases
+- `components/reno/reno-property-card.tsx`: Visualización de las nuevas fases en las cards
+- `hooks/useSupabaseKanbanProperties.ts`: Soporte para las nuevas fases
 
-#### Fase "Limpieza y Amoblamiento" (furnishing-cleaning)
-- ✅ Muestra campo "Días para propiedad lista" (`daysToPropertyReady`)
-- ✅ Ordenamiento de mayor a menor por `daysToPropertyReady`
-- ✅ Marcado en rojo cuando `daysToPropertyReady > 25`
-- ✅ Cards rojas aparecen primero en la columna
-- ✅ Ocultado texto "hace X días" en esta fase
+### 2. Campo "Days to Visit" (`days_to_visit`)
 
-### 3. Nuevo filtro "Obras Tardías"
-- ✅ Añadido checkbox "Obras Tardías" en el diálogo de filtros
-- ✅ Filtra solo propiedades marcadas en rojo según su fase:
-  - `reno-in-progress`: según tipo de reno (Light > 30, Medium > 60, Major > 120 días)
-  - `reno-budget-renovator/client/start`: `daysToStartRenoSinceRSD > 25`
-  - `initial-check/upcoming-settlements`: `daysToVisit > 5`
-  - `furnishing-cleaning`: `daysToPropertyReady > 25`
-- ✅ Se combina con otros filtros (AND con obras tardías, OR entre otros filtros)
+**Nuevo campo**: Se añadió el campo `days_to_visit` (numérico) mapeado desde Airtable "Days to visit".
 
-### 4. Mejoras en tipos y mapeos
-- ✅ Actualizado `lib/supabase/types.ts` con nuevo campo `days_to_visit`
-- ✅ Actualizado `lib/property-storage.ts` con `daysToVisit` y `daysToPropertyReady`
-- ✅ Actualizado `hooks/useSupabaseKanbanProperties.ts` para mapear nuevos campos
+**Funcionalidades**:
+- Sincronización en cron jobs (`lib/airtable/sync-from-airtable.ts`, `lib/airtable/sync-unified.ts`)
+- Visualización en las cards de las fases "Check Inicial" e "Upcoming Reno" con la etiqueta "Días para visitar"
+- Ordenamiento: Las propiedades se ordenan de mayor a menor según `days_to_visit`
+- Marcado en rojo: Las propiedades con `days_to_visit > 5` se marcan en rojo (borde izquierdo y triángulo de alerta)
 
-## 📁 Archivos Modificados
+**Archivos modificados**:
+- `lib/property-storage.ts`: Añadido `daysToVisit?: number | null` al interface `Property`
+- `lib/supabase/types.ts`: Añadido `days_to_visit: number | null` a los tipos de Supabase
+- `lib/airtable/sync-from-airtable.ts`: Mapeo desde Airtable
+- `lib/airtable/sync-unified.ts`: Mapeo desde Airtable
+- `lib/supabase/property-converter.ts`: Conversión desde Supabase
+- `hooks/useSupabaseKanbanProperties.ts`: Inclusión en propiedades del kanban
+- `components/reno/reno-property-card.tsx`: Visualización y lógica de marcado en rojo
+- `components/reno/reno-kanban-board.tsx`: Ordenamiento y filtrado
 
-### Componentes
-- `components/reno/reno-property-card.tsx` - Visualización de campos y marcado en rojo
-- `components/reno/reno-kanban-board.tsx` - Ordenamiento y filtrado
-- `components/reno/reno-kanban-filters.tsx` - Nuevo filtro de obras tardías
-- `components/reno/reno-kanban-column.tsx` - Mejoras en título de columnas
+**Migración de base de datos**:
+- `supabase/migrations/009_change_days_to_visit_to_numeric.sql`: Migración para cambiar el tipo de columna de `date` a `integer`
 
-### Hooks y Utilidades
-- `hooks/useSupabaseKanbanProperties.ts` - Mapeo de nuevos campos
-- `lib/property-storage.ts` - Tipos actualizados
-- `lib/supabase/types.ts` - Tipos de Supabase actualizados
-- `lib/supabase/kanban-mapping.ts` - Mapeos mejorados
+**Scripts**:
+- `scripts/update-days-to-visit.ts`: Script para actualización masiva del campo desde Airtable
 
-### Sincronización
-- `lib/airtable/sync-from-airtable.ts` - Mapeo de `days_to_visit`
-- `lib/airtable/sync-unified.ts` - Mapeo de `days_to_visit`
+### 3. Campo Editable "Nombre del Renovador"
 
-### Scripts
-- `scripts/update-days-to-visit.ts` - Script de actualización masiva
-- `scripts/check-days-to-visit-type.ts` - Script de verificación
+**Nueva funcionalidad**: Campo editable para el nombre del renovador en las fases de presupuesto.
 
-### Migraciones
-- `supabase/migrations/009_change_days_to_visit_to_numeric.sql` - Cambio de tipo de columna
+**Características**:
+- Visible siempre en las fases `reno-budget-renovator` y `reno-budget-client`
+- Campo de texto libre editable
+- Sincronización bidireccional: cambios se guardan en Supabase y luego en Airtable
+- Feedback visual: Toast notifications para éxito/error
+- Guardado automático al hacer blur o presionar Enter
 
-## 🚀 Cómo Probar
+**Archivos modificados**:
+- `components/reno/property-action-tab.tsx`: Campo editable con lógica de guardado
+- `app/reno/construction-manager/property/[id]/page.tsx`: Callback para actualizar renovator name
+- `lib/airtable/client.ts`: Funciones de actualización en Airtable
 
-1. **Migración de Base de Datos:**
-   ```sql
-   -- Ejecutar en Supabase SQL Editor
-   -- Archivo: supabase/migrations/009_change_days_to_visit_to_numeric.sql
-   ```
+### 4. Filtro "Obras Tardías"
 
-2. **Sincronización de Datos:**
-   ```bash
-   npx tsx scripts/update-days-to-visit.ts
-   ```
+**Nuevo filtro**: Checkbox para filtrar solo las propiedades marcadas en rojo.
 
-3. **Verificar en UI:**
-   - Verificar que las cards muestran "Días para visitar" en fases correspondientes
-   - Verificar que las cards muestran "Días para propiedad lista" en furnishing-cleaning
-   - Verificar ordenamiento (mayor a menor)
-   - Verificar marcado en rojo cuando superan los límites
-   - Probar filtro "Obras Tardías"
+**Lógica**: Muestra únicamente las propiedades que cumplen alguno de estos criterios:
+- `reno-in-progress`: Duración excede límites según tipo (Light > 30, Medium > 60, Major > 120 días)
+- `reno-budget-renovator`, `reno-budget-client`, `reno-budget-start`: `daysToStartRenoSinceRSD > 25`
+- `initial-check`, `upcoming-settlements`: `daysToVisit > 5`
+- `furnishing-cleaning`: `daysToPropertyReady > 25`
 
-## ⚠️ Notas Importantes
+**Archivos modificados**:
+- `components/reno/reno-kanban-filters.tsx`: Añadido checkbox "Obras Tardías"
+- `components/reno/reno-kanban-board.tsx`: Lógica de filtrado
+- `app/reno/construction-manager/kanban/page.tsx`: Estado del filtro
 
-- La migración SQL eliminará datos existentes en `days_to_visit` si estaban en formato fecha
-- Los datos se repoblarán desde Airtable al ejecutar el script de sincronización
-- El filtro de obras tardías funciona como AND con otros filtros (si está activo, solo muestra tardías)
+### 5. Mejoras en Visualización y Ordenamiento
 
-## 📝 Checklist
+**Ordenamiento mejorado por fase**:
+- **Check Inicial** y **Upcoming Reno**: Ordenadas por `days_to_visit` descendente, propiedades rojas primero
+- **Pendiente Presupuesto (Renovador/Cliente/Start)**: Ordenadas por `daysToStartRenoSinceRSD` descendente, propiedades rojas primero
+- **Obras en Proceso**: Ordenadas por `renoDuration` descendente, propiedades rojas primero según límites por tipo
+- **Limpieza y Amoblamiento**: Ordenadas por `daysToPropertyReady` descendente, propiedades rojas primero
 
-- [x] Campos añadidos a tipos TypeScript
-- [x] Mapeo desde Airtable implementado
-- [x] Visualización en cards implementada
-- [x] Ordenamiento implementado
-- [x] Marcado en rojo implementado
-- [x] Filtro de obras tardías implementado
-- [x] Scripts de sincronización actualizados
-- [x] Migración SQL creada
-- [x] Documentación actualizada
+**Marcado en rojo**:
+- Borde izquierdo rojo de 4px
+- Triángulo de alerta en la esquina superior derecha
+- Criterios específicos por fase (ver sección de filtro)
+
+**Ocultación de "Hace X días"**:
+- Ocultado en las fases: `upcoming-settlements`, `initial-check`, `reno-budget-renovator`, `reno-budget-client`, `reno-budget-start`, `furnishing-cleaning`
+
+**Archivos modificados**:
+- `components/reno/reno-property-card.tsx`: Lógica de marcado en rojo y ocultación de tiempo en fase
+- `components/reno/reno-kanban-board.tsx`: Funciones de ordenamiento personalizadas
+
+### 6. Integración de Vista de Lista
+
+**Integración**: Se integró la vista de lista desarrollada por Ángel manteniendo todos nuestros cambios.
+
+**Características mantenidas**:
+- Mismo ordenamiento que en vista kanban
+- Mismo marcado en rojo (borde izquierdo y triángulo de alerta)
+- Misma lógica de filtrado
+- Navegación directa a tab "tareas" al hacer clic
+
+**Mejoras aplicadas**:
+- Borde rojo usando pseudo-elemento `::before` en la primera celda para evitar desplazamiento de contenido
+- Icono de alerta posicionado absolutamente en la esquina superior derecha
+
+**Archivos modificados**:
+- `components/reno/reno-kanban-board.tsx`: Integración de lógica de ordenamiento y marcado en rojo en `renderListView`
+
+### 7. Correcciones y Ajustes
+
+**Ocultación de columna "Próximas propiedades"**:
+- La fase `upcoming` (de upstream) se ocultó del kanban ya que no es necesaria
+
+**Corrección de mapeo "Reno to start"**:
+- Se aseguró que `Set Up Status == "Reno to start"` mapee correctamente a `reno-budget-start`
+
+**Navegación mejorada**:
+- Al hacer clic en una card desde el kanban, siempre navega al tab "tareas"
+- Para fases `reno-budget-renovator` y `reno-budget-client`, siempre muestra el tab "tareas" incluso si no hay tareas
+
+**Archivos modificados**:
+- `lib/reno-kanban-config.ts`: Ocultación de fase `upcoming`
+- `lib/supabase/kanban-mapping.ts`: Corrección de mapeo "Reno to start"
+- `app/reno/construction-manager/property/[id]/page.tsx`: Lógica de navegación mejorada
+
+## Archivos Nuevos
+
+- `supabase/migrations/009_change_days_to_visit_to_numeric.sql`: Migración SQL
+- `scripts/update-days-to-visit.ts`: Script de actualización masiva
+- `scripts/check-days-to-visit-type.ts`: Script de verificación
+- `docs/CHANGE_DAYS_TO_VISIT_TYPE.md`: Documentación de migración
+
+## Dependencias
+
+- `mixpanel-browser`: Ya estaba en `package.json`, se instaló para resolver error de build
+
+## Testing
+
+### Casos de prueba recomendados:
+
+1. **Nuevas fases de presupuesto**:
+   - Verificar que las propiedades se asignan correctamente a las tres nuevas fases según su `Set Up Status`
+   - Verificar ordenamiento y marcado en rojo en cada fase
+
+2. **Campo days_to_visit**:
+   - Verificar visualización en cards de "Check Inicial" e "Upcoming Reno"
+   - Verificar ordenamiento y marcado en rojo cuando `> 5 días`
+
+3. **Campo editable renovator name**:
+   - Editar nombre en fases `reno-budget-renovator` y `reno-budget-client`
+   - Verificar que se guarda en Supabase y Airtable
+
+4. **Filtro obras tardías**:
+   - Activar filtro y verificar que solo muestra propiedades marcadas en rojo
+   - Verificar que funciona en todas las fases
+
+5. **Vista de lista**:
+   - Verificar que mantiene mismo ordenamiento que kanban
+   - Verificar que el marcado en rojo no desplaza el contenido
+   - Verificar navegación al hacer clic
+
+## Notas Importantes
+
+- La fase legacy `reno-budget` se mantiene oculta pero presente para compatibilidad
+- La fase `upcoming` de upstream se oculta pero se mantiene en el código para compatibilidad
+- Se requiere ejecutar la migración SQL `009_change_days_to_visit_to_numeric.sql` antes de desplegar
+- Se recomienda ejecutar `scripts/update-days-to-visit.ts` después de la migración para poblar el campo
+
+## Breaking Changes
+
+Ninguno. Todos los cambios son retrocompatibles.
+
+## Screenshots / Demos
+
+(Se pueden añadir screenshots de las nuevas funcionalidades si es necesario)
