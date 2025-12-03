@@ -222,6 +222,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     const sorted: typeof filtered = {
       "upcoming-settlements": sortPropertiesByExpired(filtered["upcoming-settlements"]),
       "initial-check": sortPropertiesByExpired(filtered["initial-check"]),
+      "upcoming": sortPropertiesByExpired(filtered["upcoming"]),
       "reno-budget": sortPropertiesByExpired(filtered["reno-budget"]),
       "reno-in-progress": sortPropertiesByExpired(filtered["reno-in-progress"]),
       "furnishing-cleaning": sortPropertiesByExpired(filtered["furnishing-cleaning"]),
