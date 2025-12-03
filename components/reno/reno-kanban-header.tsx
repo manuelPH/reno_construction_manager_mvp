@@ -1,17 +1,22 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, LayoutGrid, List } from "lucide-react";
 import { FilterIcon } from "@/components/icons/filter-icon";
 import { Input } from "@/components/ui/input";
 import { useI18n } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
+
+type ViewMode = "kanban" | "list";
 
 interface RenoKanbanHeaderProps {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   onMenuToggle?: () => void;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
-export function RenoKanbanHeader({ searchQuery, setSearchQuery, onMenuToggle }: RenoKanbanHeaderProps) {
+export function RenoKanbanHeader({ searchQuery, setSearchQuery, onMenuToggle, viewMode = "kanban", onViewModeChange }: RenoKanbanHeaderProps) {
   const { t } = useI18n();
 
   return (
@@ -53,6 +58,38 @@ export function RenoKanbanHeader({ searchQuery, setSearchQuery, onMenuToggle }: 
           >
             <FilterIcon className="h-4 w-4 text-foreground" />
           </button>
+          
+          {/* View Mode Toggle - Mobile */}
+          {onViewModeChange && (
+            <div className="flex items-center gap-1 bg-accent dark:bg-[var(--prophero-gray-800)] rounded-lg p-1">
+              <button
+                onClick={() => onViewModeChange("kanban")}
+                className={cn(
+                  "px-2 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1",
+                  viewMode === "kanban"
+                    ? "bg-[var(--prophero-blue-500)] text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label="Kanban view"
+              >
+                <LayoutGrid className="h-3 w-3" />
+                <span className="hidden sm:inline">Kanban</span>
+              </button>
+              <button
+                onClick={() => onViewModeChange("list")}
+                className={cn(
+                  "px-2 py-1.5 rounded-md text-xs font-medium transition-colors flex items-center gap-1",
+                  viewMode === "list"
+                    ? "bg-[var(--prophero-blue-500)] text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label="List view"
+              >
+                <List className="h-3 w-3" />
+                <span className="hidden sm:inline">List</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -80,6 +117,38 @@ export function RenoKanbanHeader({ searchQuery, setSearchQuery, onMenuToggle }: 
           >
             <FilterIcon className="h-4 w-4 text-foreground" />
           </button>
+          
+          {/* View Mode Toggle - Desktop */}
+          {onViewModeChange && (
+            <div className="flex items-center gap-1 bg-accent dark:bg-[var(--prophero-gray-800)] rounded-lg p-1">
+              <button
+                onClick={() => onViewModeChange("kanban")}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                  viewMode === "kanban"
+                    ? "bg-[var(--prophero-blue-500)] text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label="Kanban view"
+              >
+                <LayoutGrid className="h-4 w-4" />
+                Kanban
+              </button>
+              <button
+                onClick={() => onViewModeChange("list")}
+                className={cn(
+                  "px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-2",
+                  viewMode === "list"
+                    ? "bg-[var(--prophero-blue-500)] text-white"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+                aria-label="List view"
+              >
+                <List className="h-4 w-4" />
+                List
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
