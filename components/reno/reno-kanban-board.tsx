@@ -10,18 +10,25 @@ import { useSupabaseKanbanProperties } from "@/hooks/useSupabaseKanbanProperties
 import { calculateOverallProgress } from "@/lib/property-validation";
 import { useI18n } from "@/lib/i18n";
 import { visibleRenoKanbanColumns, RenoKanbanPhase } from "@/lib/reno-kanban-config";
-import { sortPropertiesByExpired } from "@/lib/property-sorting";
+import { sortPropertiesByExpired, isPropertyExpired } from "@/lib/property-sorting";
 import { KanbanFilters } from "./reno-kanban-filters";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { MapPin, Calendar, User, Wrench, Clock } from "lucide-react";
+
+type ViewMode = "kanban" | "list";
 
 interface RenoKanbanBoardProps {
   searchQuery: string;
   filters?: KanbanFilters;
+  viewMode?: ViewMode;
+  onViewModeChange?: (mode: ViewMode) => void;
 }
 
 // Dummy data and helper functions removed - now using Supabase
 
-export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) {
-  const { t } = useI18n();
+export function RenoKanbanBoard({ searchQuery, filters, viewMode = "kanban", onViewModeChange }: RenoKanbanBoardProps) {
+  const { t, language } = useI18n();
   const [isHovered, setIsHovered] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
@@ -352,7 +359,148 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     );
   }
 
-  return (
+  // Format date helper
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    const locale = language === "es" ? "es-ES" : "en-US";
+    return date.toLocaleDateString(locale, {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+  };
+
+  // Get all properties for list view with their phase
+  const allPropertiesForList = useMemo(() => {
+    const allProps: Array<Property & { currentPhase?: RenoKanbanPhase }> = [];
+    visibleRenoKanbanColumns.forEach((column) => {
+      const properties = filteredProperties[column.key] || [];
+      allProps.push(...properties.map(p => ({ ...p, currentPhase: column.key })));
+    });
+    return allProps;
+  }, [filteredProperties]);
+
+  // Render List View
+  const renderListView = () => {
+    if (allPropertiesForList.length === 0) {
+      return (
+        <div className="flex items-center justify-center h-full p-6">
+          <div className="text-center space-y-2">
+            <p className="text-muted-foreground">No properties found</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-3 pb-4">
+        {allPropertiesForList.map((property) => {
+          const expired = isPropertyExpired(property);
+          const phase = property.currentPhase || "upcoming-settlements";
+          const phaseColumn = visibleRenoKanbanColumns.find(c => c.key === phase);
+          const phaseLabel = phaseColumn ? t.kanban[phaseColumn.translationKey] : phase;
+
+          return (
+            <Card
+              key={property.id}
+              onClick={() => handleCardClick(property)}
+              className={cn(
+                "bg-card cursor-pointer hover:bg-accent dark:hover:bg-[var(--prophero-gray-800)] transition-colors",
+                expired && "border-l-4 border-l-red-500"
+              )}
+            >
+              <CardContent className="p-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  {/* Left side: Main info */}
+                  <div className="flex-1 min-w-0 space-y-2">
+                    {/* ID and Phase */}
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-semibold text-foreground text-sm">
+                        ID {property.uniqueIdFromEngagements || property.id}
+                      </p>
+                      {expired && (
+                        <Badge variant="destructive" className="text-xs">
+                          {t.propertyCard.expired}
+                        </Badge>
+                      )}
+                      <Badge variant="outline" className="text-xs">
+                        {phaseLabel}
+                      </Badge>
+                    </div>
+
+                    {/* Address */}
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                      <p className="text-sm text-foreground break-words line-clamp-2">
+                        {property.fullAddress}
+                        {property.region && (
+                          <span className="text-xs text-muted-foreground ml-1">({property.region})</span>
+                        )}
+                      </p>
+                    </div>
+
+                    {/* Details row */}
+                    <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground">
+                      {/* Renovator */}
+                      {property.renovador && (
+                        <div className="flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          <span className="truncate">{property.renovador}</span>
+                        </div>
+                      )}
+
+                      {/* Reno Type */}
+                      {property.renoType && (
+                        <Badge variant="secondary" className="text-xs">
+                          {property.renoType}
+                        </Badge>
+                      )}
+
+                      {/* Estimated Visit Date */}
+                      {(property as any).estimatedVisitDate && (
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          <span>{formatDate((property as any).estimatedVisitDate)}</span>
+                        </div>
+                      )}
+
+                      {/* Proxima Actualizacion */}
+                      {property.proximaActualizacion && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="h-3 w-3" />
+                          <span>
+                            {t.propertyCard.next || "Next"}: {formatDate(property.proximaActualizacion)}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Right side: Progress/Status */}
+                  <div className="flex items-center gap-3 sm:flex-shrink-0">
+                    {(property as any).progress !== undefined && (
+                      <div className="text-right">
+                        <div className="text-sm font-semibold text-foreground">
+                          {Math.round((property as any).progress)}%
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {t.propertyCard.completed || "Completed"}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Render Kanban View
+  const renderKanbanView = () => (
     <div
       ref={boardContainerRef}
       className={cn(
@@ -408,5 +556,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
       </div>
     </div>
   );
+
+  return viewMode === "list" ? renderListView() : renderKanbanView();
 }
 
