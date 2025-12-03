@@ -124,6 +124,7 @@ export interface Translations {
       // Reno Construction Manager phases
       upcomingSettlements: string;
       initialCheck: string;
+      upcoming: string;
       renoBudget: string;
       renoInProgress: string;
       furnishingCleaning: string;
@@ -628,6 +629,7 @@ export const translations: Record<Language, Translations> = {
       // Reno Construction Manager phases
       upcomingSettlements: "Upcoming Reno",
       initialCheck: "Check inicial",
+      upcoming: "Próximas propiedades",
       renoBudget: "Reno Budget",
       renoInProgress: "Obras en proceso",
       furnishingCleaning: "Limpieza y amoblamiento",
@@ -1533,6 +1535,7 @@ export const translations: Record<Language, Translations> = {
       // Reno Construction Manager phases
       upcomingSettlements: "Upcoming Reno",
       initialCheck: "Initial Check",
+      upcoming: "Upcoming Properties",
       renoBudget: "Reno Budget",
       renoInProgress: "Reno in Progress",
       furnishingCleaning: "Furnishing/Cleaning",

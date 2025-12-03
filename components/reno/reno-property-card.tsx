@@ -8,7 +8,7 @@ import { Property } from "@/lib/property-storage";
 import { isPropertyExpired } from "@/lib/property-sorting";
 import { useI18n } from "@/lib/i18n";
 
-type RenoStage = "upcoming-settlements" | "initial-check" | "reno-budget" | "reno-in-progress" | "furnishing-cleaning" | "final-check" | "reno-fixes" | "done";
+type RenoStage = "upcoming-settlements" | "initial-check" | "upcoming" | "reno-budget" | "reno-in-progress" | "furnishing-cleaning" | "final-check" | "reno-fixes" | "done";
 
 interface RenoPropertyCardProps {
   property: Property;
