@@ -7,6 +7,7 @@ import { Calendar } from "lucide-react";
 import { Property } from "@/lib/property-storage";
 import { isPropertyExpired } from "@/lib/property-sorting";
 import { useI18n } from "@/lib/i18n";
+import { useMixpanel } from "@/hooks/useMixpanel";
 
 type RenoStage = "upcoming-settlements" | "initial-check" | "upcoming" | "reno-budget" | "reno-in-progress" | "furnishing-cleaning" | "final-check" | "reno-fixes" | "done";
 
@@ -28,6 +29,7 @@ export function RenoPropertyCard({
   showRenoDetails = true,
 }: RenoPropertyCardProps) {
   const { t, language } = useI18n();
+  const { track } = useMixpanel();
   const isExpired = isPropertyExpired(property);
 
   const needsUpdateToday = property.proximaActualizacion
@@ -97,7 +99,16 @@ export function RenoPropertyCard({
           : "",
         isExpired && "border-l-4 border-l-red-100 dark:border-l-red-900/30"
       )}
-      onClick={disabled ? undefined : onClick}
+      onClick={disabled ? undefined : () => {
+        track("Property Card Clicked", {
+          property_id: property.id,
+          property_phase: stage,
+          property_type: property.propertyType,
+          renovation_type: property.renoType,
+          is_expired: isExpired,
+        });
+        onClick?.();
+      }}
     >
       {/* ID and Expired tag aligned at top */}
       <div className="flex items-center justify-between mb-2 gap-2 min-w-0">
