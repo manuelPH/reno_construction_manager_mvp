@@ -4,6 +4,7 @@
 export type RenoKanbanPhase = 
   | "upcoming-settlements"
   | "initial-check"
+  | "upcoming"
   | "reno-budget"
   | "reno-in-progress"
   | "furnishing-cleaning"
@@ -17,6 +18,7 @@ export interface RenoKanbanColumn {
   translationKey: keyof {
     upcomingSettlements: string;
     initialCheck: string;
+    upcoming: string;
     renoBudget: string;
     renoInProgress: string;
     furnishingCleaning: string;
@@ -29,6 +31,7 @@ export interface RenoKanbanColumn {
 export const renoKanbanColumns: RenoKanbanColumn[] = [
   { key: "upcoming-settlements", stage: "upcoming-settlements", translationKey: "upcomingSettlements" },
   { key: "initial-check", stage: "initial-check", translationKey: "initialCheck" },
+  { key: "upcoming", stage: "upcoming", translationKey: "upcoming" },
   { key: "reno-budget", stage: "reno-budget", translationKey: "renoBudget" },
   { key: "reno-in-progress", stage: "reno-in-progress", translationKey: "renoInProgress" },
   { key: "furnishing-cleaning", stage: "furnishing-cleaning", translationKey: "furnishingCleaning" },
