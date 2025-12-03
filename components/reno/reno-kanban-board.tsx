@@ -70,6 +70,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
       return {
       "upcoming-settlements": [],
       "initial-check": [],
+      "upcoming": [],
       "reno-budget": [],
       "reno-in-progress": [],
       "furnishing-cleaning": [],
@@ -84,6 +85,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     const sorted: Record<RenoKanbanPhase, Property[]> = {
       "upcoming-settlements": sortPropertiesByExpired(transformProperties["upcoming-settlements"] || []),
       "initial-check": sortPropertiesByExpired(transformProperties["initial-check"] || []),
+      "upcoming": sortPropertiesByExpired(transformProperties["upcoming"] || []),
       "reno-budget": sortPropertiesByExpired(transformProperties["reno-budget"] || []),
       "reno-in-progress": sortPropertiesByExpired(transformProperties["reno-in-progress"] || []),
       "furnishing-cleaning": sortPropertiesByExpired(transformProperties["furnishing-cleaning"] || []),
@@ -207,6 +209,7 @@ export function RenoKanbanBoard({ searchQuery, filters }: RenoKanbanBoardProps) 
     const filtered: typeof allProperties = {
       "upcoming-settlements": allProperties["upcoming-settlements"].filter(matchesAll),
       "initial-check": allProperties["initial-check"].filter(matchesAll),
+      "upcoming": allProperties["upcoming"].filter(matchesAll),
       "reno-budget": allProperties["reno-budget"].filter(matchesAll),
       "reno-in-progress": allProperties["reno-in-progress"].filter(matchesAll),
       "furnishing-cleaning": allProperties["furnishing-cleaning"].filter(matchesAll),

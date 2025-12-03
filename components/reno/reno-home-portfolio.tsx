@@ -27,6 +27,7 @@ export function RenoHomePortfolio({ properties, propertiesByPhase: propsProperti
     const counts: Record<RenoKanbanPhase, number> = {
       "upcoming-settlements": 0,
       "initial-check": 0,
+      "upcoming": 0,
       "reno-budget": 0,
       "reno-in-progress": 0,
       "furnishing-cleaning": 0,
@@ -55,6 +56,7 @@ export function RenoHomePortfolio({ properties, propertiesByPhase: propsProperti
     const stageMap: Record<RenoKanbanPhase, string> = {
       "upcoming-settlements": language === "es" ? "Upcoming Reno" : "Upcoming Reno",
       "initial-check": language === "es" ? "Check inicial" : "Initial Check",
+      "upcoming": language === "es" ? "Próximas propiedades" : "Upcoming Properties",
       "reno-budget": language === "es" ? "Reno Budget" : "Reno Budget",
       "reno-in-progress": language === "es" ? "Obras en proceso" : "Reno In Progress",
       "furnishing-cleaning": language === "es" ? "Limpieza y amoblamiento" : "Furnishing & Cleaning",
